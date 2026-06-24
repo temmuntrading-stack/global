@@ -8,8 +8,20 @@
     { key:"about",     href:"about.html",     i:"nav.about" },
     { key:"practice",  href:"practice.html",  i:"nav.practice" },
     { key:"resources", href:"resources.html", i:"nav.resources" },
-    { key:"blog",      href:BLOG, i:"nav.blog", ext:true },
+    { key:"blog",      href:"blog.html", i:"nav.blog" },
     { key:"contact",   href:"contact.html",   i:"nav.contact" },
+  ];
+  /* 업무분야 9개 카테고리 → 페이지 매핑 (ncat.1 … ncat.9) */
+  var NCAT_HREF = [
+    "civil-criminal.html",       /* 1 민사·형사 */
+    "divorce-admin.html",        /* 2 이혼·행정소송 */
+    "traffic-accident.html",     /* 3 교통사고·손해배상 */
+    "industrial-accident.html",  /* 4 산업재해·체불임금 */
+    "immigration-overstay.html", /* 5 불법체류·출국명령 */
+    "visa-invitation.html",      /* 6 체류비자·초청·통역 */
+    "refugee.html",              /* 7 난민 신청 */
+    "admin-appeal.html",         /* 8 행정심판·처분 구제 */
+    "licensing-corporate.html"   /* 9 인허가·법인설립 */
   ];
   var page = document.body.getAttribute("data-page") || "home";
 
@@ -20,7 +32,7 @@
       if(mobile){
         if(n.key === "practice"){
           var msub = "";
-          for(var j = 1; j <= 9; j++){ var hj = (j === 1) ? "civil-criminal.html" : (j === 4) ? "industrial-accident.html" : "practice.html"; msub += '<a href="'+hj+'" data-i18n="ncat.'+j+'"></a>'; }
+          for(var j = 1; j <= 9; j++){ var hj = NCAT_HREF[j-1] || "practice.html"; msub += '<a href="'+hj+'" data-i18n="ncat.'+j+'"></a>'; }
           msub += '<a href="practice.html" class="more" data-i18n="home.cat.more"></a>';
           return '<div class="m-acc">'
             + '<button class="m-acc-btn" type="button" aria-expanded="false">'
@@ -34,7 +46,7 @@
       var sub = "";
       if(n.key === "practice"){
         var items = "";
-        for(var i = 1; i <= 9; i++){ var h = (i === 1) ? "civil-criminal.html" : (i === 4) ? "industrial-accident.html" : "practice.html"; items += '<a href="'+h+'" data-i18n="ncat.'+i+'"></a>'; }
+        for(var i = 1; i <= 9; i++){ var h = NCAT_HREF[i-1] || "practice.html"; items += '<a href="'+h+'" data-i18n="ncat.'+i+'"></a>'; }
         sub = '<div class="nav-sub">' + items
           + '<a href="practice.html" class="more" data-i18n="home.cat.more"></a></div>';
       }
@@ -92,9 +104,9 @@
   drawer.className = "drawer";
   drawer.innerHTML = '<nav>'+navLinks(true)+'</nav>'
     + '<div class="drawer-foot">'
-      + '<span class="num">02 2277 2442</span>'
-      + '<span>lawsqare@naver.com</span>'
-      + '<span data-i18n="ci.addr.v"></span></div>';
+      + '<span class="num" data-set="phone">02 2277 2442</span>'
+      + '<span data-set="email">lawsqare@naver.com</span>'
+      + '<span data-i18n="ci.addr.v" data-set="address"></span></div>';
   document.body.appendChild(drawer);
 
   /* ── mobile drawer: accordion submenus ── */
@@ -120,13 +132,13 @@
         + '<li><a href="about.html" data-i18n="nav.about"></a></li>'
         + '<li><a href="practice.html" data-i18n="nav.practice"></a></li>'
         + '<li><a href="resources.html" data-i18n="nav.resources"></a></li>'
-        + '<li><a href="'+BLOG+'" target="_blank" rel="noopener" data-i18n="nav.blog"></a></li>'
+        + '<li><a href="blog.html" data-i18n="nav.blog"></a></li>'
         + '<li><a href="contact.html" data-i18n="nav.contact"></a></li></ul></div>'
       + '<div class="foot-col"><h4 data-i18n="foot.contact"></h4><ul>'
-        + '<li><a href="tel:+82222772442" class="num">02 2277 2442</a></li>'
-        + '<li><a href="mailto:lawsqare@naver.com">lawsqare@naver.com</a></li>'
-        + '<li data-i18n="ci.addr.v"></li>'
-        + '<li data-i18n="ci.hours.v"></li></ul></div>'
+        + '<li><a href="tel:+82222772442" class="num" data-set="phone" data-set-tel>02 2277 2442</a></li>'
+        + '<li><a href="mailto:lawsqare@naver.com" data-set="email" data-set-mail>lawsqare@naver.com</a></li>'
+        + '<li data-i18n="ci.addr.v" data-set="address"></li>'
+        + '<li data-i18n="ci.hours.v" data-set="hours"></li></ul></div>'
       + '</div>'
       + '<div class="foot-bar"><span data-i18n="foot.rights"></span>'
         + '<span data-i18n="foot.disclaimer"></span></div></div>';
@@ -144,28 +156,36 @@
       + '<span data-i18n="home.qa2.t"></span></a>';
   document.body.appendChild(fab);
 
-  /* ── mobile bottom tab bar (home / search / consult / my) ── */
+  /* ── mobile bottom tab bar (app-style: 홈 / 업무분야 / 자료실 / 상담 / 메뉴) ── */
   var page = document.body.getAttribute("data-page") || "";
   var mtabs = [
-    { href:"index.html",    i:"mtab.home",    act:["home"],
+    { href:"index.html",    i:"mtab.home",      act:["home"],
       svg:'<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/>' },
-    { href:"practice.html", i:"mtab.search",  act:["practice","resources"],
-      svg:'<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-3.6-3.6"/>' },
-    { href:"contact.html",  i:"mtab.consult", act:["contact"],
+    { href:"practice.html", i:"mtab.practice",  act:["practice"],
+      svg:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M3 12h18"/>' },
+    { href:"resources.html",i:"mtab.resources", act:["resources"],
+      svg:'<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>' },
+    { href:"contact.html",  i:"mtab.consult",   act:["contact"],
       svg:'<path d="M21 11.5a8.4 8.4 0 0 1-9 8 9 9 0 0 1-4-1L3 20l1.5-4.5a8.4 8.4 0 0 1-1-4A8.5 8.5 0 0 1 21 11.5z"/><path d="M9 11h6M9 14h4"/>' },
-    { href:"#",             i:"mtab.my",      act:["mypage"],
-      svg:'<circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/>' }
+    { href:"#menu",         i:"mtab.menu",      act:["about"], menu:true,
+      svg:'<path d="M4 7h16M4 12h16M4 17h16"/>' }
   ];
   var mtab = document.createElement("nav");
   mtab.className = "mtabbar";
   mtab.setAttribute("aria-label", "모바일 메뉴");
   mtab.innerHTML = mtabs.map(function(t){
     var on = t.act.indexOf(page) > -1 ? " is-active" : "";
-    return '<a class="mtab'+on+'" href="'+t.href+'">'
-      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+t.svg+'</svg>'
-      + '<span data-i18n="'+t.i+'"></span></a>';
+    return '<a class="mtab'+on+'" href="'+t.href+'"'+(t.menu ? ' data-menu="1"' : '')+'>'
+      + '<span class="mt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+t.svg+'</svg></span>'
+      + '<span class="mt-l" data-i18n="'+t.i+'"></span></a>';
   }).join("");
   document.body.appendChild(mtab);
+
+  /* 메뉴 탭 → 드로어 열기 */
+  var menuTab = mtab.querySelector("[data-menu]");
+  if(menuTab){
+    menuTab.addEventListener("click", function(e){ e.preventDefault(); document.body.classList.toggle("menu-open"); });
+  }
 
   /* ── language switcher behavior ── */
   function syncLangBtn(code){
@@ -217,6 +237,32 @@
     });
   }, { threshold:0.12, rootMargin:"0px 0px -8% 0px" });
   document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+
+  /* ── count-up stats ([data-count] animates 0 → value on first view) ── */
+  var reduceMo = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function runCount(el){
+    var target = parseFloat(el.getAttribute("data-count"));
+    if(isNaN(target)){ return; }
+    var decimals = (el.getAttribute("data-decimals") | 0);
+    var dur = parseInt(el.getAttribute("data-dur"), 10) || 1400;
+    if(reduceMo){ el.textContent = target.toFixed(decimals); return; }
+    var start = null;
+    function frame(ts){
+      if(start === null) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3); /* easeOutCubic */
+      el.textContent = (target * eased).toFixed(decimals);
+      if(p < 1) requestAnimationFrame(frame);
+      else el.textContent = target.toFixed(decimals);
+    }
+    requestAnimationFrame(frame);
+  }
+  var countIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ runCount(en.target); countIO.unobserve(en.target); }
+    });
+  }, { threshold:0.4 });
+  document.querySelectorAll("[data-count]").forEach(function(el){ countIO.observe(el); });
 
   /* ── hero intro (timer-based: fires even when iframe isn't painting) ── */
   var hero = document.querySelector(".hero");
@@ -317,4 +363,34 @@
       if(ok) ok.scrollIntoView ? null : null;
     });
   }
+
+  /* ── 카테고리 아이콘: assets/icons/<페이지이름>.png|svg 가 있으면 이모지 대신 사용 ── */
+  document.querySelectorAll(".cat-item:not(.more)").forEach(function(item){
+    var href = item.getAttribute("href") || "";
+    if(!/\.html$/.test(href)) return;
+    var ic = item.querySelector(".cat-ic"); if(!ic) return;
+    var base = "assets/icons/" + href.replace(/\.html$/, "");
+    var img = document.createElement("img");
+    img.className = "cat-img"; img.alt = ""; img.setAttribute("aria-hidden", "true");
+    img.onload = function(){ ic.classList.add("has-img"); };
+    img.onerror = function(){
+      if(img.getAttribute("data-tri") !== "1"){ img.setAttribute("data-tri", "1"); img.src = base + ".svg"; }
+      else { img.remove(); } /* 파일 없으면 기존 이모지 유지 */
+    };
+    img.src = base + ".png";
+    ic.insertBefore(img, ic.firstChild);
+  });
+
+  /* ── 사이트 정보(설정) 적용: /api/settings → [data-set] 요소 ── */
+  fetch("/api/settings").then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+    if(!d || !d.settings) return;
+    var s = d.settings;
+    document.querySelectorAll("[data-set]").forEach(function(el){
+      var k = el.getAttribute("data-set"); var v = s[k];
+      if(v == null || v === "") return;
+      el.textContent = v;
+      if(el.hasAttribute("data-set-tel")) el.setAttribute("href", "tel:" + String(v).replace(/[^0-9+]/g, ""));
+      if(el.hasAttribute("data-set-mail")) el.setAttribute("href", "mailto:" + v);
+    });
+  }).catch(function(){});
 })();

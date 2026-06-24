@@ -88,31 +88,20 @@
       <div class="l"><span class="eyebrow" data-i18n="about.team.eyebrow"></span><h2 class="h2" data-i18n="about.team.title"></h2></div>
       <p class="lead" style="font-size:1.05rem;max-width:34ch;" data-i18n="about.team.desc"></p>
     </div>
-    <div class="team">
-      <div class="member reveal">
-        <div class="imgph ph"><span class="ph-label">PORTRAIT<br>사진 자리</span></div>
-        <h3 data-i18n="m1.name"></h3><div class="role" data-i18n="m1.role"></div>
-        <div class="langs"><img class="flag-img" src="https://flagcdn.com/w40/kr.png" srcset="https://flagcdn.com/w80/kr.png 2x" alt="KO" width="22" height="16"><img class="flag-img" src="https://flagcdn.com/w40/us.png" srcset="https://flagcdn.com/w80/us.png 2x" alt="EN" width="22" height="16"><img class="flag-img" src="https://flagcdn.com/w40/cn.png" srcset="https://flagcdn.com/w80/cn.png 2x" alt="ZH" width="22" height="16"></div>
-        <p data-i18n="m1.bio"></p>
-      </div>
-      <div class="member reveal" data-d="1">
-        <div class="imgph ph"><span class="ph-label">PORTRAIT<br>사진 자리</span></div>
-        <h3 data-i18n="m2.name"></h3><div class="role" data-i18n="m2.role"></div>
-        <div class="langs"><img class="flag-img" src="https://flagcdn.com/w40/kr.png" srcset="https://flagcdn.com/w80/kr.png 2x" alt="KO" width="22" height="16"><img class="flag-img" src="https://flagcdn.com/w40/us.png" srcset="https://flagcdn.com/w80/us.png 2x" alt="EN" width="22" height="16"><img class="flag-img" src="https://flagcdn.com/w40/ru.png" srcset="https://flagcdn.com/w80/ru.png 2x" alt="RU" width="22" height="16"></div>
-        <p data-i18n="m2.bio"></p>
-      </div>
-      <div class="member reveal" data-d="2">
-        <div class="imgph ph"><span class="ph-label">PORTRAIT<br>사진 자리</span></div>
-        <h3 data-i18n="m3.name"></h3><div class="role" data-i18n="m3.role"></div>
-        <div class="langs"><img class="flag-img" src="https://flagcdn.com/w40/kr.png" srcset="https://flagcdn.com/w80/kr.png 2x" alt="KO" width="22" height="16"><img class="flag-img" src="https://flagcdn.com/w40/us.png" srcset="https://flagcdn.com/w80/us.png 2x" alt="EN" width="22" height="16"><img class="flag-img" src="https://flagcdn.com/w40/vn.png" srcset="https://flagcdn.com/w80/vn.png 2x" alt="VI" width="22" height="16"></div>
-        <p data-i18n="m3.bio"></p>
-      </div>
-      <div class="member reveal" data-d="3">
-        <div class="imgph ph"><span class="ph-label">PORTRAIT<br>사진 자리</span></div>
-        <h3 data-i18n="m4.name"></h3><div class="role" data-i18n="m4.role"></div>
-        <div class="langs"><img class="flag-img" src="https://flagcdn.com/w40/kr.png" srcset="https://flagcdn.com/w80/kr.png 2x" alt="KO" width="22" height="16"><img class="flag-img" src="https://flagcdn.com/w40/us.png" srcset="https://flagcdn.com/w80/us.png 2x" alt="EN" width="22" height="16"></div>
-        <p data-i18n="m4.bio"></p>
-      </div>
+  </div>
+  <!-- 변호사·사무실 사진이 옆으로 자동으로 흐르는 갤러리 (image-slot에 사진을 드래그) -->
+  <div class="atty-marquee reveal" data-screen-label="변호사 갤러리">
+    <div class="atty-track">
+      <div class="atty-card"><image-slot id="atty-1" src="assets/team/team-1.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad" aria-hidden="true"></span></div>
+      <div class="atty-card"><image-slot id="atty-2" src="assets/team/team-2.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad" aria-hidden="true"></span></div>
+      <div class="atty-card"><image-slot id="atty-3" src="assets/team/team-3.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad" aria-hidden="true"></span></div>
+      <div class="atty-card"><image-slot id="atty-4" src="assets/team/team-4.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad" aria-hidden="true"></span></div>
+      <div class="atty-card"><image-slot id="atty-5" src="assets/team/team-5.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad" aria-hidden="true"></span></div>
+      <div class="atty-card" aria-hidden="true"><image-slot id="atty-1" src="assets/team/team-1.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad"></span></div>
+      <div class="atty-card" aria-hidden="true"><image-slot id="atty-2" src="assets/team/team-2.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad"></span></div>
+      <div class="atty-card" aria-hidden="true"><image-slot id="atty-3" src="assets/team/team-3.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad"></span></div>
+      <div class="atty-card" aria-hidden="true"><image-slot id="atty-4" src="assets/team/team-4.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad"></span></div>
+      <div class="atty-card" aria-hidden="true"><image-slot id="atty-5" src="assets/team/team-5.jpg" shape="rounded" radius="18" fit="cover" placeholder="사진 자리"></image-slot><span class="atty-grad"></span></div>
     </div>
   </div>
 </section>
@@ -120,8 +109,7 @@
 <!-- ════ GLOBAL REACH ════ -->
 <section class="section section--tight" data-screen-label="글로벌 네트워크">
   <div class="wrap">
-    <div class="split split--rev">
-      <div class="imgph reveal" data-ar="16/10"><span class="ph-label">WORLD MAP / NETWORK<br>네트워크 지도 이미지 자리</span></div>
+    <div>
       <div class="reveal" data-d="1">
         <span class="eyebrow" data-i18n="about.reach.eyebrow"></span>
         <h2 class="h2" style="margin-top:22px;" data-i18n="about.reach.title"></h2>
@@ -152,6 +140,7 @@
 
 <footer id="site-foot"></footer>
 
+<script src="image-slot.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/site.js"></script>
 </body>

@@ -1,0 +1,20 @@
+# Cloudflare Pages + D1 설정
+# 1) D1 생성:  wrangler d1 create global-board
+#    → 출력된 database_id 를 아래 database_id 에 붙여넣기
+# 2) 스키마 적용:  wrangler d1 execute global-board --remote --file=./schema.sql
+# 3) 배포:  wrangler pages deploy .
+#    (또는 GitHub 연동 시 Cloudflare 대시보드에서 자동 배포 + Settings > Functions > D1 bindings 에 DB 추가)
+
+name = "global-law-office"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"               # 코드에서 env.DB 로 사용 (변경 금지)
+database_name = "global-board"
+database_id = "여기에-d1-database-id-붙여넣기"
+
+# 변호사사무실 "공식 답변" 비밀키 (선택)
+# 대시보드 Settings > Environment variables 에 ADMIN_KEY 를 넣는 것을 권장(코드에 노출 X).
+# [vars]
+# ADMIN_KEY = "원하는-비밀키"

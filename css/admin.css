@@ -1,0 +1,196 @@
+/* ════════════════════════════════════════════════════════════
+   admin.css — 글로벌 법률사무소 관리자 페이지
+   site.css 토큰 재사용(var(--brand)/--ink/--line/--muted/--bg-soft 등).
+   레이아웃 · 표 · 탭 · 통계 · 폼 스타일을 정의한다.
+   ════════════════════════════════════════════════════════════ */
+
+body { background: var(--bg-soft); }
+
+/* ── 상단 관리자 바 ── */
+.adm-bar {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--ink); color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+.adm-bar-in {
+  max-width: 1180px; margin-inline: auto;
+  padding: 0 clamp(16px, 3vw, 32px);
+  height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.adm-bar-brand { font-weight: 800; font-size: 15.5px; letter-spacing: -.02em; }
+.adm-bar-sep { color: var(--brand); margin: 0 4px; }
+.adm-bar-link {
+  font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, .85);
+  padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .2);
+  transition: background .18s, color .18s, border-color .18s;
+}
+.adm-bar-link:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+/* ── 데모 배너 ── */
+.adm-demo {
+  background: #FFF1DC; color: #7A5B12; border: 1px solid #F2D9A3;
+  border-radius: var(--r-md); padding: 12px 16px; font-size: 14px; font-weight: 600;
+  margin-bottom: 20px; line-height: 1.5;
+}
+
+/* ════════ 로그인 화면 ════════ */
+.adm-login { min-height: calc(100vh - 56px); display: grid; place-items: center; padding: 24px; }
+.adm-login-card {
+  width: 100%; max-width: 420px; background: #fff; border: 1px solid var(--line);
+  border-radius: var(--r-xl); box-shadow: var(--shadow-md); padding: clamp(26px, 4vw, 40px);
+  text-align: center;
+}
+.adm-login-icon { font-size: 40px; line-height: 1; margin-bottom: 14px; }
+.adm-login-title { font-weight: 800; font-size: 1.5rem; letter-spacing: -.03em; margin: 0 0 8px; }
+.adm-login-sub { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 0 0 22px; }
+.adm-login-card .field { text-align: left; margin-bottom: 16px; }
+.adm-login-btn { width: 100%; }
+.adm-login-note { color: var(--muted-2); font-size: 12px; line-height: 1.5; margin: 16px 0 0; }
+
+/* ════════ 앱 셸 (사이드 탭 + 본문) ════════ */
+.adm-shell {
+  max-width: 1180px; margin-inline: auto;
+  padding: clamp(20px, 3vw, 36px) clamp(16px, 3vw, 32px);
+  display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: clamp(18px, 2.4vw, 30px);
+  align-items: start;
+}
+.adm-side { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 14px; }
+.adm-tabs {
+  display: flex; flex-direction: column; gap: 4px;
+  background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 8px; box-shadow: var(--shadow-sm);
+}
+.adm-tab {
+  display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+  background: none; border: none; color: var(--ink-2);
+  font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: -.01em;
+  padding: 12px 14px; border-radius: var(--r-md); transition: background .15s, color .15s;
+}
+.adm-tab:hover { background: var(--bg-soft); color: var(--ink); }
+.adm-tab.active { background: var(--brand-soft); color: var(--brand-deep); }
+.adm-tab-ic { font-size: 17px; line-height: 1; flex: none; }
+.adm-logout {
+  background: #fff; border: 1px solid var(--line-2); color: var(--ink-2);
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  padding: 11px 14px; border-radius: var(--r-md); transition: border-color .18s, color .18s, background .18s;
+}
+.adm-logout:hover { border-color: #E0707A; color: #C0394A; background: #FDF0F1; }
+
+/* ── 본문 ── */
+.adm-main {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm); padding: clamp(20px, 2.6vw, 32px); min-height: 60vh;
+}
+.adm-h1 { font-weight: 800; font-size: clamp(1.3rem, 2.2vw, 1.7rem); letter-spacing: -.03em; margin: 0 0 22px; }
+.adm-h2 { font-weight: 700; font-size: 1.1rem; letter-spacing: -.02em; margin: 28px 0 14px; }
+.adm-loading { color: var(--muted); font-size: 14px; padding: 20px 0; }
+.adm-empty { color: var(--muted); font-size: 14px; text-align: center; padding: 26px 0; }
+
+/* ════════ 대시보드 통계 ════════ */
+.adm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.adm-stat {
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 20px 18px;
+}
+.adm-stat.warn { background: #FFF6F7; border-color: #F4D2D6; }
+.adm-stat-v { font-weight: 800; font-size: 2.1rem; letter-spacing: -.04em; line-height: 1; color: var(--ink); }
+.adm-stat.warn .adm-stat-v { color: #C0394A; }
+.adm-stat-k { margin-top: 10px; color: var(--muted); font-size: 13.5px; }
+.adm-dash-hint { margin-top: 22px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.adm-dash-hint b { color: var(--brand-deep); }
+
+/* ════════ 툴바(검색 + 필터) ════════ */
+.adm-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+.adm-search {
+  flex: 1 1 220px; min-width: 0; background: var(--bg-soft); border: 1.5px solid var(--line);
+  border-radius: var(--r-md); color: var(--ink); padding: 11px 14px;
+  font-family: inherit; font-size: 14.5px; transition: border-color .2s, background .2s;
+}
+.adm-search:focus { outline: none; border-color: var(--brand); background: #fff; }
+.adm-seg { display: inline-flex; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.adm-seg-b {
+  background: none; border: none; color: var(--muted); font-family: inherit;
+  font-size: 13.5px; font-weight: 600; padding: 8px 16px; border-radius: 999px; transition: background .15s, color .15s;
+}
+.adm-seg-b.active { background: #fff; color: var(--brand-deep); box-shadow: var(--shadow-sm); }
+
+/* ════════ 표 ════════ */
+.adm-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.adm-table thead th {
+  text-align: left; color: var(--muted); font-weight: 600; font-size: 12px;
+  letter-spacing: .04em; text-transform: uppercase;
+  padding: 10px 12px; border-bottom: 1.5px solid var(--line-2);
+}
+.adm-table th.ce, .adm-table td.ce { text-align: center; }
+.adm-table tbody td { padding: 13px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.adm-table tbody tr:last-child td { border-bottom: none; }
+.adm-row { cursor: pointer; transition: background .12s; }
+.adm-row:hover { background: var(--bg-soft); }
+.adm-td-title { font-weight: 600; color: var(--ink); letter-spacing: -.01em; }
+.adm-td-date { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* ── 배지 / 태그 ── */
+.adm-badge { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.adm-badge.ok { background: var(--brand-soft); color: var(--brand-deep); }
+.adm-badge.wait { background: #FFF1DC; color: #B25809; }
+.adm-badge.sm { font-size: 10.5px; padding: 2px 8px; margin-left: 8px; }
+.adm-tag { display: inline-block; font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--bg-soft); border: 1px solid var(--line); padding: 3px 10px; border-radius: 999px; }
+
+/* ════════ 게시판 상세 ════════ */
+.adm-back {
+  background: none; border: none; color: var(--muted); font-family: inherit;
+  font-size: 14px; font-weight: 600; padding: 0 0 16px; transition: color .15s;
+}
+.adm-back:hover { color: var(--brand); }
+.adm-post-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.adm-post-head .adm-h1 { margin-bottom: 0; }
+.adm-del-post { flex: none; }
+.adm-del-post:hover { border-color: #E0707A; color: #C0394A; }
+.adm-post-meta { display: flex; gap: 16px; color: var(--muted); font-size: 13.5px; margin: 12px 0 18px; }
+.adm-post-body {
+  color: var(--ink-2); font-size: 15px; line-height: 1.8;
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px 20px;
+}
+
+/* ── 댓글 ── */
+.adm-comments { margin-top: 8px; }
+.adm-comment { border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 10px; }
+.adm-comment.official { background: var(--brand-soft); border-color: var(--brand-soft-2); }
+.adm-c-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.adm-c-name { font-weight: 700; font-size: 14px; color: var(--ink); display: inline-flex; align-items: center; }
+.adm-c-date { color: var(--muted); font-size: 12.5px; margin-left: auto; font-variant-numeric: tabular-nums; }
+.adm-c-del {
+  background: none; border: 1px solid var(--line-2); color: var(--muted);
+  font-family: inherit; font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+  transition: border-color .15s, color .15s, background .15s; flex: none;
+}
+.adm-c-del:hover { border-color: #E0707A; color: #C0394A; background: #FDF0F1; }
+.adm-c-body { color: var(--ink-2); font-size: 14.5px; line-height: 1.7; }
+
+.adm-reply { margin-top: 8px; }
+.adm-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+/* ════════ 폼(블로그·설정) ════════ */
+.adm-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.adm-blog-form, .adm-set-form { display: block; }
+.adm-blog-form .field, .adm-set-form .field { margin-bottom: 14px; }
+.adm-blog-form .adm-h2:first-child { margin-top: 0; }
+.form-note code { font-family: var(--mono); font-size: .85em; background: var(--bg-soft); padding: 2px 6px; border-radius: 6px; }
+
+/* ════════ 반응형 ════════ */
+@media (max-width: 820px) {
+  .adm-shell { grid-template-columns: 1fr; }
+  .adm-side { position: static; flex-direction: column; }
+  .adm-tabs { flex-direction: row; flex-wrap: wrap; }
+  .adm-tab { flex: 1 1 auto; justify-content: center; }
+  .adm-grid2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .adm-table thead { display: none; }
+  .adm-table, .adm-table tbody, .adm-table tr, .adm-table td { display: block; width: 100%; }
+  .adm-table tbody tr { border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 4px; margin-bottom: 10px; }
+  .adm-table tbody td { border: none; padding: 6px 12px; }
+  .adm-table td.ce { text-align: left; }
+  .adm-td-title { font-size: 15px; }
+  .adm-post-head { flex-direction: column; }
+}

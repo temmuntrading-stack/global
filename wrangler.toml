@@ -9,10 +9,15 @@ name = "global-law-office"
 compatibility_date = "2024-11-01"
 pages_build_output_dir = "."
 
-[[d1_databases]]
-binding = "DB"               # 코드에서 env.DB 로 사용 (변경 금지)
-database_name = "global-board"
-database_id = "여기에-d1-database-id-붙여넣기"
+# D1 바인딩은 Cloudflare 대시보드에서 설정하세요 (가장 간단·안전):
+#   Pages 프로젝트 → Settings → Functions → D1 database bindings
+#   → Variable name: DB,  Database: global-board
+#
+# (대신 이 파일에 직접 넣으려면 아래 4줄의 주석을 풀고 실제 database_id 를 입력 후 푸시)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "global-board"
+# database_id = "실제-d1-database-id"
 
 # 변호사사무실 "공식 답변" 비밀키 (선택)
 # 대시보드 Settings > Environment variables 에 ADMIN_KEY 를 넣는 것을 권장(코드에 노출 X).

@@ -35,8 +35,9 @@
     if (!r.ok) throw new Error(data.error || tr("board.error"));
     return data;
   }
+  function curLang() { return window.getLang ? window.getLang() : "ko"; }
   async function listPosts() {
-    var data = await request(API, { headers: { accept: "application/json" } });
+    var data = await request(API + "?lang=" + encodeURIComponent(curLang()), { headers: { accept: "application/json" } });
     return data.posts || [];
   }
   async function getPost(id) {
@@ -46,7 +47,7 @@
     await request(API, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ type: "post", name: name || tr("board.anonymous"), title: title, body: body, idToken: idToken || "" })
+      body: JSON.stringify({ type: "post", name: name || tr("board.anonymous"), title: title, body: body, idToken: idToken || "", lang: curLang() })
     });
   }
   async function addComment(postId, name, body, idToken) {

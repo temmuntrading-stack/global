@@ -21,11 +21,14 @@ let _schemaReady = false;
 async function ensureSchema(db) {
   if (_schemaReady) return;
   await db.batch([
-    db.prepare("CREATE TABLE IF NOT EXISTS posts (id TEXT PRIMARY KEY, name TEXT NOT NULL, title TEXT NOT NULL, body TEXT NOT NULL, ts INTEGER NOT NULL)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS posts (id TEXT PRIMARY KEY, name TEXT NOT NULL, title TEXT NOT NULL, body TEXT NOT NULL, ts INTEGER NOT NULL, lang TEXT)"),
     db.prepare("CREATE TABLE IF NOT EXISTS comments (id TEXT PRIMARY KEY, post_id TEXT NOT NULL, name TEXT NOT NULL, body TEXT NOT NULL, official INTEGER NOT NULL DEFAULT 0, ts INTEGER NOT NULL)"),
     db.prepare("CREATE INDEX IF NOT EXISTS idx_posts_ts ON posts(ts)"),
     db.prepare("CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id)"),
   ]);
+  // 기존 테이블에 lang 컬럼이 없으면 추가(이미 있으면 무시) + 미지정 글은 'ko'로 채움
+  try { await db.prepare("ALTER TABLE posts ADD COLUMN lang TEXT").run(); } catch (e) {}
+  try { await db.prepare("UPDATE posts SET lang='ko' WHERE lang IS NULL OR lang=''").run(); } catch (e) {}
   _schemaReady = true;
 }
 
@@ -67,12 +70,16 @@ export async function onRequest(context) {
           .bind(id).all();
         return json({ post, comments: (results || []).map((c) => ({ id: c.id, name: c.name, body: c.body, official: !!c.official, ts: c.ts })) });
       }
-      const { results } = await db.prepare(
-        "SELECT p.id,p.name,p.title,p.ts," +
+      // 언어별 분리: ?lang=xx 가 오면 해당 언어 글만 조회(없으면 전체)
+      const lang = url.searchParams.get("lang");
+      let sql = "SELECT p.id,p.name,p.title,p.ts," +
         " (SELECT COUNT(*) FROM comments c WHERE c.post_id=p.id) AS cc," +
         " (SELECT COUNT(*) FROM comments c WHERE c.post_id=p.id AND c.official=1) AS oc" +
-        " FROM posts p ORDER BY p.ts DESC LIMIT 300"
-      ).all();
+        " FROM posts p";
+      const binds = [];
+      if (lang) { sql += " WHERE p.lang = ?"; binds.push(lang); }
+      sql += " ORDER BY p.ts DESC LIMIT 300";
+      const { results } = await db.prepare(sql).bind(...binds).all();
       return json({ posts: (results || []).map((p) => ({ id: p.id, name: p.name, title: p.title, ts: p.ts, commentCount: p.cc, answered: p.oc > 0 })) });
     }
 
@@ -90,8 +97,9 @@ export async function onRequest(context) {
           name = clamp(v.name, 40) || "익명";
         }
         const id = rid("p");
-        await db.prepare("INSERT INTO posts (id,name,title,body,ts) VALUES (?,?,?,?,?)")
-          .bind(id, name, clamp(b.title, 120), clamp(b.body, 5000), ts).run();
+        const lang = clamp(b.lang, 8) || "ko";
+        await db.prepare("INSERT INTO posts (id,name,title,body,ts,lang) VALUES (?,?,?,?,?,?)")
+          .bind(id, name, clamp(b.title, 120), clamp(b.body, 5000), ts, lang).run();
         return json({ id });
       }
 

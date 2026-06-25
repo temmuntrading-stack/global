@@ -217,6 +217,44 @@
   window.applyLang(cur);
   syncLangBtn(cur);
 
+  /* ── 헤더 로그인 버튼: 클릭 시 구글 로그인 모달(auth.js·GIS 동적 로드) ── */
+  (function setupLogin(){
+    var btn = document.querySelector(".login-btn");
+    if(!btn) return;
+    var GIS = "https://accounts.google.com/gsi/client";
+    function has(src){ return [].some.call(document.scripts, function(s){ return s.src && s.src.indexOf(src) >= 0; }); }
+    function load(src){
+      return new Promise(function(res){
+        if(has(src) || (src.indexOf("auth.js") >= 0 && window.AuthGoogle)){ res(); return; }
+        var el = document.createElement("script");
+        el.src = src; el.async = true; el.onload = res; el.onerror = res;
+        document.head.appendChild(el);
+      });
+    }
+    function user(){ return (window.AuthGoogle && AuthGoogle.getUser && AuthGoogle.getUser()) || null; }
+    function refresh(){
+      var u = user(), sp = btn.querySelector("span");
+      if(!sp) return;
+      if(u){ sp.removeAttribute("data-i18n"); sp.textContent = u.name; btn.classList.add("is-in"); }
+      else { btn.classList.remove("is-in"); }
+    }
+    /* 페이지 로드 시 auth.js 준비(로그인 상태 표시). GIS는 클릭할 때만 로드. */
+    load("js/auth.js").then(refresh);
+    btn.addEventListener("click", function(e){
+      e.preventDefault();
+      load("js/auth.js")
+        .then(function(){ return load(GIS); })
+        .then(function(){
+          if(!window.AuthGoogle) return;
+          if(user()){
+            if(confirm("로그아웃 하시겠습니까?")){ AuthGoogle.signOut(); location.reload(); }
+            return;
+          }
+          AuthGoogle.signIn().then(function(u){ if(u) location.reload(); });
+        });
+    });
+  })();
+
   /* ── mobile menu ── */
   var burger = document.getElementById("burger");
   if(burger){

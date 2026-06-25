@@ -70,13 +70,16 @@
     return u || null;
   }
 
-  // 로그인 상태 표시줄 (로그인 시에만 노출).
+  // 로그인 상태 표시줄 (항상 노출 — 로그인 시 이름+로그아웃, 비로그인 시 로그인 버튼).
   function loginBar() {
     var u = currentUser();
-    if (!u) return "";
-    return '<div class="bd-auth"><span class="bd-auth-who">' + esc(tr("auth.loggedInAs"))
-      + ' <b>' + esc(u.name) + "</b></span>"
-      + '<button class="bd-auth-out" data-act="logout">' + esc(tr("auth.logout")) + "</button></div>";
+    if (u) {
+      return '<div class="bd-auth"><span class="bd-auth-who">' + esc(tr("auth.loggedInAs"))
+        + ' <b>' + esc(u.name) + "</b></span>"
+        + '<button class="bd-auth-out" data-act="logout">' + esc(tr("auth.logout")) + "</button></div>";
+    }
+    return '<div class="bd-auth"><span class="bd-auth-who">' + esc(tr("auth.guest")) + "</span>"
+      + '<button class="btn btn--gold bd-auth-in" data-act="login">' + esc(tr("auth.login")) + "</button></div>";
   }
 
   async function render() {
@@ -86,7 +89,13 @@
   }
 
   async function renderList() {
-    board.innerHTML = '<div class="bd-empty">' + esc(tr("board.loading")) + "</div>";
+    // 헤더(로그인 바 + 글쓰기)는 목록 로딩 성공/실패와 무관하게 항상 표시한다.
+    board.innerHTML =
+      loginBar()
+      + '<div class="bd-head"><div class="bd-note">' + esc(tr("board.note")) + "</div>"
+      + '<button class="btn btn--gold" data-act="write">' + PENCIL + " " + esc(tr("board.write")) + "</button></div>"
+      + '<div class="bd-list"><div class="bd-empty">' + esc(tr("board.loading")) + "</div></div>";
+    var list = board.querySelector(".bd-list");
     try {
       var posts = await listPosts();
       var rows = posts.map(function (p) {
@@ -97,13 +106,9 @@
           + "</div>"
           + '<div class="bd-row-meta"><span>' + esc(p.name) + "</span><span>" + fmt(p.ts) + "</span></div></button>";
       }).join("");
-      board.innerHTML =
-        loginBar()
-        + '<div class="bd-head"><div class="bd-note">' + esc(tr("board.note")) + "</div>"
-        + '<button class="btn btn--gold" data-act="write">' + PENCIL + " " + esc(tr("board.write")) + "</button></div>"
-        + '<div class="bd-list">' + (rows || '<div class="bd-empty">' + esc(tr("board.empty")) + "</div>") + "</div>";
+      if (list) list.innerHTML = rows || '<div class="bd-empty">' + esc(tr("board.empty")) + "</div>";
     } catch (err) {
-      board.innerHTML = '<div class="bd-empty">' + esc(errorMessage(err, "board.error")) + "</div>";
+      if (list) list.innerHTML = '<div class="bd-empty">' + esc(errorMessage(err, "board.error")) + "</div>";
     }
   }
 
@@ -160,6 +165,10 @@
       var wu = await ensureUser();
       if (!wu) return;
       view.mode = "write";
+    }
+    else if (a === "login") {
+      // 로그인/회원가입 버튼 → 구글 로그인 모달.
+      await ensureUser();
     }
     else if (a === "cancel" || a === "back") view.mode = "list";
     else if (a === "logout") {

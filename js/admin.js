@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════
-   admin.js — 글로벌 법률사무소 관리자 페이지
+   admin.js — 글로벌 법률사무소 관리자 (Modernize 스타일)
    · 배포 환경(Cloudflare Pages + D1): /api/board /api/blog /api/settings 사용
    · API가 없으면(로컬 미리보기 등) 자동으로 "데모 모드"(이 브라우저 localStorage)
    순수 바닐라 JS. 외부 라이브러리 없음.
@@ -20,7 +20,7 @@
   var root = document.getElementById("admin");
   if (!root) return;
 
-  var state = { tab: "dash", boardId: null, q: "", filter: "all" };
+  var state = { tab: "dash", boardId: null, q: "", filter: "all", dashAll: false, blogMode: "list", _rows: [] };
   var busy = false;
 
   /* ── 헬퍼 ── */
@@ -33,6 +33,7 @@
     var d = new Date(ts); function p(n) { return (n < 10 ? "0" : "") + n; }
     return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
   }
+  function fmtKDate(ts) { var d = new Date(ts); return d.getFullYear() + "년 " + (d.getMonth() + 1) + "월 " + d.getDate() + "일"; }
   function adminKey() { return localStorage.getItem(KEY_ADMIN) || ""; }
   function isToday(ts) {
     var d = new Date(ts), n = new Date();
@@ -41,6 +42,38 @@
   function lLoad(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
   function lSave(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function goDemo(area) { if (mode[area] === "api") mode[area] = "local"; demo = true; }
+
+  /* ── 아바타 ── */
+  var AVA = [["#E9F0FE", "#2D5BE3"], ["#E4F5EA", "#1E8E50"], ["#FDECEC", "#D63A3F"], ["#F3ECFD", "#7C4DD6"], ["#FBEFD8", "#B7791F"], ["#E6F6F6", "#168B86"]];
+  function avaColor(s) { s = String(s || ""); var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return AVA[h % AVA.length]; }
+  function initials(name) {
+    name = String(name || "").trim();
+    if (!name) return "?";
+    if (/^[\x00-\x7F\s]+$/.test(name)) {
+      var parts = name.split(/\s+/);
+      if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+      return name.slice(0, 2).toUpperCase();
+    }
+    return name.slice(0, 2);
+  }
+
+  /* ── 아이콘(인라인 SVG) ── */
+  var IP = {
+    grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+    chat: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    doc: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/>',
+    help: '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+    logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    chev: '<path d="m6 9 6 6 6-6"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
+    back: '<path d="m15 18-6-6 6-6"/>',
+    scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>'
+  };
+  function icon(name, sw) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.9) + '" stroke-linecap="round" stroke-linejoin="round">' + (IP[name] || "") + '</svg>'; }
+  var LOGO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + IP.scale + '</svg>';
 
   /* ════════════════════════════════════════════════════════════
      데모(로컬) 시드 데이터
@@ -78,7 +111,6 @@
 
   /* ════════════════════════════════════════════════════════════
      데이터 계층 (API 우선, 실패 시 데모)
-     쓰기 실패(403) → 호출부에서 alert 처리하도록 throw {status:403}
      ════════════════════════════════════════════════════════════ */
   function jget(path, area) {
     return fetch(path, { headers: { accept: "application/json" } }).then(function (r) {
@@ -118,7 +150,6 @@
   function boardGetLocal(id) {
     var p = boardEnsure().filter(function (x) { return x.id === id; })[0];
     if (!p) return null;
-    // 데모 댓글엔 id가 없을 수 있어 index를 함께 노출(삭제용)
     var comments = (p.comments || []).map(function (c, i) { return { id: c.id, idx: i, name: c.name, body: c.body, official: !!c.official, ts: c.ts }; });
     return { post: { id: p.id, name: p.name, title: p.title, body: p.body, ts: p.ts }, comments: comments };
   }
@@ -146,7 +177,6 @@
   function boardDelPostLocal(id) {
     var p = boardEnsure().filter(function (x) { return x.id !== id; }); lSave(KEY_BOARD, p); return true;
   }
-  // 댓글 삭제: API는 id 기반, 데모는 index 기반(c.idx) 폴백
   function boardDelComment(postId, c) {
     if (mode.board === "api" && c.id) {
       return jwrite("/api/board", "DELETE", { type: "comment", id: c.id, key: adminKey() })
@@ -204,7 +234,6 @@
     if (mode.set === "api") {
       return jget("/api/settings", "set").then(function (d) {
         var s = (d && d.settings) || {};
-        // 빈 응답이어도 기본값으로 폼을 채워줌
         var def = setDefaults(); Object.keys(def).forEach(function (k) { if (s[k] == null) s[k] = ""; });
         return s;
       }).catch(function () { goDemo("set"); return setEnsure(); });
@@ -225,14 +254,14 @@
      ════════════════════════════════════════════════════════════ */
   function renderLogin() {
     root.innerHTML =
-      '<div class="adm-login">' +
-        '<div class="adm-login-card">' +
-          '<div class="adm-login-icon">🔒</div>' +
-          '<h1 class="adm-login-title">관리자 로그인</h1>' +
-          '<p class="adm-login-sub">관리자 키를 입력하세요. 입력한 키는 이 브라우저에 저장되어 모든 변경 작업에 사용됩니다.</p>' +
-          '<div class="field"><label>관리자 키</label><input id="adm-key" type="password" autocomplete="current-password" placeholder="관리자 키"></div>' +
-          '<button class="btn btn--gold adm-login-btn" data-act="login">확인</button>' +
-          '<p class="adm-login-note">키가 설정되지 않은(데모) 환경에서도 임의의 값으로 진입할 수 있습니다.</p>' +
+      '<div class="ax-login">' +
+        '<div class="ax-login-card">' +
+          '<div class="ax-login-logo">' + LOGO + '</div>' +
+          '<h1>관리자 로그인</h1>' +
+          '<p>관리자 키를 입력하세요. 이 브라우저에 저장되어 모든 변경 작업에 사용됩니다.</p>' +
+          '<div class="ax-field"><label>관리자 키</label><input id="adm-key" type="password" autocomplete="current-password" placeholder="관리자 키"></div>' +
+          '<button class="ax-btn pri ax-login-btn" data-act="login">로그인</button>' +
+          '<p class="ax-login-note">키가 설정되지 않은(데모) 환경에서도 임의의 값으로 진입할 수 있습니다.</p>' +
         '</div>' +
       '</div>';
     var inp = $("#adm-key");
@@ -251,34 +280,48 @@
   }
 
   /* ════════════════════════════════════════════════════════════
-     앱 셸 (탭 + 본문)
+     앱 셸 (사이드바 + 상단바 + 콘텐츠)
      ════════════════════════════════════════════════════════════ */
-  var TABS = [
-    { id: "dash", label: "대시보드", icon: "📊" },
-    { id: "board", label: "게시판 관리", icon: "💬" },
-    { id: "blog", label: "블로그 관리", icon: "📝" },
-    { id: "settings", label: "사이트 정보", icon: "⚙️" }
+  var NAV = [
+    { id: "dash", label: "대시보드", icon: "grid" },
+    { id: "board", label: "상담", icon: "chat" },
+    { id: "blog", label: "블로그", icon: "doc" }
   ];
 
   function demoBanner() {
-    return demo ? '<div class="adm-demo">데모 모드 — 변경사항이 이 브라우저에만 저장됩니다. (Cloudflare 배포 후 실제 반영)</div>' : "";
+    return demo ? '<div class="adm-demo">데모 모드 — 변경사항이 이 브라우저에만 저장됩니다. (Cloudflare + D1 연결 후 실제 반영)</div>' : "";
+  }
+
+  function navBtn(n) {
+    return '<button class="ax-nav-i' + (state.tab === n.id ? " active" : "") + '" data-tab="' + n.id + '">' + icon(n.icon) + '<span>' + n.label + '</span></button>';
   }
 
   function renderApp() {
-    state.boardId = null;
-    var tabs = TABS.map(function (t) {
-      return '<button class="adm-tab' + (state.tab === t.id ? " active" : "") + '" data-tab="' + t.id + '">' +
-        '<span class="adm-tab-ic">' + t.icon + '</span><span class="adm-tab-l">' + t.label + '</span></button>';
-    }).join("");
     root.innerHTML =
-      '<div class="adm-shell">' +
-        '<aside class="adm-side">' +
-          '<nav class="adm-tabs">' + tabs + '</nav>' +
-          '<button class="adm-logout" data-act="logout">로그아웃</button>' +
+      '<div class="ax-app">' +
+        '<aside class="ax-side">' +
+          '<div class="ax-brand"><span class="ax-logo">' + LOGO + '</span>' +
+            '<span class="ax-brand-txt"><b>글로벌 법률 사무소</b><small>GLOBAL LAW FIRM</small></span></div>' +
+          '<nav class="ax-nav">' + NAV.map(navBtn).join("") + '</nav>' +
+          '<div class="ax-side-foot">' +
+            '<a class="ax-nav-i" href="index.html" target="_blank" rel="noopener">' + icon("help") + '<span>지원 센터</span></a>' +
+            '<button class="ax-nav-i ax-logout" data-act="logout">' + icon("logout") + '<span>로그아웃</span></button>' +
+          '</div>' +
         '</aside>' +
-        '<main class="adm-main" id="adm-main"></main>' +
+        '<div class="ax-main">' +
+          '<header class="ax-top">' +
+            '<div class="ax-search">' + icon("search") + '<input id="ax-q" type="search" placeholder="사건, 문서 또는 고객 검색…" value="' + esc(state.q) + '"></div>' +
+            '<div class="ax-top-right">' +
+              '<button class="ax-icon" data-act="notif" title="알림">' + icon("bell") + '</button>' +
+              '<button class="ax-icon' + (state.tab === "settings" ? " active" : "") + '" data-tab="settings" title="사이트 정보">' + icon("gear") + '</button>' +
+              '<div class="ax-user"><span class="ax-ava">관</span><span class="nm">관리자 사용자</span></div>' +
+            '</div>' +
+          '</header>' +
+          '<div class="ax-content" id="adm-main"></div>' +
+        '</div>' +
       '</div>';
     renderTab();
+    updateNotif();
   }
 
   function setMain(html) {
@@ -286,52 +329,104 @@
     if (m) m.innerHTML = demoBanner() + html;
   }
   function refreshBanner() {
-    // 데모로 막 강등된 경우 배너가 보이도록 본문 상단에 보장
     var m = $("#adm-main");
     if (demo && m && !m.querySelector(".adm-demo")) m.insertAdjacentHTML("afterbegin", demoBanner());
+  }
+  function updateNotif() {
+    boardList().then(function (posts) {
+      var un = posts.filter(function (p) { return !p.answered; }).length;
+      var btn = $('.ax-icon[data-act="notif"]'); if (!btn) return;
+      var dot = btn.querySelector(".ax-dot");
+      if (un > 0 && !dot) btn.insertAdjacentHTML("beforeend", '<span class="ax-dot"></span>');
+      else if (un === 0 && dot) dot.remove();
+    });
   }
 
   function renderTab() {
     if (state.tab === "dash") return renderDash();
     if (state.tab === "board") return state.boardId ? renderBoardDetail() : renderBoardList();
-    if (state.tab === "blog") return renderBlog();
+    if (state.tab === "blog") return state.blogMode === "write" ? renderBlogWrite() : renderBlog();
     if (state.tab === "settings") return renderSettings();
   }
 
-  /* ── 1) 대시보드 ── */
-  function renderDash() {
-    setMain('<h1 class="adm-h1">대시보드</h1><div class="adm-stats"><div class="adm-loading">불러오는 중…</div></div>');
-    Promise.all([boardList(), blogList()]).then(function (res) {
-      var posts = res[0], blog = res[1];
-      var total = posts.length;
-      var unanswered = posts.filter(function (p) { return !p.answered; }).length;
-      var todayCnt = posts.filter(function (p) { return isToday(p.ts); }).length;
-      var comments = posts.reduce(function (a, p) { return a + (p.commentCount || 0); }, 0);
-      var cards = [
-        { v: total, k: "총 글" },
-        { v: unanswered, k: "미답변 글", warn: unanswered > 0 },
-        { v: todayCnt, k: "오늘 작성 글" },
-        { v: comments, k: "총 댓글" },
-        { v: blog.length, k: "블로그 글" }
-      ].map(function (c) {
-        return '<div class="adm-stat' + (c.warn ? " warn" : "") + '"><div class="adm-stat-v">' + c.v + '</div><div class="adm-stat-k">' + c.k + '</div></div>';
-      }).join("");
-      setMain('<h1 class="adm-h1">대시보드</h1><div class="adm-stats">' + cards + '</div>' +
-        '<div class="adm-dash-hint">미답변 글이 있으면 <b>게시판 관리</b> 탭에서 공식 답변을 등록하세요.</div>');
-    });
+  /* ── 상태 배지 매핑 ── */
+  function statusOf(p) {
+    if (p.answered) return { l: "답변완료", c: "ok" };
+    if (p.commentCount > 0) return { l: "검토 중", c: "review" };
+    return { l: "대기 중", c: "wait" };
   }
 
-  /* ── 2) 게시판 관리: 목록 ── */
-  function renderBoardList() {
-    setMain('<h1 class="adm-h1">게시판 관리</h1>' +
-      '<div class="adm-toolbar">' +
-        '<input class="adm-search" id="bd-q" type="search" placeholder="제목·작성자 검색" value="' + esc(state.q) + '">' +
-        '<div class="adm-seg">' +
-          '<button class="adm-seg-b' + (state.filter === "all" ? " active" : "") + '" data-filter="all">전체</button>' +
-          '<button class="adm-seg-b' + (state.filter === "unanswered" ? " active" : "") + '" data-filter="unanswered">미답변</button>' +
+  /* ════════ 1) 대시보드 ════════ */
+  function renderDash() {
+    setMain(
+      '<div class="ax-card">' +
+        '<div class="ax-card-h">' +
+          '<div><h2>최근 상담 요청</h2><p>승인 대기 및 변호사 배정 현황</p></div>' +
+          '<button class="ax-btn" data-act="csv">' + icon("download") + 'CSV 내보내기</button>' +
         '</div>' +
-      '</div>' +
-      '<div id="bd-list" class="adm-loading">불러오는 중…</div>');
+        '<div id="dash-body"><div class="ax-loading">불러오는 중…</div></div>' +
+      '</div>');
+    drawDash();
+  }
+  function drawDash() {
+    boardList().then(function (posts) {
+      var q = state.q.toLowerCase();
+      var all = posts.filter(function (p) {
+        if (!q) return true;
+        return (p.title || "").toLowerCase().indexOf(q) >= 0 || (p.name || "").toLowerCase().indexOf(q) >= 0;
+      });
+      state._rows = all;
+      var body = $("#dash-body"); if (!body) return;
+      if (!all.length) { body.innerHTML = '<div class="ax-empty">표시할 상담 요청이 없습니다.</div>'; refreshBanner(); return; }
+      var rows = state.dashAll ? all : all.slice(0, 5);
+      var trs = rows.map(function (p) {
+        var st = statusOf(p), pal = avaColor(p.name);
+        return '<tr>' +
+          '<td><div class="ax-cust"><span class="ax-ava2" style="background:' + pal[0] + ';color:' + pal[1] + '">' + esc(initials(p.name)) + '</span><b>' + esc(p.name) + '</b></div></td>' +
+          '<td>일반 상담</td>' +
+          '<td class="ax-date">' + fmtKDate(p.ts) + '</td>' +
+          '<td><span class="ax-st ' + st.c + '">' + st.l + '</span></td>' +
+          '<td class="ax-muted-c">미배정</td>' +
+          '<td class="ax-r"><button class="ax-detail" data-open="' + esc(p.id) + '">상세 보기</button></td>' +
+        '</tr>';
+      }).join("");
+      var more = (!state.dashAll && all.length > 5)
+        ? '<div class="ax-card-f" data-act="more">더 많은 요청 보기 ' + icon("chev") + '</div>' : "";
+      body.innerHTML =
+        '<div class="ax-tbl-wrap"><table class="ax-tbl"><thead><tr>' +
+          '<th>고객명</th><th>분류</th><th>요청 날짜</th><th>상태</th><th>담당 변호사</th><th></th>' +
+        '</tr></thead><tbody>' + trs + '</tbody></table></div>' + more;
+      refreshBanner();
+    });
+  }
+  function exportCsv() {
+    var rows = state._rows || [];
+    var head = ["고객명", "분류", "요청 날짜", "상태", "담당 변호사"];
+    var lines = [head.join(",")];
+    rows.forEach(function (p) {
+      var st = statusOf(p).l;
+      lines.push([csv(p.name), csv("일반 상담"), csv(fmtKDate(p.ts)), csv(st), csv("미배정")].join(","));
+    });
+    var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    var url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = "consultations.csv"; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 100);
+  }
+  function csv(s) { s = String(s == null ? "" : s); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+
+  /* ════════ 2) 상담(게시판) 목록 ════════ */
+  function renderBoardList() {
+    setMain(
+      '<div class="ax-card">' +
+        '<div class="ax-card-h">' +
+          '<div><h2>상담</h2><p>고객 상담 요청 및 공식 답변 관리</p></div>' +
+          '<div class="ax-seg">' +
+            '<button class="ax-seg-b' + (state.filter === "all" ? " active" : "") + '" data-filter="all">전체</button>' +
+            '<button class="ax-seg-b' + (state.filter === "unanswered" ? " active" : "") + '" data-filter="unanswered">미답변</button>' +
+          '</div>' +
+        '</div>' +
+        '<div id="bd-list"><div class="ax-loading">불러오는 중…</div></div>' +
+      '</div>');
     drawBoardRows();
   }
   function drawBoardRows() {
@@ -342,86 +437,124 @@
         if (!q) return true;
         return (p.title || "").toLowerCase().indexOf(q) >= 0 || (p.name || "").toLowerCase().indexOf(q) >= 0;
       });
-      var html = '<table class="adm-table"><thead><tr><th>제목</th><th>작성자</th><th>날짜</th><th class="ce">댓글</th><th class="ce">상태</th></tr></thead><tbody>' +
-        (rows.length ? rows.map(function (p) {
-          return '<tr class="adm-row" data-open="' + esc(p.id) + '">' +
-            '<td class="adm-td-title">' + esc(p.title) + '</td>' +
-            '<td>' + esc(p.name) + '</td>' +
-            '<td class="adm-td-date">' + fmt(p.ts) + '</td>' +
-            '<td class="ce">' + (p.commentCount || 0) + '</td>' +
-            '<td class="ce">' + (p.answered ? '<span class="adm-badge ok">답변완료</span>' : '<span class="adm-badge wait">미답변</span>') + '</td>' +
-          '</tr>';
-        }).join("") : '<tr><td colspan="5" class="adm-empty">해당하는 글이 없습니다.</td></tr>') +
-        '</tbody></table>';
-      var el = $("#bd-list"); if (el) { el.className = ""; el.innerHTML = html; }
+      var trs = rows.length ? rows.map(function (p) {
+        var st = statusOf(p), pal = avaColor(p.name);
+        return '<tr>' +
+          '<td><div class="ax-cust"><span class="ax-ava2" style="background:' + pal[0] + ';color:' + pal[1] + '">' + esc(initials(p.name)) + '</span><b>' + esc(p.name) + '</b></div></td>' +
+          '<td class="ax-ttl">' + esc(p.title) + '</td>' +
+          '<td class="ax-date">' + fmtKDate(p.ts) + '</td>' +
+          '<td><span class="ax-st ' + st.c + '">' + st.l + '</span></td>' +
+          '<td class="ax-r"><button class="ax-detail" data-open="' + esc(p.id) + '">상세 보기</button></td>' +
+        '</tr>';
+      }).join("") : '<tr><td colspan="5"><div class="ax-empty">해당하는 상담이 없습니다.</div></td></tr>';
+      var el = $("#bd-list"); if (el) el.innerHTML =
+        '<div class="ax-tbl-wrap"><table class="ax-tbl"><thead><tr>' +
+          '<th>고객명</th><th>제목</th><th>요청 날짜</th><th>상태</th><th></th>' +
+        '</tr></thead><tbody>' + trs + '</tbody></table></div>';
       refreshBanner();
     });
   }
 
-  /* ── 2) 게시판 관리: 상세 ── */
+  /* ════════ 2) 상담 상세 ════════ */
   function renderBoardDetail() {
-    setMain('<button class="adm-back" data-act="bd-back">← 목록으로</button><div id="bd-detail" class="adm-loading">불러오는 중…</div>');
+    setMain('<button class="ax-back" data-act="bd-back">' + icon("back") + '목록으로</button><div id="bd-detail"><div class="ax-loading">불러오는 중…</div></div>');
     boardGet(state.boardId).then(function (d) {
       if (!d) { state.boardId = null; return renderBoardList(); }
-      var p = d.post, cs = d.comments || [];
+      var p = d.post, cs = d.comments || [], pal = avaColor(p.name);
       var comments = cs.length ? cs.map(function (c) {
-        return '<div class="adm-comment' + (c.official ? " official" : "") + '">' +
-          '<div class="adm-c-top"><span class="adm-c-name">' + esc(c.name) + (c.official ? '<span class="adm-badge ok sm">공식</span>' : '') + '</span>' +
-          '<span class="adm-c-date">' + fmt(c.ts) + '</span>' +
-          '<button class="adm-c-del" data-del-comment="' + (c.id != null ? esc(c.id) : "") + '" data-idx="' + (c.idx != null ? c.idx : "") + '" title="댓글 삭제">삭제</button></div>' +
-          '<div class="adm-c-body">' + nl2br(c.body) + '</div></div>';
-      }).join("") : '<div class="adm-empty" style="padding:18px;">아직 댓글이 없습니다.</div>';
-      var html =
-        '<article class="adm-post">' +
-          '<div class="adm-post-head"><h1 class="adm-h1">' + esc(p.title) + '</h1>' +
-          '<button class="btn btn--ghost adm-del-post" data-act="bd-del-post">글 삭제</button></div>' +
-          '<div class="adm-post-meta"><span>' + esc(p.name) + '</span><span>' + fmt(p.ts) + '</span></div>' +
-          '<div class="adm-post-body">' + nl2br(p.body) + '</div>' +
-        '</article>' +
-        '<div class="adm-comments"><h2 class="adm-h2">댓글 ' + cs.length + '</h2>' + comments + '</div>' +
-        '<div class="adm-reply"><h2 class="adm-h2">공식 답변 작성</h2>' +
-          '<div class="field"><textarea id="bd-reply" rows="4" placeholder="변호사사무실 공식 답변을 입력하세요"></textarea></div>' +
-          '<div class="adm-actions"><button class="btn btn--gold" data-act="bd-reply">공식 답변 등록</button></div>' +
+        return '<div class="ax-msg' + (c.official ? " own" : "") + '">' +
+          '<div class="ax-msg-bubble">' + nl2br(c.body) + '</div>' +
+          '<div class="ax-msg-meta"><span>' + esc(c.official ? "글로벌 법률사무소" : c.name) + '</span><span>' + fmt(c.ts) + '</span>' +
+          '<button class="ax-cmt-del" data-del-comment="' + (c.id != null ? esc(c.id) : "") + '" data-idx="' + (c.idx != null ? c.idx : "") + '">삭제</button></div>' +
         '</div>';
-      var el = $("#bd-detail"); if (el) { el.className = ""; el.innerHTML = html; }
+      }).join("") : '<div class="ax-empty">아직 답변이나 댓글이 없습니다.</div>';
+      var html =
+        '<div class="ax-consult-layout">' +
+          '<section class="ax-card ax-chat-panel">' +
+            '<div class="ax-chat-head">' +
+              '<div class="ax-cust"><span class="ax-ava2" style="background:' + pal[0] + ';color:' + pal[1] + '">' + esc(initials(p.name)) + '</span><div><b>' + esc(p.name) + '</b><small>상담 요청 · ' + fmt(p.ts) + '</small></div></div>' +
+              '<button class="ax-btn danger" data-act="bd-del-post">글 삭제</button>' +
+            '</div>' +
+            '<div class="ax-chat-day">오늘</div>' +
+            '<div class="ax-chat-body">' +
+              '<div class="ax-msg"><div class="ax-msg-bubble"><strong>' + esc(p.title) + '</strong><br>' + nl2br(p.body) + '</div><div class="ax-msg-meta"><span>' + esc(p.name) + '</span><span>' + fmt(p.ts) + '</span></div></div>' +
+              comments +
+            '</div>' +
+            '<div class="ax-chat-compose">' +
+              '<textarea id="bd-reply" rows="2" placeholder="공식 답변을 입력하세요"></textarea>' +
+              '<button class="ax-send" data-act="bd-reply" title="공식 답변 등록">▶</button>' +
+            '</div>' +
+          '</section>' +
+          '<aside class="ax-card ax-client-panel">' +
+            '<div class="ax-client-avatar" style="background:' + pal[0] + ';color:' + pal[1] + '">' + esc(initials(p.name)) + '</div>' +
+            '<h2>' + esc(p.name) + '</h2><p>상담 요청자</p>' +
+            '<div class="ax-client-tags"><span>일반 상담</span><span>' + statusOf({ answered: cs.some(function(c){ return c.official; }), commentCount: cs.length }).l + '</span></div>' +
+            '<div class="ax-client-block"><h3>요청 정보</h3><dl><dt>제목</dt><dd>' + esc(p.title) + '</dd><dt>요청일</dt><dd>' + fmtKDate(p.ts) + '</dd><dt>댓글</dt><dd>' + cs.length + '개</dd></dl></div>' +
+          '</aside>' +
+        '</div>';
+      var el = $("#bd-detail"); if (el) el.innerHTML = html;
       refreshBanner();
     });
   }
 
-  /* ── 3) 블로그 관리 ── */
+  /* ════════ 3) 블로그 ════════ */
   function renderBlog() {
-    setMain('<h1 class="adm-h1">블로그 관리</h1>' +
-      '<div class="adm-blog-form">' +
-        '<h2 class="adm-h2">새 글 작성</h2>' +
-        '<div class="adm-grid2">' +
-          '<div class="field"><label>제목</label><input id="bl-title" maxlength="160" placeholder="제목"></div>' +
-          '<div class="field"><label>분류</label><input id="bl-cat" maxlength="40" placeholder="예: 칼럼, 소식"></div>' +
-        '</div>' +
-        '<div class="field"><label>내용</label><textarea id="bl-body" rows="6" placeholder="내용을 입력하세요"></textarea></div>' +
-        '<div class="adm-actions"><button class="btn btn--gold" data-act="bl-add">등록</button></div>' +
-      '</div>' +
-      '<h2 class="adm-h2">글 목록</h2>' +
-      '<div id="bl-list" class="adm-loading">불러오는 중…</div>');
+    setMain(
+      '<div class="ax-card">' +
+        '<div class="ax-page-h"><div><h1>블로그 관리</h1><p>법률 인사이트 및 성공사례를 관리하세요.</p></div>' +
+          '<div class="ax-page-actions"><button class="ax-btn">' + icon("download") + '데이터 내보내기</button><button class="ax-btn">카테고리 관리</button><button class="ax-btn pri" data-act="bl-new">+ 새 글 작성</button></div></div>' +
+        '<div class="ax-bulkbar"><label><input type="checkbox"> 전체 선택</label><span></span><button>발행</button><button class="danger">삭제</button><i></i></div>' +
+        '<div id="bl-list"><div class="ax-loading">불러오는 중…</div></div>' +
+      '</div>');
     drawBlogList();
   }
   function drawBlogList() {
     blogList().then(function (posts) {
-      var html = '<table class="adm-table"><thead><tr><th>제목</th><th>분류</th><th>날짜</th><th class="ce">관리</th></tr></thead><tbody>' +
-        (posts.length ? posts.map(function (p) {
-          return '<tr>' +
-            '<td class="adm-td-title">' + esc(p.title) + '</td>' +
-            '<td>' + (p.cat ? '<span class="adm-tag">' + esc(p.cat) + '</span>' : '<span class="muted">-</span>') + '</td>' +
-            '<td class="adm-td-date">' + fmt(p.ts) + '</td>' +
-            '<td class="ce"><button class="adm-c-del" data-del-blog="' + esc(p.id) + '">삭제</button></td>' +
-          '</tr>';
-        }).join("") : '<tr><td colspan="4" class="adm-empty">아직 블로그 글이 없습니다.</td></tr>') +
-        '</tbody></table>';
-      var el = $("#bl-list"); if (el) { el.className = ""; el.innerHTML = html; }
+      var trs = posts.length ? posts.map(function (p) {
+        return '<tr>' +
+          '<td class="ax-check"><input type="checkbox"></td>' +
+          '<td><div class="ax-blog-title"><span class="ax-blog-thumb"></span><div><b>' + esc(p.title) + '</b><small>작성자: 관리자</small></div></div></td>' +
+          '<td><span class="ax-st ok">발행됨</span></td>' +
+          '<td class="ax-muted-c">--</td>' +
+          '<td class="ax-date">' + fmtKDate(p.ts) + '</td>' +
+          '<td class="ax-r"><button class="ax-cmt-del" data-del-blog="' + esc(p.id) + '">삭제</button></td>' +
+        '</tr>';
+      }).join("") : '<tr><td colspan="6"><div class="ax-empty">아직 발행한 글이 없습니다.</div></td></tr>';
+      var el = $("#bl-list"); if (el) el.innerHTML =
+        '<div class="ax-tbl-wrap"><table class="ax-tbl"><thead><tr>' +
+          '<th></th><th>제목</th><th>상태</th><th>조회수</th><th>날짜</th><th></th>' +
+        '</tr></thead><tbody>' + trs + '</tbody></table></div>';
       refreshBanner();
     });
   }
 
-  /* ── 4) 사이트 정보 ── */
+  function renderBlogWrite() {
+    setMain(
+      '<div class="ax-editor-page">' +
+        '<div class="ax-page-h"><div><h1>새 글 작성</h1><p>글로벌 법률 사무소의 블로그에 새로운 전문 지식을 공유하세요.</p></div>' +
+          '<div class="ax-page-actions"><button class="ax-btn" data-act="bl-cancel-write">목록으로</button><button class="ax-btn">임시 저장</button><button class="ax-btn pri" data-act="bl-add">발행하기</button></div></div>' +
+        '<div class="ax-editor-grid">' +
+          '<main>' +
+            '<section class="ax-card ax-form">' +
+              '<div class="ax-field"><label>제목</label><input id="bl-title" maxlength="160" placeholder="포스트 제목을 입력하세요"></div>' +
+              '<div class="ax-grid2"><div class="ax-field"><label>카테고리</label><input id="bl-cat" maxlength="40" value="성공사례" placeholder="예: 성공사례, 법률정보"></div>' +
+              '<div class="ax-field"><label>태그 (쉼표로 구분)</label><input id="bl-tags" placeholder="예: 상속, 증여, 자문"></div></div>' +
+            '</section>' +
+            '<section class="ax-card ax-editor">' +
+              '<div class="ax-toolbar"><button>B</button><button><i>I</i></button><button><u>U</u></button><button>≡</button><button>❝</button><button>▧</button><button>↔</button></div>' +
+              '<textarea id="bl-body" rows="18" placeholder="본문 내용을 입력하세요..."></textarea>' +
+            '</section>' +
+          '</main>' +
+          '<aside>' +
+            '<section class="ax-card ax-preview"><h3>미리보기</h3><div class="ax-preview-img"></div><h4>여기에 제목이 표시됩니다...</h4><p>본문 내용이 여기에 요약되어 노출됩니다.</p></section>' +
+            '<section class="ax-card ax-publish"><h3>발행 설정</h3><label>공개 여부 <select><option>전체 공개</option><option>비공개</option></select></label><label>댓글 허용 <input type="checkbox" checked></label><label>발행 예약 <button type="button">날짜 선택</button></label></section>' +
+            '<section class="ax-card ax-seo"><h3>SEO 최적화</h3><p>검색엔진에서 더 잘 노출될 수 있도록 메타 설명을 추가하세요.</p><textarea rows="4" placeholder="검색 결과에 표시될 설명을 입력하세요..."></textarea></section>' +
+          '</aside>' +
+        '</div>' +
+      '</div>');
+  }
+
+  /* ════════ 4) 사이트 정보(설정) ════════ */
   var SET_FIELDS = [
     { k: "phone", label: "전화", ph: "02 2277 2442" },
     { k: "email", label: "이메일", ph: "lawsqare@naver.com" },
@@ -431,15 +564,19 @@
     { k: "blogUrl", label: "네이버 블로그 URL", ph: "https://blog.naver.com/…" }
   ];
   function renderSettings() {
-    setMain('<h1 class="adm-h1">사이트 정보</h1><div id="set-form" class="adm-loading">불러오는 중…</div>');
+    setMain(
+      '<div class="ax-card">' +
+        '<div class="ax-card-h"><div><h2>사이트 정보</h2><p>사이트 전반의 연락처·정보에 반영됩니다</p></div></div>' +
+        '<div id="set-form" class="ax-form"><div class="ax-loading">불러오는 중…</div></div>' +
+      '</div>');
     setGet().then(function (s) {
       var fields = SET_FIELDS.map(function (f) {
-        return '<div class="field"><label>' + f.label + '</label><input id="set-' + f.k + '" value="' + esc(s[f.k] || "") + '" placeholder="' + esc(f.ph) + '"></div>';
+        return '<div class="ax-field"><label>' + f.label + '</label><input id="set-' + f.k + '" value="' + esc(s[f.k] || "") + '" placeholder="' + esc(f.ph) + '"></div>';
       }).join("");
-      var html = '<div class="adm-set-form"><div class="adm-grid2">' + fields + '</div>' +
-        '<p class="form-note">전화·이메일·주소·영업시간 등은 사이트 전반의 <code>data-set</code> 요소에 반영됩니다.</p>' +
-        '<div class="adm-actions"><button class="btn btn--gold" data-act="set-save">저장</button></div></div>';
-      var el = $("#set-form"); if (el) { el.className = ""; el.innerHTML = html; }
+      var html = '<div class="ax-grid2">' + fields + '</div>' +
+        '<p class="ax-note">전화·이메일·주소·영업시간 등은 사이트 전반의 <code>data-set</code> 요소에 반영됩니다.</p>' +
+        '<div class="ax-actions"><button class="ax-btn pri" data-act="set-save">저장</button></div>';
+      var el = $("#set-form"); if (el) el.innerHTML = html;
       refreshBanner();
     });
   }
@@ -448,38 +585,44 @@
      이벤트 위임
      ════════════════════════════════════════════════════════════ */
   function handleErr(e, fallbackMsg) {
-    if (e && e.status === 403) {
-      alert("관리자 키가 올바르지 않습니다. 다시 로그인해 주세요.");
-    } else {
-      alert(fallbackMsg || "처리 중 오류가 발생했습니다.");
-    }
+    if (e && e.status === 403) alert("관리자 키가 올바르지 않습니다. 다시 로그인해 주세요.");
+    else alert(fallbackMsg || "처리 중 오류가 발생했습니다.");
   }
 
   root.addEventListener("click", function (e) {
-    // 로그인 화면
     var actEl = e.target.closest("[data-act]");
     var act = actEl && actEl.getAttribute("data-act");
     if (act === "login") { doLogin(); return; }
     if (act === "logout") { logout(); return; }
 
-    // 탭 전환
+    // 탭/설정 전환
     var tabEl = e.target.closest("[data-tab]");
-    if (tabEl) { state.tab = tabEl.getAttribute("data-tab"); state.boardId = null; renderApp(); return; }
+    if (tabEl) { state.tab = tabEl.getAttribute("data-tab"); state.boardId = null; state.dashAll = false; state.blogMode = "list"; renderApp(); return; }
 
-    // 게시판 필터
+    // 알림 → 상담 탭
+    if (act === "notif") { state.tab = "board"; state.boardId = null; renderApp(); return; }
+
+    // 상담 필터
     var fEl = e.target.closest("[data-filter]");
     if (fEl) { state.filter = fEl.getAttribute("data-filter"); renderBoardList(); return; }
 
-    // 게시판 글 열기
+    // 대시보드 더 보기
+    if (act === "more") { state.dashAll = true; drawDash(); return; }
+
+    // CSV 내보내기
+    if (act === "csv") { exportCsv(); return; }
+
+    if (act === "bl-new") { state.blogMode = "write"; renderTab(); return; }
+    if (act === "bl-cancel-write") { state.blogMode = "list"; renderTab(); return; }
+
+    // 상담 글 열기(대시보드/목록 공용)
     var openEl = e.target.closest("[data-open]");
-    if (openEl) { state.boardId = openEl.getAttribute("data-open"); renderBoardDetail(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (openEl) { state.tab = "board"; state.boardId = openEl.getAttribute("data-open"); renderApp(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
 
     if (busy) return;
 
-    // 게시판: 뒤로
     if (act === "bd-back") { state.boardId = null; renderBoardList(); return; }
 
-    // 게시판: 공식 답변 등록
     if (act === "bd-reply") {
       var body = val("#bd-reply");
       if (!body) { alert("답변 내용을 입력하세요."); return; }
@@ -489,7 +632,6 @@
       return;
     }
 
-    // 게시판: 글 삭제
     if (act === "bd-del-post") {
       if (!confirm("이 글과 모든 댓글을 삭제하시겠습니까?")) return;
       busy = true;
@@ -498,7 +640,6 @@
       return;
     }
 
-    // 게시판: 댓글 삭제
     var delC = e.target.closest("[data-del-comment]");
     if (delC) {
       if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
@@ -511,7 +652,6 @@
       return;
     }
 
-    // 블로그: 등록
     if (act === "bl-add") {
       var t = val("#bl-title"), cat = val("#bl-cat"), bd = val("#bl-body");
       if (!t) { alert("제목을 입력하세요."); return; }
@@ -521,12 +661,11 @@
         busy = false;
         var ti = $("#bl-title"), ci = $("#bl-cat"), bi = $("#bl-body");
         if (ti) ti.value = ""; if (ci) ci.value = ""; if (bi) bi.value = "";
-        drawBlogList();
+        state.blogMode = "list"; renderBlog();
       }).catch(function (err) { busy = false; handleErr(err, "블로그 글 등록에 실패했습니다."); });
       return;
     }
 
-    // 블로그: 삭제
     var delB = e.target.closest("[data-del-blog]");
     if (delB) {
       if (!confirm("이 블로그 글을 삭제하시겠습니까?")) return;
@@ -536,7 +675,6 @@
       return;
     }
 
-    // 설정: 저장
     if (act === "set-save") {
       var s = {};
       SET_FIELDS.forEach(function (f) { var el = $("#set-" + f.k); s[f.k] = el ? el.value.trim() : ""; });
@@ -547,13 +685,16 @@
     }
   });
 
-  // 검색 입력(디바운스) — 입력칸 포커스 유지를 위해 목록(#bd-list)만 다시 그림
+  // 검색(디바운스) — 현재 탭의 목록만 다시 그림(입력 포커스 유지)
   var qTimer = null;
   root.addEventListener("input", function (e) {
-    if (e.target && e.target.id === "bd-q") {
+    if (e.target && e.target.id === "ax-q") {
       state.q = e.target.value.trim();
       clearTimeout(qTimer);
-      qTimer = setTimeout(drawBoardRows, 220);
+      qTimer = setTimeout(function () {
+        if (state.tab === "dash") drawDash();
+        else if (state.tab === "board" && !state.boardId) drawBoardRows();
+      }, 220);
     }
   });
 

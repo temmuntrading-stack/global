@@ -10,12 +10,24 @@ function json(d, s) { return new Response(JSON.stringify(d), { status: s || 200,
 function clamp(s, n) { return String(s == null ? "" : s).slice(0, n); }
 function authed(env, key) { return !env.ADMIN_KEY || key === env.ADMIN_KEY; }
 
+/* 테이블 자동 생성 (최초 요청 시 1회 — D1 Console에 수동 적용 불필요) */
+let _schemaReady = false;
+async function ensureSchema(db) {
+  if (_schemaReady) return;
+  await db.batch([
+    db.prepare("CREATE TABLE IF NOT EXISTS blog (id TEXT PRIMARY KEY, title TEXT NOT NULL, cat TEXT, body TEXT NOT NULL, ts INTEGER NOT NULL)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS idx_blog_ts ON blog(ts)"),
+  ]);
+  _schemaReady = true;
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const db = env.DB;
   if (!db) return json({ error: "D1 바인딩(DB)이 설정되지 않았습니다." }, 500);
   const url = new URL(request.url);
   try {
+    await ensureSchema(db);
     if (request.method === "GET") {
       const id = url.searchParams.get("id");
       if (id) {

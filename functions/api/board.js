@@ -16,6 +16,19 @@ function json(data, status) {
 function clamp(s, n) { return String(s == null ? "" : s).slice(0, n); }
 function rid(pre) { return pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
+/* 테이블 자동 생성 (최초 요청 시 1회 — D1 Console에 수동 적용 불필요) */
+let _schemaReady = false;
+async function ensureSchema(db) {
+  if (_schemaReady) return;
+  await db.batch([
+    db.prepare("CREATE TABLE IF NOT EXISTS posts (id TEXT PRIMARY KEY, name TEXT NOT NULL, title TEXT NOT NULL, body TEXT NOT NULL, ts INTEGER NOT NULL)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS comments (id TEXT PRIMARY KEY, post_id TEXT NOT NULL, name TEXT NOT NULL, body TEXT NOT NULL, official INTEGER NOT NULL DEFAULT 0, ts INTEGER NOT NULL)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS idx_posts_ts ON posts(ts)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id)"),
+  ]);
+  _schemaReady = true;
+}
+
 /* Google ID 토큰 검증.
    env.GOOGLE_CLIENT_ID 설정 시: tokeninfo 로 검증 → { ok, name } 반환.
    검증 실패 시 { ok:false, error }.
@@ -42,6 +55,7 @@ export async function onRequest(context) {
   const url = new URL(request.url);
 
   try {
+    await ensureSchema(db);
     /* ── 목록 / 단일 글 조회 ── */
     if (request.method === "GET") {
       const id = url.searchParams.get("id");

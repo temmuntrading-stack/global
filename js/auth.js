@@ -8,7 +8,7 @@
 (function () {
   /* ★ 사장님: Google Cloud Console에서 발급한 OAuth 2.0 Client ID(웹)를 아래 따옴표 안에 붙여넣으세요.
      빈 문자열이면 이름 입력 폴백으로 동작합니다. 자세한 방법은 GOOGLE-LOGIN-SETUP.md 참고. */
-  var GOOGLE_CLIENT_ID = "";
+  var GOOGLE_CLIENT_ID = "63247179041-ru5odglslnh5kt41hkd6heqcqcbtf6n2.apps.googleusercontent.com";
 
   var STORE = "glo-user";
 

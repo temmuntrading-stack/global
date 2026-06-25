@@ -18,12 +18,14 @@
 4. 왼쪽 메뉴 **API 및 서비스 → 사용자 인증 정보(Credentials)**
    - 상단 **+ 사용자 인증 정보 만들기 → OAuth 클라이언트 ID**
    - 애플리케이션 유형: **웹 애플리케이션**
-   - **승인된 JavaScript 원본(Authorized JavaScript origins)** 에 아래 두 개를 추가:
+   - **승인된 JavaScript 원본(Authorized JavaScript origins)** 에 아래를 추가:
      ```
-     https://global-3z6.pages.dev
+     https://globallaw.co.kr
+     https://www.globallaw.co.kr
      http://localhost:8091
      ```
-     (다른 도메인/포트를 쓰면 그 주소도 추가하세요. `https://`/`http://`, 포트까지 정확히 일치해야 합니다.)
+     (`https://`/`http://`, 도메인·포트까지 정확히 일치해야 합니다. 로컬 테스트가 필요 없으면 localhost는 생략 가능.)
+   - (OAuth 동의 화면 게시 시) **앱 홈페이지** `https://globallaw.co.kr`, **개인정보처리방침** `https://globallaw.co.kr/privacy.html`, **이용약관** `https://globallaw.co.kr/terms.html`, **승인된 도메인** `globallaw.co.kr` 입력. 도메인 소유권 확인을 요구하면 Google Search Console에서 TXT 레코드로 인증.
    - **만들기** → 발급된 **클라이언트 ID** 를 복사 (형식: `xxxxxxxx.apps.googleusercontent.com`)
 
 ---

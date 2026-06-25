@@ -11,17 +11,18 @@
     { key:"blog",      href:"blog.html", i:"nav.blog" },
     { key:"contact",   href:"contact.html",   i:"nav.contact" },
   ];
-  /* 업무분야 9개 카테고리 → 페이지 매핑 (ncat.1 … ncat.9) */
+  /* 업무분야 10개 카테고리 → 페이지 매핑 (ncat.1 … ncat.10) */
   var NCAT_HREF = [
-    "civil-criminal.html",       /* 1 민사·형사 */
-    "divorce-admin.html",        /* 2 이혼·행정소송 */
-    "traffic-accident.html",     /* 3 교통사고·손해배상 */
-    "industrial-accident.html",  /* 4 산업재해·체불임금 */
-    "immigration-overstay.html", /* 5 불법체류·출국명령 */
-    "visa-invitation.html",      /* 6 체류비자·초청·통역 */
-    "refugee.html",              /* 7 난민 신청 */
-    "admin-appeal.html",         /* 8 행정심판·처분 구제 */
-    "licensing-corporate.html"   /* 9 인허가·법인설립 */
+    "civil.html",                /* 1 민사소송 */
+    "criminal.html",             /* 2 형사소송 */
+    "divorce.html",              /* 3 가사소송 */
+    "administrative.html",       /* 4 행정소송 */
+    "traffic-accident.html",     /* 5 교통사고 및 형사합의 */
+    "industrial-accident.html",  /* 6 산업재해·체불임금 */
+    "visa-invitation.html",      /* 7 체류 VISA 연장·변경 */
+    "immigration-overstay.html", /* 8 출국명령·체류자격 변경불허 */
+    "admin-appeal.html",         /* 9 행정심판·처분 구제 */
+    "investment-visa.html"       /* 10 D-8 기업투자 비자 */
   ];
   var page = document.body.getAttribute("data-page") || "home";
 
@@ -32,7 +33,7 @@
       if(mobile){
         if(n.key === "practice"){
           var msub = "";
-          for(var j = 1; j <= 9; j++){ var hj = NCAT_HREF[j-1] || "practice.html"; msub += '<a href="'+hj+'" data-i18n="ncat.'+j+'"></a>'; }
+          for(var j = 1; j <= 10; j++){ var hj = NCAT_HREF[j-1] || "practice.html"; msub += '<a href="'+hj+'" data-i18n="ncat.'+j+'"></a>'; }
           msub += '<a href="practice.html" class="more" data-i18n="home.cat.more"></a>';
           return '<div class="m-acc">'
             + '<button class="m-acc-btn" type="button" aria-expanded="false">'
@@ -46,7 +47,7 @@
       var sub = "";
       if(n.key === "practice"){
         var items = "";
-        for(var i = 1; i <= 9; i++){ var h = NCAT_HREF[i-1] || "practice.html"; items += '<a href="'+h+'" data-i18n="ncat.'+i+'"></a>'; }
+        for(var i = 1; i <= 10; i++){ var h = NCAT_HREF[i-1] || "practice.html"; items += '<a href="'+h+'" data-i18n="ncat.'+i+'"></a>'; }
         sub = '<div class="nav-sub">' + items
           + '<a href="practice.html" class="more" data-i18n="home.cat.more"></a></div>';
       }

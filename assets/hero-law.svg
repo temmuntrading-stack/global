@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" preserveAspectRatio="xMidYMid slice" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="law">
+  <!-- ambient circle behind scales -->
+  <circle cx="610" cy="175" r="150" stroke-width="2" stroke-opacity="0.16"/>
+  <circle cx="610" cy="175" r="110" stroke-width="2" stroke-opacity="0.10"/>
+
+  <!-- courthouse (left, faint) -->
+  <g stroke-opacity="0.34" stroke-width="6">
+    <path d="M70 120 L175 66 L280 120 Z"/>
+    <path d="M58 122 H292"/>
+    <path d="M100 132 V278 M153 132 V278 M206 132 V278 M259 132 V278" stroke-width="9"/>
+    <path d="M58 282 H292"/>
+  </g>
+
+  <!-- scales of justice (right) -->
+  <g stroke-width="6" stroke-opacity="0.85">
+    <circle cx="610" cy="66" r="8" fill="#ffffff" fill-opacity="0.85" stroke="none"/>
+    <path d="M610 74 V292"/>
+    <path d="M518 104 H702"/>
+    <path d="M585 292 H635"/>
+    <path d="M598 292 L586 308 H634 L622 292"/>
+    <!-- left scale -->
+    <path d="M540 104 V150" stroke-width="4"/>
+    <path d="M512 150 Q540 192 568 150" stroke-width="5"/>
+    <path d="M540 150 L512 150 M540 150 L568 150" stroke-width="3" stroke-opacity="0.6"/>
+    <!-- right scale -->
+    <path d="M680 104 V150" stroke-width="4"/>
+    <path d="M652 150 Q680 192 708 150" stroke-width="5"/>
+    <path d="M680 150 L652 150 M680 150 L708 150" stroke-width="3" stroke-opacity="0.6"/>
+  </g>
+
+  <!-- document lines (lower area, faint) -->
+  <g stroke-width="5" stroke-opacity="0.22">
+    <path d="M90 312 H250"/>
+    <path d="M90 326 H210"/>
+    <path d="M330 320 H470"/>
+  </g>
+</svg>

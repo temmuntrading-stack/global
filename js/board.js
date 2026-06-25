@@ -42,19 +42,41 @@
   async function getPost(id) {
     return request(API + "?id=" + encodeURIComponent(id), { headers: { accept: "application/json" } });
   }
-  async function addPost(name, title, body) {
+  async function addPost(name, title, body, idToken) {
     await request(API, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ type: "post", name: name || tr("board.anonymous"), title: title, body: body })
+      body: JSON.stringify({ type: "post", name: name || tr("board.anonymous"), title: title, body: body, idToken: idToken || "" })
     });
   }
-  async function addComment(postId, name, body) {
+  async function addComment(postId, name, body, idToken) {
     await request(API, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ type: "comment", postId: postId, name: name || tr("board.anonymous"), body: body })
+      body: JSON.stringify({ type: "comment", postId: postId, name: name || tr("board.anonymous"), body: body, idToken: idToken || "" })
     });
+  }
+
+  /* ── 로그인 헬퍼 ── */
+  function currentUser() {
+    return (window.AuthGoogle && AuthGoogle.getUser()) || null;
+  }
+  // 로그인 보장: 이미 로그인돼 있으면 그 user, 아니면 signIn 모달. 취소 시 null.
+  async function ensureUser() {
+    var u = currentUser();
+    if (u) return u;
+    if (!window.AuthGoogle) return null;
+    u = await AuthGoogle.signIn();
+    return u || null;
+  }
+
+  // 로그인 상태 표시줄 (로그인 시에만 노출).
+  function loginBar() {
+    var u = currentUser();
+    if (!u) return "";
+    return '<div class="bd-auth"><span class="bd-auth-who">' + esc(tr("auth.loggedInAs"))
+      + ' <b>' + esc(u.name) + "</b></span>"
+      + '<button class="bd-auth-out" data-act="logout">' + esc(tr("auth.logout")) + "</button></div>";
   }
 
   async function render() {
@@ -76,7 +98,8 @@
           + '<div class="bd-row-meta"><span>' + esc(p.name) + "</span><span>" + fmt(p.ts) + "</span></div></button>";
       }).join("");
       board.innerHTML =
-        '<div class="bd-head"><div class="bd-note">' + esc(tr("board.note")) + "</div>"
+        loginBar()
+        + '<div class="bd-head"><div class="bd-note">' + esc(tr("board.note")) + "</div>"
         + '<button class="btn btn--gold" data-act="write">' + PENCIL + " " + esc(tr("board.write")) + "</button></div>"
         + '<div class="bd-list">' + (rows || '<div class="bd-empty">' + esc(tr("board.empty")) + "</div>") + "</div>";
     } catch (err) {
@@ -85,10 +108,12 @@
   }
 
   function renderWrite() {
+    var u = currentUser();
+    var who = u ? u.name : "";
     board.innerHTML =
       '<button class="bd-back" data-act="back">' + esc(tr("board.back")) + "</button>"
       + '<div class="bd-form-wrap"><h3 class="bd-form-title">' + esc(tr("board.write")) + "</h3>"
-      + '<div class="field"><label>' + esc(tr("board.name")) + '</label><input id="w-name" maxlength="20" placeholder="' + esc(tr("board.namePh")) + '"></div>'
+      + '<div class="field"><label>' + esc(tr("board.name")) + '</label><input id="w-name" value="' + esc(who) + '" readonly></div>'
       + '<div class="field"><label>' + esc(tr("board.postTitle")) + '</label><input id="w-title" maxlength="80" placeholder="' + esc(tr("board.titlePh")) + '"></div>'
       + '<div class="field"><label>' + esc(tr("board.body")) + '</label><textarea id="w-body" rows="7" placeholder="' + esc(tr("board.bodyPh")) + '"></textarea></div>'
       + '<div class="bd-actions"><button class="btn btn--ghost" data-act="cancel">' + esc(tr("board.cancel")) + '</button><button class="btn btn--gold" data-act="submit">' + esc(tr("board.submit")) + "</button></div></div>";
@@ -111,8 +136,7 @@
         + '<div class="bd-post-meta"><span>' + esc(p.name) + "</span><span>" + fmt(p.ts) + "</span></div>"
         + '<div class="bd-post-body">' + nl2br(p.body) + "</div></article>"
         + '<div class="bd-comments"><h3 class="bd-c-h">' + esc(tr("board.comments")) + " " + cs.length + "</h3>" + comments + "</div>"
-        + '<div class="bd-cform"><div class="field"><input id="c-name" maxlength="20" placeholder="' + esc(tr("board.name")) + '"></div>'
-        + '<div class="field"><textarea id="c-body" rows="3" placeholder="' + esc(tr("board.commentPh")) + '"></textarea></div>'
+        + '<div class="bd-cform"><div class="field"><textarea id="c-body" rows="3" placeholder="' + esc(tr("board.commentPh")) + '"></textarea></div>'
         + '<div class="bd-actions"><button class="btn btn--gold" data-act="comment">' + esc(tr("board.commentSubmit")) + "</button></div></div>";
     } catch (err) {
       board.innerHTML = '<button class="bd-back" data-act="back">' + esc(tr("board.back")) + '</button><div class="bd-empty">' + esc(errorMessage(err, "board.error")) + "</div>";
@@ -131,15 +155,25 @@
     var act = e.target.closest("[data-act]");
     if (!act || busy) return;
     var a = act.getAttribute("data-act");
-    if (a === "write") view.mode = "write";
+    if (a === "write") {
+      // 글쓰기는 로그인 필요 → 모달 후 폼 표시.
+      var wu = await ensureUser();
+      if (!wu) return;
+      view.mode = "write";
+    }
     else if (a === "cancel" || a === "back") view.mode = "list";
+    else if (a === "logout") {
+      if (window.AuthGoogle) AuthGoogle.signOut();
+    }
     else if (a === "submit") {
+      var u = currentUser();
+      if (!u) { u = await ensureUser(); if (!u) return; render(); return; }
       var title = val("#w-title"), body = val("#w-body");
       if (!title) { alert(tr("board.needTitle")); return; }
       if (!body) { alert(tr("board.needBody")); return; }
       busy = true;
       try {
-        await addPost(val("#w-name"), title, body);
+        await addPost(u.name, title, body, u.idToken);
         view.mode = "list";
       } catch (err) {
         alert(errorMessage(err, "board.saveError"));
@@ -149,9 +183,12 @@
     } else if (a === "comment") {
       var cb = val("#c-body");
       if (!cb) { alert(tr("board.needComment")); return; }
+      // 댓글도 로그인 필요.
+      var cu = await ensureUser();
+      if (!cu) return;
       busy = true;
       try {
-        await addComment(view.id, val("#c-name"), cb);
+        await addComment(view.id, cu.name, cb, cu.idToken);
       } catch (err) {
         alert(errorMessage(err, "board.commentError"));
       } finally {

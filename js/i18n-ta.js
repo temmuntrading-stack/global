@@ -1,8 +1,8 @@
-/* 교통사고 · 손해배상 페이지 번역 (ko 원문 + en + 9개 언어). 그 외 언어는 en으로 자동 폴백. */
+/* 교통사고 및 형사합의 페이지 번역 (ko 원문 + en + 9개 언어). 그 외 언어는 en으로 자동 폴백. */
 (function(){
   if(!window.I18N) return;
   var ko = {
-    "ta.eyebrow":"교통사고 · 손해배상",
+    "ta.eyebrow":"교통사고 및 형사합의",
     "ta.title":"예기치 못한 사고,<br><span class=\"grad\">제대로 된 보상</span>을<br>받아야 합니다.",
     "ta.sub":"교통사고는 형사 책임과 손해배상이 동시에 얽히는 사건입니다. 합의금·치료비·후유장해까지, 정당한 권리를 빠짐없이 챙기세요.",
     "ta.cta1":"무료 상담 신청",
@@ -57,7 +57,7 @@
     "ta.a5faq":"네. 대한민국에서 발생한 교통사고라면 체류 자격과 관계없이 동일하게 보호받으며, 손해배상을 청구할 수 있습니다. 글로벌 법률사무소는 10개 언어로 상담을 지원하니 편하게 문의해 주세요."
   };
   var en = {
-    "ta.eyebrow":"Traffic Accident · Damages",
+    "ta.eyebrow":"Traffic Accident & Criminal Settlement",
     "ta.title":"An unexpected accident —<br>you deserve<br><span class=\"grad\">proper compensation</span>.",
     "ta.sub":"A traffic accident often involves criminal liability and damages at the same time. From settlement and medical costs to permanent disability, make sure you claim every right you are entitled to.",
     "ta.cta1":"Free Consultation",
@@ -112,7 +112,7 @@
     "ta.a5faq":"Yes. For a traffic accident that occurred in Korea, you are protected equally regardless of visa status and can claim damages. Global Law Office offers consultations in 10 languages — feel free to reach out."
   };
   var vi = {
-    "ta.eyebrow":"Tai nạn giao thông · Bồi thường thiệt hại",
+    "ta.eyebrow":"Tai nạn giao thông & hòa giải hình sự",
     "ta.title":"Một tai nạn bất ngờ —<br>bạn xứng đáng nhận được<br><span class=\"grad\">khoản bồi thường thỏa đáng</span>.",
     "ta.sub":"Tai nạn giao thông thường liên quan đồng thời đến trách nhiệm hình sự và bồi thường thiệt hại. Từ tiền hòa giải, chi phí điều trị cho đến di chứng tàn tật, hãy bảo đảm bạn nhận đầy đủ mọi quyền lợi chính đáng.",
     "ta.cta1":"Đăng ký tư vấn miễn phí",
@@ -167,7 +167,7 @@
     "ta.a5faq":"Có. Nếu là tai nạn giao thông xảy ra tại Hàn Quốc, bạn được bảo vệ như nhau bất kể tư cách lưu trú và có thể yêu cầu bồi thường thiệt hại. Văn phòng Luật Toàn Cầu hỗ trợ tư vấn bằng 10 ngôn ngữ, hãy liên hệ thoải mái."
   };
   var ru = {
-    "ta.eyebrow":"ДТП · Возмещение ущерба",
+    "ta.eyebrow":"ДТП и уголовное примирение",
     "ta.title":"Неожиданная авария —<br>вы заслуживаете<br><span class=\"grad\">справедливой компенсации</span>.",
     "ta.sub":"ДТП часто одновременно влечёт уголовную ответственность и возмещение ущерба. От мирового соглашения и расходов на лечение до стойких последствий травм — позаботьтесь о том, чтобы получить все положенные вам права.",
     "ta.cta1":"Записаться на бесплатную консультацию",
@@ -222,7 +222,7 @@
     "ta.a5faq":"Да. Если ДТП произошло в Республике Корея, вы защищены наравне с другими независимо от статуса пребывания и можете требовать возмещения ущерба. Юридическая фирма Global оказывает консультации на 10 языках — обращайтесь без стеснения."
   };
   var zh = {
-    "ta.eyebrow":"交通事故 · 损害赔偿",
+    "ta.eyebrow":"交通事故及刑事和解",
     "ta.title":"突如其来的事故，<br>您理应获得<br><span class=\"grad\">应有的赔偿</span>。",
     "ta.sub":"交通事故往往同时牵涉刑事责任与损害赔偿。从和解金、治疗费到后遗障碍，请务必把应得的权利一项不漏地争取到。",
     "ta.cta1":"申请免费咨询",
@@ -277,7 +277,7 @@
     "ta.a5faq":"可以。只要是在韩国发生的交通事故，无论居留资格如何都同样受到保护，并可主张损害赔偿。Global法律事务所提供10种语言的咨询，欢迎随时垂询。"
   };
   var uz = {
-    "ta.eyebrow":"Yoʻl-transport hodisasi · Zararni qoplash",
+    "ta.eyebrow":"Yoʻl-transport hodisasi va jinoiy kelishuv",
     "ta.title":"Kutilmagan hodisa —<br>siz<br><span class=\"grad\">munosib tovonni</span> olishingiz kerak.",
     "ta.sub":"Yoʻl-transport hodisasi koʻpincha jinoiy javobgarlik va zararni qoplashni bir vaqtda oʻz ichiga oladi. Kelishuv puli va davolanish xarajatlaridan tortib doimiy nogironlikkacha — barcha qonuniy huquqlaringizni toʻliq olishingizga ishonch hosil qiling.",
     "ta.cta1":"Bepul maslahatga yozilish",
@@ -332,7 +332,7 @@
     "ta.a5faq":"Ha. Agar yoʻl-transport hodisasi Koreya Respublikasida sodir boʻlgan boʻlsa, yashash maqomidan qatʼi nazar bir xil himoyalanasiz va zarar tovonini talab qilishingiz mumkin. Global yuridik firmasi 10 tilda maslahat beradi — bemalol murojaat qiling."
   };
   var th = {
-    "ta.eyebrow":"อุบัติเหตุจราจร · ค่าสินไหมทดแทน",
+    "ta.eyebrow":"อุบัติเหตุจราจรและการประนอมคดีอาญา",
     "ta.title":"อุบัติเหตุที่ไม่คาดคิด<br>คุณสมควรได้รับ<br><span class=\"grad\">ค่าชดเชยที่เหมาะสม</span>",
     "ta.sub":"อุบัติเหตุจราจรมักเกี่ยวพันทั้งความรับผิดทางอาญาและค่าสินไหมทดแทนไปพร้อมกัน ตั้งแต่เงินไกล่เกลี่ย ค่ารักษาพยาบาล ไปจนถึงความพิการที่หลงเหลือ โปรดรักษาสิทธิอันชอบธรรมของคุณให้ครบถ้วน",
     "ta.cta1":"ขอรับคำปรึกษาฟรี",
@@ -387,7 +387,7 @@
     "ta.a5faq":"ได้ครับ/ค่ะ หากเป็นอุบัติเหตุจราจรที่เกิดขึ้นในเกาหลี คุณจะได้รับการคุ้มครองเท่าเทียมกันโดยไม่คำนึงถึงสถานะการพำนัก และสามารถเรียกค่าสินไหมทดแทนได้ สำนักงานกฎหมาย Global ให้คำปรึกษา 10 ภาษา โปรดติดต่อสอบถามได้ตามสะดวก"
   };
   var km = {
-    "ta.eyebrow":"គ្រោះថ្នាក់ចរាចរណ៍ · សំណងការខូចខាត",
+    "ta.eyebrow":"គ្រោះថ្នាក់ចរាចរណ៍ និងការសម្រុះសម្រួលព្រហ្មទណ្ឌ",
     "ta.title":"គ្រោះថ្នាក់ដែលមិនបានរំពឹងទុក —<br>អ្នកសមនឹងទទួលបាន<br><span class=\"grad\">សំណងសមរម្យ</span>។",
     "ta.sub":"គ្រោះថ្នាក់ចរាចរណ៍ច្រើនតែពាក់ព័ន្ធទាំងការទទួលខុសត្រូវព្រហ្មទណ្ឌ និងសំណងការខូចខាតក្នុងពេលតែមួយ។ ចាប់ពីប្រាក់សម្រុះសម្រួល និងថ្លៃព្យាបាល រហូតដល់ពិការភាពដែលនៅសេសសល់ សូមធានាថាអ្នកទទួលបានរាល់សិទ្ធិស្របច្បាប់របស់អ្នកគ្រប់គ្រាន់។",
     "ta.cta1":"ស្នើសុំការប្រឹក្សាដោយឥតគិតថ្លៃ",
@@ -442,7 +442,7 @@
     "ta.a5faq":"បាទ/ចាស។ ប្រសិនបើជាគ្រោះថ្នាក់ចរាចរណ៍ដែលកើតឡើងនៅសាធារណរដ្ឋកូរ៉េ អ្នកត្រូវបានការពារដូចគ្នា ដោយមិនគិតពីឋានៈស្នាក់នៅ ហើយអាចទាមទារសំណងការខូចខាតបាន។ ការិយាល័យច្បាប់ Global ផ្តល់ការប្រឹក្សាជា ១០ ភាសា សូមទាក់ទងមកដោយស្រួលចិត្ត។"
   };
   var si = {
-    "ta.eyebrow":"රිය අනතුරු · හානි පූරණය",
+    "ta.eyebrow":"රිය අනතුර සහ අපරාධ සමථය",
     "ta.title":"බලාපොරොත්තු නොවූ අනතුරක් —<br>ඔබට<br><span class=\"grad\">නිසි වන්දියක්</span> ලැබිය යුතුය.",
     "ta.sub":"රිය අනතුරක් බොහෝ විට අපරාධ වගකීම සහ හානි පූරණය එකවර සම්බන්ධ වන සිද්ධියකි. සමථ මුදල් හා ප්‍රතිකාර වියදම් සිට ස්ථිර ආබාධ දක්වා, ඔබට හිමි සියලු අයිතිවාසිකම් අඩුවක් නැතිව ලබා ගැනීමට වග බලා ගන්න.",
     "ta.cta1":"නොමිලේ උපදේශනය ඉල්ලන්න",
@@ -497,7 +497,7 @@
     "ta.a5faq":"ඔව්. කොරියාවේ සිදු වූ රිය අනතුරක් නම්, පදිංචි තත්ත්වය නොසලකා සමානව ආරක්ෂාව ලැබෙන අතර හානි පූරණයක් ඉල්ලා සිටිය හැකිය. Global නීති කාර්යාලය භාෂා 10කින් උපදේශනය සපයන බැවින් නිදහසේ විමසන්න."
   };
   var ne = {
-    "ta.eyebrow":"सडक दुर्घटना · क्षतिपूर्ति",
+    "ta.eyebrow":"सडक दुर्घटना र फौजदारी मिलापत्र",
     "ta.title":"अप्रत्याशित दुर्घटना —<br>तपाईंले<br><span class=\"grad\">उचित क्षतिपूर्ति</span> पाउनुपर्छ।",
     "ta.sub":"सडक दुर्घटनामा प्रायः फौजदारी दायित्व र क्षतिपूर्ति एकैसाथ जोडिन्छन्। मिलापत्र रकम र उपचार खर्चदेखि स्थायी अशक्ततासम्म, तपाईंलाई पाउनुपर्ने सबै अधिकार पूर्ण रूपमा सुनिश्चित गर्नुहोस्।",
     "ta.cta1":"निःशुल्क परामर्शका लागि आवेदन",
@@ -552,7 +552,7 @@
     "ta.a5faq":"सक्छन्। कोरियामा भएको सडक दुर्घटना भए बसोबास स्थितिसँग सम्बन्ध नराखी समान रूपमा संरक्षण पाइन्छ र क्षतिपूर्ति दाबी गर्न सकिन्छ। Global कानुनी कार्यालयले १० भाषामा परामर्श उपलब्ध गराउने हुनाले निःसङ्कोच सम्पर्क गर्नुहोस्।"
   };
   var mn = {
-    "ta.eyebrow":"Замын ослын хохирол · нөхөн төлбөр",
+    "ta.eyebrow":"Замын осол ба эрүүгийн эвлэрэл",
     "ta.title":"Гэнэтийн осол —<br>та<br><span class=\"grad\">зохистой нөхөн төлбөр</span> авах ёстой.",
     "ta.sub":"Замын осол нь ихэвчлэн эрүүгийн хариуцлага болон хохирлын нөхөн төлбөртэй зэрэг холбогддог. Эвлэрлийн мөнгө, эмчилгээний зардлаас эхлээд тахир дутуугийн үр дагавар хүртэл, өөрт ногдох бүх эрхээ дутуугүй авахаа баталгаажуул.",
     "ta.cta1":"Үнэгүй зөвлөгөө авах",

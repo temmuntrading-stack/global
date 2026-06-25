@@ -16,6 +16,25 @@ function json(data, status) {
 function clamp(s, n) { return String(s == null ? "" : s).slice(0, n); }
 function rid(pre) { return pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
+/* Google ID 토큰 검증.
+   env.GOOGLE_CLIENT_ID 설정 시: tokeninfo 로 검증 → { ok, name } 반환.
+   검증 실패 시 { ok:false, error }.
+   (env.GOOGLE_CLIENT_ID 미설정이면 호출하지 않음 → 기존 동작) */
+async function verifyGoogle(idToken, clientId) {
+  if (!idToken) return { ok: false, error: "로그인이 필요합니다." };
+  try {
+    const r = await fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(idToken));
+    if (!r.ok) return { ok: false, error: "로그인 인증에 실패했습니다." };
+    const info = await r.json();
+    if (info.aud !== clientId) return { ok: false, error: "로그인 인증에 실패했습니다." };
+    const exp = parseInt(info.exp, 10);
+    if (!exp || exp * 1000 < Date.now()) return { ok: false, error: "로그인이 만료되었습니다. 다시 로그인해 주세요." };
+    return { ok: true, name: info.name || info.email || "익명" };
+  } catch (e) {
+    return { ok: false, error: "로그인 인증 중 오류가 발생했습니다." };
+  }
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const db = env.DB;
@@ -50,9 +69,15 @@ export async function onRequest(context) {
 
       if (b.type === "post") {
         if (!b.title || !b.body) return json({ error: "제목과 내용을 입력하세요." }, 400);
+        let name = clamp(b.name, 40) || "익명";
+        if (env.GOOGLE_CLIENT_ID) {
+          const v = await verifyGoogle(b.idToken, env.GOOGLE_CLIENT_ID);
+          if (!v.ok) return json({ error: v.error }, 401);
+          name = clamp(v.name, 40) || "익명";
+        }
         const id = rid("p");
         await db.prepare("INSERT INTO posts (id,name,title,body,ts) VALUES (?,?,?,?,?)")
-          .bind(id, clamp(b.name, 40) || "익명", clamp(b.title, 120), clamp(b.body, 5000), ts).run();
+          .bind(id, name, clamp(b.title, 120), clamp(b.body, 5000), ts).run();
         return json({ id });
       }
 
@@ -60,6 +85,11 @@ export async function onRequest(context) {
         if (!b.postId || !b.body) return json({ error: "댓글 내용을 입력하세요." }, 400);
         let official = 0;
         let name = clamp(b.name, 40) || "익명";
+        if (!b.official && env.GOOGLE_CLIENT_ID) {
+          const v = await verifyGoogle(b.idToken, env.GOOGLE_CLIENT_ID);
+          if (!v.ok) return json({ error: v.error }, 401);
+          name = clamp(v.name, 40) || "익명";
+        }
         if (b.official) {
           if (env.ADMIN_KEY) {
             if (b.key !== env.ADMIN_KEY) return json({ error: "관리자 키가 올바르지 않습니다." }, 403);

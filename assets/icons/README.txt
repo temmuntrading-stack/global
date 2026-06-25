@@ -10,18 +10,19 @@
 크기: 정사각형 권장. PNG면 한 변 160px 이상(또렷하게)
 
  #  카테고리                     현재 이모지   파일명 (.png 또는 .svg)
- 1  민사 / 형사 소송              ⚖️           civil-criminal.png
- 2  이혼 / 행정소송               📝           divorce-admin.png
- 3  교통사고 · 손해배상           🚗           traffic-accident.png
- 4  산업재해 / 체불임금           👷           industrial-accident.png
- 5  불법체류 / 출국명령           ✈️           immigration-overstay.png
- 6  체류비자 · 초청 · 통역        🛂           visa-invitation.png
- 7  난민 신청                     🕊️           refugee.png
- 8  행정심판(음주·영업정지)       ⚠️           admin-appeal.png
- 9  인허가 · 법인설립             🏢           licensing-corporate.png
+ 1  민사소송                      ⚖️           civil.png
+ 2  형사소송                      🚨           criminal.png
+ 3  가사소송                      👨‍👩‍👧          divorce.png
+ 4  행정소송                      🏛️           administrative.png
+ 5  교통사고 및 형사합의          🚗           traffic-accident.png
+ 6  산업재해 / 체불임금           👷           industrial-accident.png
+ 7  체류 VISA 연장 · 변경         🛂           visa-invitation.png
+ 8  출국명령 · 체류자격 변경불허  ✈️           immigration-overstay.png
+ 9  행정심판(음주·영업정지)       ⚠️           admin-appeal.png
+10  D-8 기업투자 비자             💼           investment-visa.png
 
 참고
 - 파일명은 각 페이지 파일명과 동일합니다(예: industrial-accident.html → industrial-accident.png).
 - 파스텔 사각 배경은 그대로 유지되고, 그 위에 아이콘이 올라갑니다.
-- 9개를 한 번에 안 넣어도 됩니다. 넣은 것부터 바뀝니다.
+- 10개를 한 번에 안 넣어도 됩니다. 넣은 것부터 바뀝니다.
 - 배경 없이 아이콘만 더 크게/꽉 차게 원하면 말씀해 주세요(스타일 조정 가능).

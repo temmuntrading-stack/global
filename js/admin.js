@@ -285,7 +285,7 @@
   var NAV = [
     { id: "dash", label: "대시보드", icon: "grid" },
     { id: "board", label: "상담", icon: "chat" },
-    { id: "blog", label: "블로그", icon: "doc" }
+    { id: "blog", label: "성공 사례", icon: "doc" }
   ];
 
   function demoBanner() {
@@ -501,7 +501,7 @@
   function renderBlog() {
     setMain(
       '<div class="ax-card">' +
-        '<div class="ax-page-h"><div><h1>블로그 관리</h1><p>법률 인사이트 및 성공사례를 관리하세요.</p></div>' +
+        '<div class="ax-page-h"><div><h1>성공 사례 관리</h1><p>성공 사례·법률 인사이트 글을 작성하면 홈과 성공 사례 페이지에 노출됩니다.</p></div>' +
           '<div class="ax-page-actions"><button class="ax-btn">' + icon("download") + '데이터 내보내기</button><button class="ax-btn">카테고리 관리</button><button class="ax-btn pri" data-act="bl-new">+ 새 글 작성</button></div></div>' +
         '<div class="ax-bulkbar"><label><input type="checkbox"> 전체 선택</label><span></span><button>발행</button><button class="danger">삭제</button><i></i></div>' +
         '<div id="bl-list"><div class="ax-loading">불러오는 중…</div></div>' +

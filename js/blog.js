@@ -82,7 +82,7 @@
         + '<div class="bd-row-meta"><span>' + fmt(p.ts) + "</span></div></button>";
     }).join("");
     blog.innerHTML = demoNote()
-      + '<div class="bd-head"><div class="bd-note">법률 정보와 사무소 소식을 <b>칼럼·소식</b>으로 전해 드립니다.</div></div>'
+      + '<div class="bd-head"><div class="bd-note">실제 상담과 해결 경험에서 나온 <b>성공 사례</b>를 전해 드립니다.</div></div>'
       + '<div class="bd-list">' + (rows || '<div class="bd-empty">아직 등록된 글이 없습니다.</div>') + "</div>";
   }
 
@@ -106,6 +106,12 @@
     var act = e.target.closest("[data-act]"); if (!act) return;
     if (act.getAttribute("data-act") === "back") { view.mode = "list"; render(); }
   });
+
+  // URL ?id=… 로 진입하면 해당 글 상세를 바로 연다(홈 성공사례 카드 딥링크).
+  try {
+    var qid = new URLSearchParams(location.search).get("id");
+    if (qid) { view.mode = "detail"; view.id = qid; }
+  } catch (e) {}
 
   render();
 })();

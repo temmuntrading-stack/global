@@ -259,6 +259,7 @@ ko:{
   "foot.tag":"국경을 넘는 사건을 10개 언어로 함께 풀어가는 글로벌 법률 파트너.",
   "foot.menu":"메뉴","foot.contact":"연락처","foot.office":"오시는 길",
   "foot.rights":"© 2026 글로벌 법률사무소. All rights reserved.",
+  "foot.privacy":"개인정보처리방침","foot.terms":"이용약관",
   "foot.disclaimer":"본 사이트의 정보는 일반적 안내이며 개별 사안에 대한 법률 자문이 아닙니다."
 },
 
@@ -505,6 +506,7 @@ en:{
   "foot.tag":"A global legal partner solving cross-border cases in 10 languages.",
   "foot.menu":"Menu","foot.contact":"Contact","foot.office":"Directions",
   "foot.rights":"© 2026 Global Law Office. All rights reserved.",
+  "foot.privacy":"Privacy Policy","foot.terms":"Terms of Service",
   "foot.disclaimer":"Information on this site is general guidance, not legal advice for any specific matter."
 },
 
@@ -700,6 +702,7 @@ vi:{
   "foot.tag":"Đối tác pháp lý toàn cầu giải quyết vụ việc xuyên biên giới bằng 10 ngôn ngữ.",
   "foot.menu":"Menu","foot.contact":"Liên hệ","foot.office":"Chỉ đường",
   "foot.rights":"© 2026 Văn phòng Luật Toàn cầu. Bảo lưu mọi quyền.",
+  "foot.privacy":"Chính sách bảo mật","foot.terms":"Điều khoản sử dụng",
   "foot.disclaimer":"Thông tin trên trang này chỉ mang tính hướng dẫn chung, không phải tư vấn pháp lý cho vụ việc cụ thể.",
   "home.searchLead":"Chỉ cần tìm kiếm tình huống của bạn — chúng tôi sẽ chỉ đúng lĩnh vực pháp lý và luật sư phù hợp.",
   "hb1.sub":"Tư vấn lần đầu miễn phí",
@@ -918,6 +921,7 @@ ru:{
   "foot.tag":"Глобальный юридический партнёр, решающий трансграничные дела на 10 языках.",
   "foot.menu":"Меню","foot.contact":"Контакты","foot.office":"Как добраться",
   "foot.rights":"© 2026 Глобальная юридическая фирма. Все права защищены.",
+  "foot.privacy":"Политика конфиденциальности","foot.terms":"Условия использования",
   "foot.disclaimer":"Информация на сайте носит общий характер и не является юридической консультацией по конкретному делу.",
   "home.searchLead":"Опишите вашу ситуацию одним запросом — мы подскажем нужную область права и адвоката.",
   "hb1.sub":"Первая консультация бесплатно",
@@ -1136,6 +1140,7 @@ zh:{
   "foot.tag":"以十种语言解决跨境案件的全球法律伙伴。",
   "foot.menu":"菜单","foot.contact":"联系方式","foot.office":"交通指引",
   "foot.rights":"© 2026 环球律师事务所。版权所有。",
+  "foot.privacy":"隐私政策","foot.terms":"服务条款",
   "foot.disclaimer":"本站信息为一般性指引,不构成针对具体事务的法律意见。",
   "home.searchLead":"一次搜索，告诉我们您的处境——我们将为您匹配合适的业务领域与律师。",
   "hb1.sub":"首次咨询免费",
@@ -1481,6 +1486,7 @@ uz:{
   "foot.contact":"Aloqa",
   "foot.office":"Manzil",
   "foot.rights":"© 2026 Global Law Office. Barcha huquqlar himoyalangan.",
+  "foot.privacy":"Maxfiylik siyosati","foot.terms":"Foydalanish shartlari",
   "foot.disclaimer":"Ushbu saytdagi maʼlumot umumiy yoʻriqnoma boʻlib, biror aniq masala boʻyicha huquqiy maslahat emas."
 },
 
@@ -1803,6 +1809,7 @@ th:{
   "foot.contact":"ติดต่อเรา",
   "foot.office":"เส้นทาง",
   "foot.rights":"© 2026 Global Law Office สงวนลิขสิทธิ์",
+  "foot.privacy":"นโยบายความเป็นส่วนตัว","foot.terms":"ข้อกำหนดการใช้งาน",
   "foot.disclaimer":"ข้อมูลบนเว็บไซต์นี้เป็นคำแนะนำทั่วไป มิใช่คำปรึกษาทางกฎหมายสำหรับเรื่องใดเรื่องหนึ่งโดยเฉพาะ"
 },
 
@@ -2125,6 +2132,7 @@ km:{
   "foot.contact":"ទំនាក់ទំនង",
   "foot.office":"ទីតាំង",
   "foot.rights":"© 2026 Global Law Office. រក្សាសិទ្ធិគ្រប់យ៉ាង។",
+  "foot.privacy":"គោលការណ៍ឯកជនភាព","foot.terms":"លក្ខខណ្ឌប្រើប្រាស់",
   "foot.disclaimer":"ព័ត៌មាននៅលើគេហទំព័រនេះ ជាការណែនាំទូទៅ មិនមែនជាការប្រឹក្សាផ្នែកច្បាប់សម្រាប់រឿងក្តីជាក់លាក់ណាមួយឡើយ។"
 },
 
@@ -2447,6 +2455,7 @@ si:{
   "foot.contact":"සම්බන්ධ වන්න",
   "foot.office":"දිශාවන්",
   "foot.rights":"© 2026 Global Law Office. සියලු හිමිකම් ඇවිරිණි.",
+  "foot.privacy":"රහස්‍යතා ප්‍රතිපත්තිය","foot.terms":"සේවා කොන්දේසි",
   "foot.disclaimer":"මෙම අඩවියේ ඇති තොරතුරු සාමාන්‍ය මාර්ගෝපදේශනයක් මිස, කිසියම් නිශ්චිත කරුණක් සඳහා නෛතික උපදෙස් නොවේ."
 },
 
@@ -2769,6 +2778,7 @@ ne:{
   "foot.contact":"सम्पर्क",
   "foot.office":"दिशानिर्देश",
   "foot.rights":"© 2026 Global Law Office. सर्वाधिकार सुरक्षित।",
+  "foot.privacy":"गोपनीयता नीति","foot.terms":"सेवाका सर्तहरू",
   "foot.disclaimer":"यस साइटको जानकारी सामान्य मार्गदर्शन हो, कुनै विशेष विषयका लागि कानुनी सल्लाह होइन।"
 },
 
@@ -3121,6 +3131,7 @@ mn:{
   "foot.contact":"Холбоо барих",
   "foot.office":"Байршил",
   "foot.rights":"© 2026 Global Law Office. Бүх эрх хуулиар хамгаалагдсан.",
+  "foot.privacy":"Нууцлалын бодлого","foot.terms":"Үйлчилгээний нөхцөл",
   "foot.disclaimer":"Энэ сайт дахь мэдээлэл нь ерөнхий зөвлөмж бөгөөд тодорхой асуудлаар өгсөн эрх зүйн зөвлөгөө биш."
 }
 };

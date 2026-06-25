@@ -142,6 +142,7 @@
         + '<li data-i18n="ci.hours.v" data-set="hours"></li></ul></div>'
       + '</div>'
       + '<div class="foot-bar"><span data-i18n="foot.rights"></span>'
+        + '<span class="foot-legal"><a href="privacy.html" data-i18n="foot.privacy"></a><span aria-hidden="true"> · </span><a href="terms.html" data-i18n="foot.terms"></a></span>'
         + '<span data-i18n="foot.disclaimer"></span></div></div>';
   }
 

@@ -707,6 +707,14 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:translateY(0);}
 
 /* 홈 슬라이더: 이미지 카드 */
 .mag-card.mag-card--img{background:#0a1b33 center/cover no-repeat;}
+/* 로딩 스켈레톤(성공 사례 교체 전 중립 placeholder) */
+.mag-card.mag-skel{background:#e9eef5;box-shadow:none;}
+.mag-card.mag-skel::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.65) 50%,transparent 80%);
+  transform:translateX(-100%);animation:mag-skel-sh 1.25s ease-in-out infinite;}
+.mag-card.mag-skel:hover{transform:none;box-shadow:none;}
+@keyframes mag-skel-sh{100%{transform:translateX(100%);}}
+@media(prefers-reduced-motion:reduce){.mag-card.mag-skel::after{animation:none;}}
 .bd-form-wrap,.bd-cform{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:clamp(20px,3vw,30px);box-shadow:var(--shadow-sm);}
 .bd-form-title{font-weight:800;font-size:1.3rem;letter-spacing:-.02em;margin-bottom:18px;}
 .bd-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}

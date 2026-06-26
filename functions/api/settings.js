@@ -7,7 +7,7 @@
 import { isAdmin } from "./_auth.js";
 
 function json(d, s) { return new Response(JSON.stringify(d), { status: s || 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
-var ALLOWED = ["phone", "email", "address", "hours", "kakao", "blogUrl"];
+var ALLOWED = ["phone", "email", "address", "hours", "kakao", "blogUrl", "hero1", "hero2", "hero3", "hero4", "hero5"];
 
 /* 테이블 자동 생성 + 기본값 시드 (최초 요청 시 1회 — D1 Console에 수동 적용 불필요) */
 let _schemaReady = false;

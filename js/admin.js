@@ -24,7 +24,7 @@
   var root = document.getElementById("admin");
   if (!root) return;
 
-  var state = { tab: "dash", boardId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", editId: null, blogQ: "", blogFilterCat: "all", _rows: [] };
+  var state = { tab: "dash", boardId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", editId: null, blogQ: "", blogFilterCat: "all", heroImgs: {}, _rows: [] };
   var busy = false;
   var quill = null; // Quill 에디터 인스턴스
 
@@ -323,7 +323,7 @@
     });
   }
   /* 이미지 업로드: webp로 변환 → R2(/api/upload)에 저장하고 URL 반환.
-     R2 미연결/로컬/오류면 base64 data URL로 폴백. */
+     base64 폴백 없음 — 실패 시 명확한 오류를 던진다(원인을 바로 알리기). */
   function uploadImage(file) {
     return fileToWebpBlob(file, 1280, 0.82).then(function (blob) {
       var fd = new FormData();
@@ -331,10 +331,15 @@
       fd.append("key", adminKey());
       fd.append("idToken", adminToken());
       fd.append("session", adminSession());
-      return fetch("/api/upload", { method: "POST", body: fd })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (d) { return (d && d.url) ? d.url : blobToDataUrl(blob); })
-        .catch(function () { return blobToDataUrl(blob); });
+      return fetch("/api/upload", { method: "POST", body: fd }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (r.ok && d && d.url) return d.url;
+          var m = (r.status === 503) ? "이미지 저장소(R2)가 연결되지 않았습니다. Cloudflare에서 R2 바인딩(MEDIA)을 추가하고 재배포하세요."
+            : (r.status === 403 || r.status === 401) ? "관리자 인증이 만료되었습니다. 다시 로그인해 주세요."
+            : ((d && d.error) || ("이미지 업로드 실패 (" + r.status + ")"));
+          throw new Error(m);
+        });
+      });
     });
   }
 
@@ -793,7 +798,7 @@
           uploadImage(files[i]).then(function (url) {
             quill.insertEmbed(idx, "image", { src: url, layout: layout }, "user");
             idx++; next(i + 1);
-          }).catch(function () { next(i + 1); });
+          }).catch(function (e) { alert((e && e.message) || "이미지 업로드에 실패했습니다."); });
         })(0);
       };
       input.click();
@@ -914,19 +919,34 @@
     { k: "blogUrl", label: "네이버 블로그 URL", ph: "https://blog.naver.com/…" }
   ];
   function renderSettings() {
-    setMain(
-      '<div class="ax-card">' +
-        '<div class="ax-card-h"><div><h2>사이트 정보</h2><p>사이트 전반의 연락처·정보에 반영됩니다</p></div></div>' +
-        '<div id="set-form" class="ax-form"><div class="ax-loading">불러오는 중…</div></div>' +
-      '</div>');
+    setMain('<div id="set-root"><div class="ax-loading">불러오는 중…</div></div>');
     setGet().then(function (s) {
+      state.heroImgs = { hero1: s.hero1 || "", hero2: s.hero2 || "", hero3: s.hero3 || "", hero4: s.hero4 || "", hero5: s.hero5 || "" };
       var fields = SET_FIELDS.map(function (f) {
         return '<div class="ax-field"><label>' + f.label + '</label><input id="set-' + f.k + '" value="' + esc(s[f.k] || "") + '" placeholder="' + esc(f.ph) + '"></div>';
       }).join("");
-      var html = '<div class="ax-grid2">' + fields + '</div>' +
-        '<p class="ax-note">전화·이메일·주소·영업시간 등은 사이트 전반의 <code>data-set</code> 요소에 반영됩니다.</p>' +
-        '<div class="ax-actions"><button class="ax-btn pri" data-act="set-save">저장</button></div>';
-      var el = $("#set-form"); if (el) el.innerHTML = html;
+      var heroSlots = "";
+      for (var i = 1; i <= 5; i++) {
+        var u = state.heroImgs["hero" + i];
+        heroSlots += '<div class="ax-hero-slot">' +
+          '<div class="ax-hero-prev' + (u ? "" : " empty") + '" id="hero-prev-' + i + '"' + (u ? ' style="background-image:url(' + esc(u) + ')"' : "") + '><b>' + i + '</b></div>' +
+          '<button type="button" class="ax-btn" data-hero-pick="' + i + '">' + icon("download") + '이미지 변경</button>' +
+          '<input id="hero-input-' + i + '" type="file" accept="image/*" style="display:none">' +
+        '</div>';
+      }
+      var html =
+        '<div class="ax-card">' +
+          '<div class="ax-card-h"><div><h2>사이트 정보</h2><p>사이트 전반의 연락처·정보에 반영됩니다</p></div></div>' +
+          '<div class="ax-form"><div class="ax-grid2">' + fields + '</div>' +
+          '<p class="ax-note">전화·이메일·주소·영업시간 등은 사이트 전반의 <code>data-set</code> 요소에 반영됩니다.</p>' +
+          '<div class="ax-actions"><button class="ax-btn pri" data-act="set-save">저장</button></div></div>' +
+        '</div>' +
+        '<div class="ax-card">' +
+          '<div class="ax-card-h"><div><h2>히어로 배너 이미지</h2><p>홈 상단 배너 5칸의 이미지를 업로드합니다(자동 webp · R2 저장). 변경 후 <b>저장</b>을 눌러야 사이트에 반영됩니다.</p></div></div>' +
+          '<div class="ax-form"><div class="ax-hero-grid">' + heroSlots + '</div>' +
+          '<div class="ax-actions"><button class="ax-btn pri" data-act="set-save">저장</button></div></div>' +
+        '</div>';
+      var el = $("#set-root"); if (el) el.innerHTML = html;
       refreshBanner();
     });
   }
@@ -975,6 +995,9 @@
     if (act === "bl-cancel-write") { state.editId = null; state.editorImage = ""; state.blogMode = "list"; renderTab(); return; }
     if (act === "bl-cats") { state.blogMode = "cats"; renderTab(); return; }
     if (act === "bl-pick-img") { var fi = $("#bl-img-input"); if (fi) fi.click(); return; }
+
+    var heroPick = e.target.closest("[data-hero-pick]");
+    if (heroPick) { var hin = $("#hero-input-" + heroPick.getAttribute("data-hero-pick")); if (hin) hin.click(); return; }
     if (act === "bl-img-clear") {
       state.editorImage = "";
       var nm = $("#bl-img-name"); if (nm) nm.textContent = "선택된 파일 없음";
@@ -1053,7 +1076,8 @@
 
     if (act === "set-save") {
       var s = {};
-      SET_FIELDS.forEach(function (f) { var el = $("#set-" + f.k); s[f.k] = el ? el.value.trim() : ""; });
+      SET_FIELDS.forEach(function (f) { var el = $("#set-" + f.k); if (el) s[f.k] = el.value.trim(); });
+      for (var hi = 1; hi <= 5; hi++) { s["hero" + hi] = (state.heroImgs && state.heroImgs["hero" + hi]) || ""; }
       busy = true;
       setSave(s).then(function () { busy = false; alert("저장되었습니다."); renderSettings(); })
         .catch(function (err) { busy = false; handleErr(err, "저장에 실패했습니다."); });
@@ -1094,8 +1118,26 @@
       if (nm) nm.textContent = (file.name || "이미지") + (/^data:/.test(url) ? " · webp(임시)" : " · 업로드됨");
       var pv = $("#bl-img-prev"); if (pv) { pv.style.display = "block"; pv.innerHTML = '<img src="' + url + '" alt="대표 이미지 미리보기">'; }
       var cb = $("#bl-img-clear"); if (cb) cb.style.display = "";
-    }).catch(function () {
-      if (nm) nm.textContent = "업로드 실패 — 다른 이미지를 시도하세요.";
+    }).catch(function (e) {
+      if (nm) nm.textContent = "업로드 실패";
+      alert((e && e.message) || "이미지 업로드에 실패했습니다.");
+    });
+  });
+
+  // 히어로 배너 이미지 선택 → webp 변환·R2 업로드 후 해당 칸 미리보기 갱신
+  root.addEventListener("change", function (e) {
+    if (!e.target || !/^hero-input-(\d)$/.test(e.target.id)) return;
+    var n = e.target.id.replace("hero-input-", "");
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var prev = $("#hero-prev-" + n);
+    if (prev) { prev.classList.remove("empty"); prev.classList.add("loading"); }
+    uploadImage(file).then(function (url) {
+      state.heroImgs["hero" + n] = url;
+      if (prev) { prev.classList.remove("loading"); prev.classList.remove("empty"); prev.style.backgroundImage = "url(" + url + ")"; }
+    }).catch(function (err) {
+      if (prev) { prev.classList.remove("loading"); if (!state.heroImgs["hero" + n]) prev.classList.add("empty"); }
+      alert((err && err.message) || "이미지 업로드에 실패했습니다.");
     });
   });
 

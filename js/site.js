@@ -432,5 +432,7 @@
       if(el.hasAttribute("data-set-tel")) el.setAttribute("href", "tel:" + String(v).replace(/[^0-9+]/g, ""));
       if(el.hasAttribute("data-set-mail")) el.setAttribute("href", "mailto:" + v);
     });
+    /* 히어로 배너 이미지(관리자 업로드) 적용: settings.hero1..5 → #hb-1..5 */
+    for(var i=1;i<=5;i++){ var hv = s["hero"+i]; if(hv){ var hb = document.getElementById("hb-"+i); if(hb) hb.setAttribute("src", hv); } }
   }).catch(function(){});
 })();

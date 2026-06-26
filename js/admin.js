@@ -264,7 +264,7 @@
           '<div class="ax-field"><label>아이디</label><input id="adm-id" type="text" autocomplete="username" value="' + esc(savedId) + '" placeholder="아이디"></div>' +
           '<div class="ax-field"><label>비밀번호</label><input id="adm-key" type="password" autocomplete="current-password" placeholder="비밀번호"></div>' +
           '<button class="ax-btn pri ax-login-btn" data-act="login">로그인</button>' +
-          '<p class="ax-login-note" id="adm-login-msg">아이디·비밀번호는 Cloudflare 환경변수(ADMIN_ID·ADMIN_KEY)로 설정합니다. 미설정 시(데모) 임의 값으로 진입됩니다.</p>' +
+          '<p class="ax-login-note" id="adm-login-msg" aria-live="polite"></p>' +
         '</div>' +
       '</div>';
     var idEl = $("#adm-id"), keyEl = $("#adm-key");

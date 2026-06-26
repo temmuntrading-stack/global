@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /functions/
+Disallow: /_ds/
+Disallow: /.agents/
+
+Sitemap: https://globallaw.co.kr/sitemap.xml

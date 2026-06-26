@@ -3184,6 +3184,12 @@ window.applyLang = function(code){
   // let the body follow the per-language --sans variable (overrides any inline font-family)
   if(document.body) document.body.style.fontFamily = "var(--sans)";
   try{ localStorage.setItem("glo-lang", code); }catch(e){}
+  try{
+    var u = new URL(location.href);
+    if(code === "ko") u.searchParams.delete("lang");
+    else u.searchParams.set("lang", code);
+    history.replaceState(null, "", u.pathname + u.search + u.hash);
+  }catch(e){}
 
   document.querySelectorAll("[data-i18n]").forEach(function(el){
     var v = L(el.getAttribute("data-i18n"));
@@ -3208,5 +3214,9 @@ window.applyLang = function(code){
 };
 
 window.getLang = function(){
-  try{ return localStorage.getItem("glo-lang") || "ko"; }catch(e){ return "ko"; }
+  try{
+    var q = new URLSearchParams(location.search).get("lang");
+    if(q && window.I18N[q]) return q;
+    return localStorage.getItem("glo-lang") || "ko";
+  }catch(e){ return "ko"; }
 };

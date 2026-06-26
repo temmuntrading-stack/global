@@ -20,6 +20,9 @@
 }
 
 .adm-body{ margin:0; background:var(--ax-bg); color:var(--ax-ink); -webkit-font-smoothing:antialiased; }
+/* sticky가 동작하도록 overflow-x:hidden(site.css)을 clip으로 교체(가로 스크롤은 여전히 방지) */
+html{ overflow-x:clip; }
+body.adm-body{ overflow-x:clip; }
 #admin svg{ display:block; }
 
 /* ════════ 앱 셸 ════════ */
@@ -310,11 +313,17 @@
 /* ════════ 에디터(제목 + Quill) ════════ */
 .ax-title-input{width:100%;box-sizing:border-box;border:none;outline:none;font-family:inherit;font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--ax-ink);padding:6px 2px;background:none;}
 .ax-title-input::placeholder{color:#C2C8D2;}
-.ax-editor-card{padding:0;overflow:hidden;}
-.ax-editor-card .ql-toolbar.ql-snow{border:none;border-bottom:1px solid var(--ax-line);}
-.ax-editor-card .ql-container.ql-snow{border:none;font-family:inherit;font-size:15px;}
+.ax-editor-card{padding:0;overflow:visible;}
+.ax-editor-card .ql-toolbar.ql-snow{border:none;border-bottom:1px solid var(--ax-line);border-radius:13px 13px 0 0;}
+.ax-editor-card .ql-container.ql-snow{border:none;font-family:inherit;font-size:15px;border-radius:0 0 13px 13px;}
 .ax-editor-card .ql-editor{min-height:420px;line-height:1.7;}
 .ax-editor-card .ql-editor::after{content:"";display:block;clear:both;}
+/* 에디터 헤더(제목+발행 버튼) 고정 — 컴팩트 */
+.ax-editor-page .ax-page-h{position:sticky;top:64px;z-index:9;background:var(--ax-bg);padding:10px 0;margin-bottom:8px;border-bottom:1px solid var(--ax-line);align-items:center;}
+.ax-editor-page .ax-page-h h1{font-size:18px;}
+.ax-editor-page .ax-page-h p{display:none;}
+/* Quill 서식 툴바 고정 */
+.ax-editor-card .ql-toolbar.ql-snow{position:sticky;top:122px;z-index:8;background:#fff;}
 /* 이미지 배치(레이아웃) */
 .ql-editor img{max-width:100%;border-radius:8px;}
 .ql-editor img.ql-img-full{display:block;width:100%;margin:.6em 0;}

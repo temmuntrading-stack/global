@@ -86,14 +86,16 @@ export async function onRequest(context) {
       // 글 수정(기존 id) 또는 작성
       const status = b.status === "draft" ? "draft" : "published";
       if (!b.title) return json({ error: "제목을 입력하세요." }, 400);
+      // 본문 한도: R2 미연결 시 이미지가 base64로 본문에 포함될 수 있어 넉넉히(잘림 방지)
+      var BODY_MAX = 5000000;
       if (b.id) {
         await db.prepare("UPDATE blog SET title=?, cat=?, body=?, image=?, status=? WHERE id=?")
-          .bind(clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, 60000), clamp(b.image, 1800000), status, b.id).run();
+          .bind(clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, BODY_MAX), clamp(b.image, 1800000), status, b.id).run();
         return json({ id: b.id, updated: true });
       }
       const id = "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
       await db.prepare("INSERT INTO blog (id,title,cat,body,ts,image,status) VALUES (?,?,?,?,?,?,?)")
-        .bind(id, clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, 60000), Date.now(), clamp(b.image, 1800000), status).run();
+        .bind(id, clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, BODY_MAX), Date.now(), clamp(b.image, 1800000), status).run();
       return json({ id });
     }
 

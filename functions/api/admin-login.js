@@ -1,12 +1,12 @@
 /* ════════════════════════════════════════════════════════════
    Cloudflare Pages Function — 관리자 로그인 검증  (/api/admin-login)
-   바인딩(선택):
-     env.ADMIN_ID  → 관리자 아이디
-     env.ADMIN_KEY → 관리자 비밀번호(쓰기 작업 인증과 공용)
-   POST { id, key } → { ok:true } | 401 { ok:false, error }
-   · 둘 다 미설정(데모/로컬)이면 통과(ok:true, demo:true).
-   · ADMIN_ID 만 미설정이면 비밀번호만 검증.
+   POST { idToken }  → 구글 로그인(ADMIN_EMAILS 화이트리스트) 검증
+   POST { key }      → 비밀번호(ADMIN_KEY) 검증
+   → { ok:true, name, email } | 401 { ok:false, error }
+   설정(ADMIN_EMAILS/ADMIN_KEY)이 전혀 없으면 데모로 통과.
    ════════════════════════════════════════════════════════════ */
+import { isAdmin } from "./_auth.js";
+
 function json(d, s) {
   return new Response(JSON.stringify(d), {
     status: s || 200,
@@ -18,14 +18,9 @@ export async function onRequest(context) {
   const { request, env } = context;
   if (request.method !== "POST") return json({ error: "method not allowed" }, 405);
   const b = await request.json().catch(() => ({}));
-  const id = String(b.id == null ? "" : b.id);
-  const key = String(b.key == null ? "" : b.key);
-
-  // 아무 것도 설정되지 않은 환경(초기/로컬): 데모 모드로 통과
-  if (!env.ADMIN_KEY && !env.ADMIN_ID) return json({ ok: true, demo: true });
-
-  const idOk = !env.ADMIN_ID || id === env.ADMIN_ID;
-  const keyOk = !env.ADMIN_KEY || key === env.ADMIN_KEY;
-  if (idOk && keyOk) return json({ ok: true });
+  const adm = await isAdmin(env, b);
+  if (adm.ok) return json({ ok: true, name: adm.name || "", email: adm.email || "", demo: !!adm.demo });
+  // 구글 로그인 시도였는데 거부된 경우 메시지 구분
+  if (b && b.idToken) return json({ ok: false, error: "허용되지 않은 구글 계정입니다. 관리자에게 문의하세요." }, 401);
   return json({ ok: false, error: "아이디 또는 비밀번호가 올바르지 않습니다." }, 401);
 }

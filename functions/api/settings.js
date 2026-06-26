@@ -4,6 +4,8 @@
    GET                      → { settings:{ phone,email,address,hours,kakao,blogUrl } }
    POST { settings:{...}, key }  → 수정(관리자) { ok }
    ════════════════════════════════════════════════════════════ */
+import { isAdmin } from "./_auth.js";
+
 function json(d, s) { return new Response(JSON.stringify(d), { status: s || 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
 var ALLOWED = ["phone", "email", "address", "hours", "kakao", "blogUrl"];
 
@@ -34,7 +36,7 @@ export async function onRequest(context) {
     }
     if (request.method === "POST") {
       const b = await request.json().catch(() => ({}));
-      if (env.ADMIN_KEY && b.key !== env.ADMIN_KEY) return json({ error: "관리자 인증 실패" }, 403);
+      if (!(await isAdmin(env, b)).ok) return json({ error: "관리자 인증 실패" }, 403);
       const s = b.settings || {};
       const stmts = [];
       ALLOWED.forEach((k) => {

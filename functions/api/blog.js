@@ -6,9 +6,10 @@
    POST {title,body,cat,key}       → 작성(관리자) { id }
    DELETE {id,key}                 → 삭제(관리자) { ok }
    ════════════════════════════════════════════════════════════ */
+import { isAdmin } from "./_auth.js";
+
 function json(d, s) { return new Response(JSON.stringify(d), { status: s || 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
 function clamp(s, n) { return String(s == null ? "" : s).slice(0, n); }
-function authed(env, key) { return !env.ADMIN_KEY || key === env.ADMIN_KEY; }
 
 /* 테이블 자동 생성 (최초 요청 시 1회 — D1 Console에 수동 적용 불필요) */
 let _schemaReady = false;
@@ -40,7 +41,7 @@ export async function onRequest(context) {
     }
     if (request.method === "POST") {
       const b = await request.json().catch(() => ({}));
-      if (!authed(env, b.key)) return json({ error: "관리자 인증 실패" }, 403);
+      if (!(await isAdmin(env, b)).ok) return json({ error: "관리자 인증 실패" }, 403);
       if (!b.title || !b.body) return json({ error: "제목과 내용을 입력하세요." }, 400);
       const id = "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
       await db.prepare("INSERT INTO blog (id,title,cat,body,ts) VALUES (?,?,?,?,?)")
@@ -49,7 +50,7 @@ export async function onRequest(context) {
     }
     if (request.method === "DELETE") {
       const b = await request.json().catch(() => ({}));
-      if (!authed(env, b.key)) return json({ error: "관리자 인증 실패" }, 403);
+      if (!(await isAdmin(env, b)).ok) return json({ error: "관리자 인증 실패" }, 403);
       if (!b.id) return json({ error: "id가 필요합니다." }, 400);
       await db.prepare("DELETE FROM blog WHERE id=?").bind(b.id).run();
       return json({ ok: true });

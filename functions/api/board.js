@@ -13,6 +13,8 @@ function json(data, status) {
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
 }
+import { isAdmin } from "./_auth.js";
+
 function clamp(s, n) { return String(s == null ? "" : s).slice(0, n); }
 function rid(pre) { return pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
@@ -113,9 +115,8 @@ export async function onRequest(context) {
           name = clamp(v.name, 40) || "익명";
         }
         if (b.official) {
-          if (env.ADMIN_KEY) {
-            if (b.key !== env.ADMIN_KEY) return json({ error: "관리자 키가 올바르지 않습니다." }, 403);
-          }
+          const adm = await isAdmin(env, b);
+          if (!adm.ok) return json({ error: "관리자 인증에 실패했습니다." }, 403);
           official = 1;
           name = "글로벌 법률사무소";
         }
@@ -130,7 +131,8 @@ export async function onRequest(context) {
     /* ── 관리자 삭제 ── */
     if (request.method === "DELETE") {
       const b = await request.json().catch(() => ({}));
-      if (env.ADMIN_KEY && b.key !== env.ADMIN_KEY) return json({ error: "관리자 인증 실패" }, 403);
+      const adm = await isAdmin(env, b);
+      if (!adm.ok) return json({ error: "관리자 인증 실패" }, 403);
       if (b.type === "post" && b.id) {
         await db.prepare("DELETE FROM comments WHERE post_id=?").bind(b.id).run();
         await db.prepare("DELETE FROM posts WHERE id=?").bind(b.id).run();

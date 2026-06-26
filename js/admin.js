@@ -8,8 +8,10 @@
   "use strict";
 
   /* ── 저장소 키 ── */
-  var KEY_ADMIN = "glo-admin-key";   // 관리자 비밀번호(쓰기 인증)
-  var KEY_ADMIN_ID = "glo-admin-id"; // 관리자 아이디(표시용)
+  var KEY_ADMIN = "glo-admin-key";       // 관리자 비밀번호(쓰기 인증)
+  var KEY_ADMIN_ID = "glo-admin-id";     // 관리자 아이디(표시용)
+  var KEY_ADMIN_TOKEN = "glo-admin-tok"; // 구글 로그인 idToken(쓰기 인증)
+  var KEY_ADMIN_NAME = "glo-admin-name"; // 로그인한 관리자 표시 이름
   var KEY_BOARD = "glo-board-v1";    // 데모 게시판 (board.js와 공유)
   var KEY_BLOG = "glo-blog-v1";      // 데모 블로그
   var KEY_SET = "glo-settings-v1";   // 데모 설정
@@ -36,6 +38,9 @@
   }
   function fmtKDate(ts) { var d = new Date(ts); return d.getFullYear() + "년 " + (d.getMonth() + 1) + "월 " + d.getDate() + "일"; }
   function adminKey() { return localStorage.getItem(KEY_ADMIN) || ""; }
+  function adminToken() { return localStorage.getItem(KEY_ADMIN_TOKEN) || ""; }
+  /* 쓰기 요청에 함께 보낼 관리자 인증(비밀번호 또는 구글 토큰) */
+  function adminAuth() { return { key: adminKey(), idToken: adminToken() }; }
   function isToday(ts) {
     var d = new Date(ts), n = new Date();
     return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
@@ -156,7 +161,7 @@
   }
   function boardReply(postId, body) {
     if (mode.board === "api") {
-      return jwrite("/api/board", "POST", { type: "comment", postId: postId, name: "글로벌 법률사무소", body: body, official: true, key: adminKey() })
+      return jwrite("/api/board", "POST", { type: "comment", postId: postId, name: "글로벌 법률사무소", body: body, official: true, key: adminKey(), idToken: adminToken() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("board"); return boardReplyLocal(postId, body); });
     }
@@ -169,7 +174,7 @@
   }
   function boardDelPost(id) {
     if (mode.board === "api") {
-      return jwrite("/api/board", "DELETE", { type: "post", id: id, key: adminKey() })
+      return jwrite("/api/board", "DELETE", { type: "post", id: id, key: adminKey(), idToken: adminToken() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("board"); return boardDelPostLocal(id); });
     }
@@ -180,7 +185,7 @@
   }
   function boardDelComment(postId, c) {
     if (mode.board === "api" && c.id) {
-      return jwrite("/api/board", "DELETE", { type: "comment", id: c.id, key: adminKey() })
+      return jwrite("/api/board", "DELETE", { type: "comment", id: c.id, key: adminKey(), idToken: adminToken() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("board"); return boardDelCommentLocal(postId, c); });
     }
@@ -211,7 +216,7 @@
   }
   function blogAdd(title, cat, body) {
     if (mode.blog === "api") {
-      return jwrite("/api/blog", "POST", { title: title, cat: cat, body: body, key: adminKey() })
+      return jwrite("/api/blog", "POST", { title: title, cat: cat, body: body, key: adminKey(), idToken: adminToken() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return blogAddLocal(title, cat, body); });
     }
@@ -222,7 +227,7 @@
   }
   function blogDel(id) {
     if (mode.blog === "api") {
-      return jwrite("/api/blog", "DELETE", { id: id, key: adminKey() })
+      return jwrite("/api/blog", "DELETE", { id: id, key: adminKey(), idToken: adminToken() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return blogDelLocal(id); });
     }
@@ -243,7 +248,7 @@
   }
   function setSave(s) {
     if (mode.set === "api") {
-      return jwrite("/api/settings", "POST", { settings: s, key: adminKey() })
+      return jwrite("/api/settings", "POST", { settings: s, key: adminKey(), idToken: adminToken() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("set"); lSave(KEY_SET, s); return true; });
     }
@@ -253,58 +258,69 @@
   /* ════════════════════════════════════════════════════════════
      인증 화면 / 로그아웃
      ════════════════════════════════════════════════════════════ */
+  var GBTN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.6-.05-1.2-.16-1.7H12v3.4h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.2z"/><path fill="#34A853" d="M12 22c2.7 0 5-0.9 6.6-2.4l-3.2-2.5c-.9.6-2 .95-3.4.95-2.6 0-4.8-1.75-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.4 13.95a6 6 0 0 1 0-3.9V7.45H3.1a10 10 0 0 0 0 9.1z"/><path fill="#EA4335" d="M12 6.2c1.5 0 2.8.5 3.8 1.5l2.85-2.85A10 10 0 0 0 3.1 7.45L6.4 10.05C7.2 7.7 9.4 6.2 12 6.2z"/></svg>';
   function renderLogin() {
-    var savedId = localStorage.getItem(KEY_ADMIN_ID) || "";
     root.innerHTML =
       '<div class="ax-login">' +
         '<div class="ax-login-card">' +
           '<div class="ax-login-logo">' + LOGO + '</div>' +
           '<h1>관리자 로그인</h1>' +
-          '<p>아이디와 비밀번호를 입력하세요.</p>' +
-          '<div class="ax-field"><label>아이디</label><input id="adm-id" type="text" autocomplete="username" value="' + esc(savedId) + '" placeholder="아이디"></div>' +
-          '<div class="ax-field"><label>비밀번호</label><input id="adm-key" type="password" autocomplete="current-password" placeholder="비밀번호"></div>' +
-          '<button class="ax-btn pri ax-login-btn" data-act="login">로그인</button>' +
+          '<p>구글 계정으로 로그인하세요.</p>' +
+          '<button class="ax-btn ax-glogin" data-act="glogin">' + GBTN + '<span>Google로 로그인</span></button>' +
+          '<div class="ax-login-or"><span>또는 비밀번호</span></div>' +
+          '<div class="ax-field"><input id="adm-key" type="password" autocomplete="current-password" placeholder="비밀번호"></div>' +
+          '<button class="ax-btn pri ax-login-btn" data-act="login">비밀번호로 로그인</button>' +
           '<p class="ax-login-note" id="adm-login-msg" aria-live="polite"></p>' +
         '</div>' +
       '</div>';
-    var idEl = $("#adm-id"), keyEl = $("#adm-key");
-    function onEnter(e) { if (e.key === "Enter") doLogin(); }
-    if (idEl) idEl.addEventListener("keydown", onEnter);
-    if (keyEl) keyEl.addEventListener("keydown", onEnter);
-    (savedId ? keyEl : idEl || keyEl).focus();
+    var keyEl = $("#adm-key");
+    if (keyEl) { keyEl.addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); }); }
   }
-  function doLogin() {
-    var id = val("#adm-id"), k = val("#adm-key");
-    if (!k) { alert("비밀번호를 입력하세요."); return; }
-    var btn = $('[data-act="login"]');
-    if (btn) { btn.disabled = true; btn.textContent = "확인 중…"; }
-    function fail(msg) {
-      if (btn) { btn.disabled = false; btn.textContent = "로그인"; }
-      var m = $("#adm-login-msg"); if (m) { m.textContent = msg; m.style.color = "var(--ax-red)"; }
-    }
-    function enter() {
-      localStorage.setItem(KEY_ADMIN, k);
-      if (id) localStorage.setItem(KEY_ADMIN_ID, id); else localStorage.removeItem(KEY_ADMIN_ID);
-      state.tab = "dash"; renderApp();
-    }
-    fetch("/api/admin-login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: id, key: k }) })
+  function loginFail(msg) {
+    var lb = $('[data-act="login"]'); if (lb) { lb.disabled = false; lb.textContent = "비밀번호로 로그인"; }
+    var gb = $('[data-act="glogin"]'); if (gb) { gb.disabled = false; }
+    var m = $("#adm-login-msg"); if (m) { m.textContent = msg; m.style.color = "var(--ax-red)"; }
+  }
+  function enterAdmin(payload, name) {
+    if (payload.key) localStorage.setItem(KEY_ADMIN, payload.key);
+    if (payload.idToken) localStorage.setItem(KEY_ADMIN_TOKEN, payload.idToken);
+    if (name) localStorage.setItem(KEY_ADMIN_NAME, name); else localStorage.removeItem(KEY_ADMIN_NAME);
+    state.tab = "dash"; renderApp();
+  }
+  // 서버 검증(/api/admin-login) 후 진입. 엔드포인트 없음/네트워크 오류면 데모 진입.
+  function verifyAndEnter(payload, name) {
+    fetch("/api/admin-login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
         var d = res.d || {};
-        if (d.ok === true) { enter(); return; }
-        if (d.ok === false) { fail(d.error || "아이디 또는 비밀번호가 올바르지 않습니다."); return; }
-        // 엔드포인트 없음(로컬 정적 서버 등) → 데모 진입 허용
-        demo = true; enter();
+        if (d.ok === true) { enterAdmin(payload, name || d.name); return; }
+        if (d.ok === false) { loginFail(d.error || "로그인에 실패했습니다."); return; }
+        demo = true; enterAdmin(payload, name); // 엔드포인트 없음(로컬)
       })
-      .catch(function () {
-        // 검증 API 네트워크 오류(로컬 미리보기 등) → 데모 진입 허용
-        demo = true; enter();
-      });
+      .catch(function () { demo = true; enterAdmin(payload, name); });
+  }
+  function doLogin() {
+    var k = val("#adm-key");
+    if (!k) { loginFail("비밀번호를 입력하세요."); return; }
+    var btn = $('[data-act="login"]'); if (btn) { btn.disabled = true; btn.textContent = "확인 중…"; }
+    verifyAndEnter({ key: k });
+  }
+  function doGoogleLogin() {
+    if (!window.AuthGoogle || !AuthGoogle.signIn) { loginFail("구글 로그인을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."); return; }
+    var gb = $('[data-act="glogin"]'); if (gb) { gb.disabled = true; }
+    AuthGoogle.signIn().then(function (u) {
+      if (!u) { if (gb) gb.disabled = false; return; } // 사용자가 취소
+      if (!u.idToken) { loginFail("구글 로그인이 필요합니다.(이름 입력 방식은 관리자 로그인에 사용할 수 없습니다)"); return; }
+      verifyAndEnter({ idToken: u.idToken }, u.name);
+    });
   }
   function logout() {
     if (!confirm("로그아웃 하시겠습니까? 저장된 로그인 정보가 이 브라우저에서 삭제됩니다.")) return;
     localStorage.removeItem(KEY_ADMIN);
     localStorage.removeItem(KEY_ADMIN_ID);
+    localStorage.removeItem(KEY_ADMIN_TOKEN);
+    localStorage.removeItem(KEY_ADMIN_NAME);
+    if (window.AuthGoogle && AuthGoogle.signOut) { try { AuthGoogle.signOut(); } catch (e) {} }
     renderLogin();
   }
 
@@ -343,7 +359,7 @@
             '<div class="ax-top-right">' +
               '<button class="ax-icon" data-act="notif" title="알림">' + icon("bell") + '</button>' +
               '<button class="ax-icon' + (state.tab === "settings" ? " active" : "") + '" data-tab="settings" title="사이트 정보">' + icon("gear") + '</button>' +
-              '<div class="ax-user"><span class="ax-ava">관</span><span class="nm">관리자 사용자</span></div>' +
+              '<div class="ax-user"><span class="ax-ava">' + esc((localStorage.getItem(KEY_ADMIN_NAME) || "관리자").slice(0, 1)) + '</span><span class="nm">' + esc(localStorage.getItem(KEY_ADMIN_NAME) || "관리자 사용자") + '</span></div>' +
             '</div>' +
           '</header>' +
           '<div class="ax-content" id="adm-main"></div>' +
@@ -622,6 +638,7 @@
     var actEl = e.target.closest("[data-act]");
     var act = actEl && actEl.getAttribute("data-act");
     if (act === "login") { doLogin(); return; }
+    if (act === "glogin") { doGoogleLogin(); return; }
     if (act === "logout") { logout(); return; }
 
     // 탭/설정 전환
@@ -728,5 +745,5 @@
   });
 
   /* ── 진입 ── */
-  if (adminKey()) renderApp(); else renderLogin();
+  if (adminKey() || adminToken()) renderApp(); else renderLogin();
 })();

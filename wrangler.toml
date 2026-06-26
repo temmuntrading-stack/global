@@ -15,6 +15,12 @@ binding = "DB"
 database_name = "global-board"
 database_id = "582b7c61-1d8e-4c4e-8ccb-bc735ed1ecd8"
 
+# R2 바인딩 (이미지 저장소 — 관리자 이미지/히어로 배너 업로드)
+# 코드의 env.MEDIA 와 일치해야 함. 버킷 이름은 R2에서 만든 "global-media".
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "global-media"
+
 # 변호사사무실 "공식 답변" 비밀키 (선택)
 # 대시보드 Settings > Environment variables 에 ADMIN_KEY 를 넣는 것을 권장(코드에 노출 X).
 # [vars]

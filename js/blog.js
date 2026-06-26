@@ -18,6 +18,13 @@
   function uid() { return "b" + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
   function fmt(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? "0" : "") + n; }
     return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate()); }
+  function tr(k) {
+    var code = window.getLang ? window.getLang() : "ko";
+    var dict = (window.I18N && window.I18N[code]) || {};
+    var en = (window.I18N && window.I18N.en) || {};
+    var ko = (window.I18N && window.I18N.ko) || {};
+    return dict[k] || en[k] || ko[k] || k;
+  }
 
   /* ── 데모(로컬) 저장소 ── */
   function lLoad() { try { return JSON.parse(localStorage.getItem(LKEY)); } catch (e) { return null; } }
@@ -71,7 +78,7 @@
   }
 
   async function renderList() {
-    blog.innerHTML = '<div class="bd-empty">불러오는 중…</div>';
+    blog.innerHTML = '<div class="bd-empty">' + esc(tr("board.loading")) + "</div>";
     var posts = await listPosts();
     var rows = posts.map(function (p) {
       return '<button class="bd-row" data-open="' + p.id + '">'
@@ -82,16 +89,15 @@
         + '<div class="bd-row-meta"><span>' + fmt(p.ts) + "</span></div></button>";
     }).join("");
     blog.innerHTML = demoNote()
-      + '<div class="bd-head"><div class="bd-note">실제 상담과 해결 경험에서 나온 <b>성공 사례</b>를 전해 드립니다.</div></div>'
-      + '<div class="bd-list">' + (rows || '<div class="bd-empty">아직 등록된 글이 없습니다.</div>') + "</div>";
+      + '<div class="bd-list">' + (rows || '<div class="bd-empty">' + esc(tr("blog.empty")) + "</div>") + "</div>";
   }
 
   async function renderDetail() {
-    blog.innerHTML = '<div class="bd-empty">불러오는 중…</div>';
+    blog.innerHTML = '<div class="bd-empty">' + esc(tr("board.loading")) + "</div>";
     var p = await getPost(view.id);
     if (!p) { view.mode = "list"; return render(); }
     blog.innerHTML =
-      '<button class="bd-back" data-act="back">← 목록</button>'
+      '<button class="bd-back" data-act="back">' + esc(tr("board.back")) + "</button>"
       + '<article class="bd-post"><h2 class="bd-post-title">' + esc(p.title) + "</h2>"
       + '<div class="bd-post-meta">'
       + (p.cat ? "<span>" + esc(p.cat) + "</span>" : "")
@@ -113,5 +119,6 @@
     if (qid) { view.mode = "detail"; view.id = qid; }
   } catch (e) {}
 
+  document.addEventListener("langchange", render);
   render();
 })();

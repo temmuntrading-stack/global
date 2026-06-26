@@ -18,13 +18,13 @@
   var KEY_SET = "glo-settings-v1";   // 데모 설정
 
   /* 데이터별 모드: 'api' 시도 → 실패 시 'local'로 강등(자동 폴백) */
-  var mode = { board: "api", blog: "api", set: "api" };
+  var mode = { board: "api", blog: "api", set: "api", inq: "api" };
   var demo = false; // 한 번이라도 데모로 강등되면 true → 배너 표시
 
   var root = document.getElementById("admin");
   if (!root) return;
 
-  var state = { tab: "dash", boardId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", editId: null, blogQ: "", blogFilterCat: "all", heroImgs: {}, _rows: [] };
+  var state = { tab: "dash", boardId: null, inqId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", editId: null, blogQ: "", blogFilterCat: "all", heroImgs: {}, _rows: [] };
   var busy = false;
   var quill = null; // Quill 에디터 인스턴스
 
@@ -79,6 +79,7 @@
     chev: '<path d="m6 9 6 6 6-6"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
     back: '<path d="m15 18-6-6 6-6"/>',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
     pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
     trash: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>',
     scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>'
@@ -205,6 +206,38 @@
     }
     return true;
   }
+
+  /* ── 상담 신청(연락하기 폼 접수) ── */
+  function authQS() {
+    var p = [];
+    if (adminSession()) p.push("session=" + encodeURIComponent(adminSession()));
+    if (adminToken()) p.push("idToken=" + encodeURIComponent(adminToken()));
+    if (adminKey()) p.push("key=" + encodeURIComponent(adminKey()));
+    return p.join("&");
+  }
+  function inqList() {
+    if (mode.inq === "api") {
+      var qs = authQS();
+      return jget("/api/contact" + (qs ? "?" + qs : "")).then(function (d) { return d.inquiries || []; })
+        .catch(function () { goDemo("inq"); return []; });
+    }
+    return Promise.resolve([]);
+  }
+  function inqGet(id) {
+    if (mode.inq === "api") {
+      var qs = authQS();
+      return jget("/api/contact?id=" + encodeURIComponent(id) + (qs ? "&" + qs : "")).then(function (d) { return d.inquiry; })
+        .catch(function () { return null; });
+    }
+    return Promise.resolve(null);
+  }
+  function inqSetStatus(id, status) {
+    return jwrite("/api/contact", "POST", { adminAction: "status", id: id, status: status, key: adminKey(), idToken: adminToken(), session: adminSession() });
+  }
+  function inqDel(id) {
+    return jwrite("/api/contact", "DELETE", { id: id, key: adminKey(), idToken: adminToken(), session: adminSession() });
+  }
+  function inqBadge(s) { return s === "done" ? { l: "처리완료", c: "ok" } : { l: "신규", c: "wait" }; }
 
   /* ── 블로그 ── */
   function blogList() {
@@ -474,6 +507,7 @@
      ════════════════════════════════════════════════════════════ */
   var NAV = [
     { id: "dash", label: "대시보드", icon: "grid" },
+    { id: "inq", label: "상담 신청", icon: "mail" },
     { id: "board", label: "상담", icon: "chat" },
     { id: "blog", label: "성공 사례", icon: "doc" }
   ];
@@ -530,10 +564,19 @@
       if (un > 0 && !dot) btn.insertAdjacentHTML("beforeend", '<span class="ax-dot"></span>');
       else if (un === 0 && dot) dot.remove();
     });
+    // 상담 신청 미처리(신규) 표시
+    inqList().then(function (rows) {
+      var newCnt = rows.filter(function (r) { return r.status !== "done"; }).length;
+      var nav = $('.ax-nav-i[data-tab="inq"]'); if (!nav) return;
+      var dot = nav.querySelector(".ax-dot");
+      if (newCnt > 0 && !dot) nav.insertAdjacentHTML("beforeend", '<span class="ax-dot"></span>');
+      else if (newCnt === 0 && dot) dot.remove();
+    });
   }
 
   function renderTab() {
     if (state.tab === "dash") return renderDash();
+    if (state.tab === "inq") return state.inqId ? renderInqDetail() : renderInq();
     if (state.tab === "board") return state.boardId ? renderBoardDetail() : renderBoardList();
     if (state.tab === "blog") return state.blogMode === "write" ? renderBlogWrite() : (state.blogMode === "cats" ? renderCats() : renderBlog());
     if (state.tab === "settings") return renderSettings();
@@ -683,6 +726,80 @@
           '</aside>' +
         '</div>';
       var el = $("#bd-detail"); if (el) el.innerHTML = html;
+      refreshBanner();
+    });
+  }
+
+  /* ════════ 상담 신청(연락하기 폼) 목록 ════════ */
+  function renderInq() {
+    setMain(
+      '<div class="ax-card">' +
+        '<div class="ax-card-h"><div><h2>상담 신청</h2><p>연락하기 페이지에서 접수된 상담 신청 목록입니다</p></div></div>' +
+        '<div id="inq-list"><div class="ax-loading">불러오는 중…</div></div>' +
+      '</div>');
+    drawInqRows();
+  }
+  function drawInqRows() {
+    inqList().then(function (rows) {
+      var q = state.q.toLowerCase();
+      var list = rows.filter(function (r) {
+        if (!q) return true;
+        return (r.name || "").toLowerCase().indexOf(q) >= 0 || (r.area || "").toLowerCase().indexOf(q) >= 0 || (r.message || "").toLowerCase().indexOf(q) >= 0;
+      });
+      state._rows = list;
+      var trs = list.length ? list.map(function (r) {
+        var st = inqBadge(r.status), pal = avaColor(r.name);
+        return '<tr>' +
+          '<td><div class="ax-cust"><span class="ax-ava2" style="background:' + pal[0] + ';color:' + pal[1] + '">' + esc(initials(r.name)) + '</span><b>' + esc(r.name || "익명") + '</b></div></td>' +
+          '<td class="ax-ttl">' + esc(r.area || "-") + '</td>' +
+          '<td>' + esc(langLabel(r.lang) || r.lang || "-") + '</td>' +
+          '<td class="ax-date">' + fmtKDate(r.ts) + '</td>' +
+          '<td><span class="ax-st ' + st.c + '">' + st.l + '</span></td>' +
+          '<td class="ax-r"><button class="ax-detail" data-open-inq="' + esc(r.id) + '">상세 보기</button></td>' +
+        '</tr>';
+      }).join("") : '<tr><td colspan="6"><div class="ax-empty">접수된 상담 신청이 없습니다.</div></td></tr>';
+      var el = $("#inq-list"); if (el) el.innerHTML =
+        '<div class="ax-tbl-wrap"><table class="ax-tbl"><thead><tr>' +
+          '<th>이름</th><th>문의 분야</th><th>상담 언어</th><th>접수일</th><th>상태</th><th></th>' +
+        '</tr></thead><tbody>' + trs + '</tbody></table></div>';
+      refreshBanner();
+    });
+  }
+  function renderInqDetail() {
+    setMain('<button class="ax-back" data-act="inq-back">' + icon("back") + '목록으로</button><div id="inq-detail"><div class="ax-loading">불러오는 중…</div></div>');
+    inqGet(state.inqId).then(function (r) {
+      if (!r) { state.inqId = null; return renderInq(); }
+      var st = inqBadge(r.status), pal = avaColor(r.name);
+      var email = r.email || "", phone = r.phone || "";
+      var html =
+        '<div class="ax-consult-layout">' +
+          '<section class="ax-card">' +
+            '<div class="ax-chat-head">' +
+              '<div class="ax-cust"><span class="ax-ava2" style="background:' + pal[0] + ';color:' + pal[1] + '">' + esc(initials(r.name)) + '</span><div><b>' + esc(r.name || "익명") + '</b><small>상담 신청 · ' + fmt(r.ts) + '</small></div></div>' +
+              '<span class="ax-st ' + st.c + '">' + st.l + '</span>' +
+            '</div>' +
+            '<div class="ax-inq-msg"><h3>문의 내용</h3><p>' + nl2br(r.message) + '</p></div>' +
+            '<div class="ax-actions" style="margin-top:20px;">' +
+              (r.status === "done"
+                ? '<button class="ax-btn" data-inq-status="new" data-inq-id="' + esc(r.id) + '">신규로 되돌리기</button>'
+                : '<button class="ax-btn pri" data-inq-status="done" data-inq-id="' + esc(r.id) + '">처리 완료로 표시</button>') +
+              '<button class="ax-btn danger" data-del-inq="' + esc(r.id) + '">삭제</button>' +
+            '</div>' +
+          '</section>' +
+          '<aside class="ax-card ax-client-panel">' +
+            '<div class="ax-client-avatar" style="background:' + pal[0] + ';color:' + pal[1] + '">' + esc(initials(r.name)) + '</div>' +
+            '<h2>' + esc(r.name || "익명") + '</h2><p>상담 신청자</p>' +
+            '<div class="ax-client-tags"><span>' + esc(r.area || "일반 상담") + '</span><span>' + st.l + '</span></div>' +
+            '<div class="ax-client-block"><h3>연락처</h3><dl>' +
+              '<dt>이메일</dt><dd>' + (email ? '<a href="mailto:' + esc(email) + '">' + esc(email) + '</a>' : "-") + '</dd>' +
+              '<dt>연락처</dt><dd>' + (phone ? '<a href="tel:' + esc(phone.replace(/[^0-9+]/g, "")) + '">' + esc(phone) + '</a>' : "-") + '</dd>' +
+              '<dt>상담 언어</dt><dd>' + esc(langLabel(r.lang) || r.lang || "-") + '</dd>' +
+              '<dt>문의 분야</dt><dd>' + esc(r.area || "-") + '</dd>' +
+              '<dt>접수일</dt><dd>' + fmtKDate(r.ts) + '</dd>' +
+            '</dl></div>' +
+          '</aside>' +
+        '</div>';
+      var el = $("#inq-detail"); if (el) el.innerHTML = html;
       refreshBanner();
     });
   }
@@ -1029,7 +1146,7 @@
 
     // 탭/설정 전환
     var tabEl = e.target.closest("[data-tab]");
-    if (tabEl) { state.tab = tabEl.getAttribute("data-tab"); state.boardId = null; state.dashAll = false; state.blogMode = "list"; renderApp(); return; }
+    if (tabEl) { state.tab = tabEl.getAttribute("data-tab"); state.boardId = null; state.inqId = null; state.dashAll = false; state.blogMode = "list"; renderApp(); return; }
 
     // 알림 → 상담 탭
     if (act === "notif") { state.tab = "board"; state.boardId = null; renderApp(); return; }
@@ -1080,9 +1197,33 @@
     var openEl = e.target.closest("[data-open]");
     if (openEl) { state.tab = "board"; state.boardId = openEl.getAttribute("data-open"); renderApp(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
 
+    // 상담 신청: 상세 열기
+    var openInq = e.target.closest("[data-open-inq]");
+    if (openInq) { state.tab = "inq"; state.inqId = openInq.getAttribute("data-open-inq"); renderInqDetail(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (act === "inq-back") { state.inqId = null; renderInq(); return; }
+
     if (busy) return;
 
     if (act === "bd-back") { state.boardId = null; renderBoardList(); return; }
+
+    // 상담 신청: 상태 변경 / 삭제
+    var inqStat = e.target.closest("[data-inq-status]");
+    if (inqStat) {
+      busy = true;
+      inqSetStatus(inqStat.getAttribute("data-inq-id"), inqStat.getAttribute("data-inq-status"))
+        .then(function () { busy = false; renderInqDetail(); })
+        .catch(function (err) { busy = false; handleErr(err, "상태 변경에 실패했습니다."); });
+      return;
+    }
+    var delInq = e.target.closest("[data-del-inq]");
+    if (delInq) {
+      if (!confirm("이 상담 신청을 삭제하시겠습니까?")) return;
+      busy = true;
+      inqDel(delInq.getAttribute("data-del-inq"))
+        .then(function () { busy = false; state.inqId = null; renderInq(); })
+        .catch(function (err) { busy = false; handleErr(err, "삭제에 실패했습니다."); });
+      return;
+    }
 
     if (act === "bd-reply") {
       var body = val("#bd-reply");
@@ -1148,6 +1289,7 @@
       qTimer = setTimeout(function () {
         if (state.tab === "dash") drawDash();
         else if (state.tab === "board" && !state.boardId) drawBoardRows();
+        else if (state.tab === "inq" && !state.inqId) drawInqRows();
       }, 220);
     } else if (e.target && e.target.id === "mag-q") {
       state.blogQ = e.target.value.trim();

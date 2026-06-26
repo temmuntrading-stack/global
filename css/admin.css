@@ -46,11 +46,17 @@ body.adm-body{ overflow-x:clip; }
 
 .ax-nav{ padding:8px 12px; display:flex; flex-direction:column; gap:2px; }
 .ax-nav-i{
+  position:relative;
   display:flex; align-items:center; gap:12px; width:100%; text-align:left;
   background:none; border:none; cursor:pointer; font-family:inherit;
   font-size:14.5px; font-weight:600; letter-spacing:-.01em; color:var(--ax-ink-2);
   padding:11px 13px; border-radius:10px; transition:background .15s, color .15s;
 }
+.ax-nav-i .ax-dot{ top:50%; right:12px; transform:translateY(-50%); }
+/* 상담 신청 상세: 문의 내용 */
+.ax-inq-msg{ margin-top:18px; }
+.ax-inq-msg h3{ margin:0 0 10px; font-size:14px; color:var(--ax-muted); }
+.ax-inq-msg p{ margin:0; font-size:15px; line-height:1.7; color:var(--ax-ink); white-space:pre-wrap; word-break:break-word; }
 .ax-nav-i svg{ width:19px; height:19px; flex:none; color:var(--ax-muted); transition:color .15s; }
 .ax-nav-i:hover{ background:#F4F6F9; color:var(--ax-ink); }
 .ax-nav-i.active{ background:var(--ax-blue-soft); color:var(--ax-blue); }

@@ -392,16 +392,54 @@
     upd();
   });
 
-  /* ── contact form (demo) ── */
+  /* ── contact form (연락하기): 상담 언어·문의 분야를 카테고리에서 채우고 실제 접수 ── */
   var form = document.getElementById("consultForm");
   if(form){
+    var fesc = function(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
+    var fillContactSelects = function(){
+      var cur = window.getLang ? window.getLang() : "ko";
+      var I = window.I18N || {}, dict = I[cur] || {}, ko = I.ko || {}, en = I.en || {};
+      var trk = function(k){ return dict[k] || en[k] || ko[k] || k; };
+      var langSel = document.getElementById("cf-lang");
+      if(langSel && window.LANGS){
+        var prevL = langSel.value;
+        langSel.innerHTML = window.LANGS.map(function(l){
+          return '<option value="'+fesc(l.code)+'">'+(l.flag?l.flag+" ":"")+fesc(l.label)+'</option>';
+        }).join("");
+        langSel.value = prevL || cur;
+      }
+      var areaSel = document.getElementById("cf-area");
+      if(areaSel){
+        var prevA = areaSel.value, html = "";
+        for(var i=1;i<=10;i++){
+          var koLbl = ko["ncat."+i] || ("분야 "+i);   /* 값은 한국어 표준 라벨로 고정(관리자 일관성) */
+          html += '<option value="'+fesc(koLbl)+'">'+fesc(trk("ncat."+i))+'</option>';
+        }
+        areaSel.innerHTML = html;
+        if(prevA) areaSel.value = prevA;
+      }
+    };
+    var fval = function(n){ var x = form.elements[n]; return x ? String(x.value||"").trim() : ""; };
     form.addEventListener("submit", function(e){
       e.preventDefault();
       var ok = document.getElementById("formOk");
-      if(ok) ok.classList.add("show");
-      form.reset();
-      if(ok) ok.scrollIntoView ? null : null;
+      var btn = form.querySelector('button[type="submit"]');
+      var payload = { name: fval("name"), email: fval("email"), phone: fval("phone"),
+        lang: (form.elements.lang && form.elements.lang.value) || "",
+        area: (form.elements.area && form.elements.area.value) || "", message: fval("message") };
+      if(!payload.message) return;
+      if(btn) btn.disabled = true;
+      fetch("/api/contact", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(payload) })
+        .then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ return { ok: r.ok && d && d.ok, err: d && d.error }; }); })
+        .then(function(res){
+          if(res.ok){ if(ok){ ok.classList.add("show"); if(ok.scrollIntoView) ok.scrollIntoView({behavior:"smooth",block:"center"}); } form.reset(); fillContactSelects(); }
+          else { alert(res.err || "전송에 실패했습니다. 잠시 후 다시 시도해 주세요."); }
+        })
+        .catch(function(){ alert("전송에 실패했습니다. 네트워크 상태를 확인해 주세요."); })
+        .then(function(){ if(btn) btn.disabled = false; });
     });
+    fillContactSelects();
+    document.addEventListener("langchange", fillContactSelects);
   }
 
   /* ── 카테고리 아이콘: assets/icons/<페이지이름>.png|svg 가 있으면 이모지 대신 사용 ── */

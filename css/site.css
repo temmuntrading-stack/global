@@ -469,6 +469,7 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:translateY(0);}
 .cat-item .cat-ic svg{width:46%;height:46%;stroke-width:1.7;}
 /* 내 아이콘 이미지(assets/icons/…)가 로드되면 이모지 대신 표시 — 연한 회색 칸 (섹션 배경은 흰색) */
 .cat-item .cat-ic .cat-img{width:64%;height:64%;object-fit:contain;}
+.cat-item .cat-ic.is-loading-img{font-size:0;}
 .cat-item .cat-ic.has-img{font-size:0;background:var(--bg-soft)!important;}
 .cat-item .cat-l{font-size:13.5px;font-weight:600;text-align:center;letter-spacing:-.01em;line-height:1.32;color:var(--ink-2);
   word-break:keep-all;text-wrap:balance;}

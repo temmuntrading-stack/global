@@ -450,10 +450,11 @@
     var base = "assets/icons/" + href.replace(/\.html$/, "");
     var img = document.createElement("img");
     img.className = "cat-img"; img.alt = ""; img.setAttribute("aria-hidden", "true");
-    img.onload = function(){ ic.classList.add("has-img"); };
+    ic.classList.add("is-loading-img");
+    img.onload = function(){ ic.classList.remove("is-loading-img"); ic.classList.add("has-img"); };
     img.onerror = function(){
       if(img.getAttribute("data-tri") !== "1"){ img.setAttribute("data-tri", "1"); img.src = base + ".svg"; }
-      else { img.remove(); } /* 파일 없으면 기존 이모지 유지 */
+      else { ic.classList.remove("is-loading-img"); img.remove(); } /* 파일 없으면 기존 이모지 유지 */
     };
     img.src = base + ".png";
     ic.insertBefore(img, ic.firstChild);
@@ -471,6 +472,12 @@
       if(el.hasAttribute("data-set-mail")) el.setAttribute("href", "mailto:" + v);
     });
     /* 히어로 배너 이미지(관리자 업로드) 적용: settings.hero1..5 → #hb-1..5 */
-    for(var i=1;i<=5;i++){ var hv = s["hero"+i]; if(hv){ var hb = document.getElementById("hb-"+i); if(hb) hb.setAttribute("src", hv); } }
+    for(var i=1;i<=5;i++){
+      var hv = s["hero"+i];
+      var hb = document.getElementById("hb-"+i);
+      if(!hb) continue;
+      if(hv) hb.setAttribute("src", hv);
+      else hb.removeAttribute("src");
+    }
   }).catch(function(){});
 })();

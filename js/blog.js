@@ -55,14 +55,20 @@
       try { return (await apiGet("")).posts; } catch (e) { mode = "local"; }
     }
     return lEnsure().slice().sort(function (a, b) { return b.ts - a.ts; })
-      .map(function (p) { return { id: p.id, title: p.title, cat: p.cat, excerpt: p.excerpt, ts: p.ts }; });
+      .map(function (p) { return { id: p.id, title: p.title, cat: p.cat, excerpt: p.excerpt, image: p.image || "", ts: p.ts }; });
+  }
+  async function listCats() {
+    if (mode === "api") {
+      try { return (await apiGet("?cats=1")).cats || []; } catch (e) { /* 무시: 탭 없이 진행 */ }
+    }
+    return [];
   }
   async function getPost(id) {
     if (mode === "api") {
       try { return (await apiGet("?id=" + encodeURIComponent(id))).post; } catch (e) { mode = "local"; }
     }
     var p = lEnsure().filter(function (x) { return x.id === id; })[0];
-    return p ? { id: p.id, title: p.title, cat: p.cat, body: p.body, ts: p.ts } : null;
+    return p ? { id: p.id, title: p.title, cat: p.cat, body: p.body, image: p.image || "", ts: p.ts } : null;
   }
 
   function demoNote() {
@@ -79,16 +85,28 @@
 
   async function renderList() {
     blog.innerHTML = '<div class="bd-empty">' + esc(tr("board.loading")) + "</div>";
-    var posts = await listPosts();
-    var rows = posts.map(function (p) {
-      return '<button class="bd-row" data-open="' + p.id + '">'
-        + '<div class="bd-row-main">'
+    var res = await Promise.all([listPosts(), listCats()]);
+    var posts = res[0] || [], cats = res[1] || [];
+    if (!view.cat) view.cat = "all";
+    // 탭(전체 + 카테고리). 카테고리가 하나도 없으면 탭 생략.
+    var tabs = "";
+    if (cats.length) {
+      tabs = '<div class="bd-tabs"><button class="bd-tab' + (view.cat === "all" ? " active" : "") + '" data-cat="all">' + esc(tr("blog.all")) + "</button>"
+        + cats.map(function (c) { return '<button class="bd-tab' + (view.cat === c ? " active" : "") + '" data-cat="' + esc(c) + '">' + esc(c) + "</button>"; }).join("")
+        + "</div>";
+    }
+    var shown = view.cat === "all" ? posts : posts.filter(function (p) { return (p.cat || "") === view.cat; });
+    var rows = shown.map(function (p) {
+      var thumb = p.image ? '<span class="bd-thumb" style="background-image:url(' + esc(p.image) + ')"></span>' : "";
+      return '<button class="bd-row bd-row--case" data-open="' + p.id + '">'
+        + thumb
+        + '<div class="bd-row-text"><div class="bd-row-main">'
         + (p.cat ? '<span class="bd-answered">' + esc(p.cat) + "</span>" : "")
         + '<span class="bd-row-title">' + esc(p.title) + "</span></div>"
         + (p.excerpt ? '<div class="bd-c-body" style="color:var(--muted);">' + esc(p.excerpt) + "</div>" : "")
-        + '<div class="bd-row-meta"><span>' + fmt(p.ts) + "</span></div></button>";
+        + '<div class="bd-row-meta"><span>' + fmt(p.ts) + "</span></div></div></button>";
     }).join("");
-    blog.innerHTML = demoNote()
+    blog.innerHTML = demoNote() + tabs
       + '<div class="bd-list">' + (rows || '<div class="bd-empty">' + esc(tr("blog.empty")) + "</div>") + "</div>";
   }
 
@@ -98,7 +116,9 @@
     if (!p) { view.mode = "list"; return render(); }
     blog.innerHTML =
       '<button class="bd-back" data-act="back">' + esc(tr("board.back")) + "</button>"
-      + '<article class="bd-post"><h2 class="bd-post-title">' + esc(p.title) + "</h2>"
+      + '<article class="bd-post">'
+      + (p.image ? '<div class="bd-post-cover"><img src="' + esc(p.image) + '" alt=""></div>' : "")
+      + '<h2 class="bd-post-title">' + esc(p.title) + "</h2>"
       + '<div class="bd-post-meta">'
       + (p.cat ? "<span>" + esc(p.cat) + "</span>" : "")
       + "<span>" + fmt(p.ts) + "</span></div>"
@@ -107,6 +127,8 @@
 
   /* ── 이벤트 ── */
   blog.addEventListener("click", function (e) {
+    var tab = e.target.closest("[data-cat]");
+    if (tab) { view.cat = tab.getAttribute("data-cat"); renderList(); return; }
     var open = e.target.closest("[data-open]");
     if (open) { view.mode = "detail"; view.id = open.getAttribute("data-open"); render(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
     var act = e.target.closest("[data-act]"); if (!act) return;

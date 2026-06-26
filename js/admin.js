@@ -23,7 +23,7 @@
   var root = document.getElementById("admin");
   if (!root) return;
 
-  var state = { tab: "dash", boardId: null, q: "", filter: "all", dashAll: false, blogMode: "list", _rows: [] };
+  var state = { tab: "dash", boardId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", _rows: [] };
   var busy = false;
 
   /* ── 헬퍼 ── */
@@ -211,19 +211,19 @@
   }
   function blogListLocal() {
     return blogEnsure().slice().sort(function (a, b) { return b.ts - a.ts; }).map(function (p) {
-      return { id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, excerpt: String(p.body || "").replace(/\s+/g, " ").slice(0, 110) };
+      return { id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, image: p.image || "", excerpt: String(p.body || "").replace(/\s+/g, " ").slice(0, 110) };
     });
   }
-  function blogAdd(title, cat, body) {
+  function blogAdd(title, cat, body, image) {
     if (mode.blog === "api") {
-      return jwrite("/api/blog", "POST", { title: title, cat: cat, body: body, key: adminKey(), idToken: adminToken() })
+      return jwrite("/api/blog", "POST", { title: title, cat: cat, body: body, image: image || "", key: adminKey(), idToken: adminToken() })
         .then(function () { return true; })
-        .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return blogAddLocal(title, cat, body); });
+        .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return blogAddLocal(title, cat, body, image); });
     }
-    return Promise.resolve(blogAddLocal(title, cat, body));
+    return Promise.resolve(blogAddLocal(title, cat, body, image));
   }
-  function blogAddLocal(title, cat, body) {
-    var p = blogEnsure(); p.push({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), title: title, cat: cat, body: body, ts: Date.now() }); lSave(KEY_BLOG, p); return true;
+  function blogAddLocal(title, cat, body, image) {
+    var p = blogEnsure(); p.push({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), title: title, cat: cat, body: body, image: image || "", ts: Date.now() }); lSave(KEY_BLOG, p); return true;
   }
   function blogDel(id) {
     if (mode.blog === "api") {
@@ -234,6 +234,59 @@
     return Promise.resolve(blogDelLocal(id));
   }
   function blogDelLocal(id) { var p = blogEnsure().filter(function (x) { return x.id !== id; }); lSave(KEY_BLOG, p); return true; }
+
+  /* ── 카테고리 ── */
+  var KEY_CATS = "glo-blog-cats-v1";
+  function catEnsureLocal() { var c = lLoad(KEY_CATS); if (!c) { c = ["성공사례"]; lSave(KEY_CATS, c); } return c; }
+  function catList() {
+    if (mode.blog === "api") {
+      return jget("/api/blog?cats=1", "blog").then(function (d) { return d.cats || []; })
+        .catch(function () { goDemo("blog"); return catEnsureLocal(); });
+    }
+    return Promise.resolve(catEnsureLocal());
+  }
+  function catAdd(name) {
+    if (mode.blog === "api") {
+      return jwrite("/api/blog", "POST", { kind: "cat", name: name, key: adminKey(), idToken: adminToken() })
+        .then(function (d) { return (d && d.cats) || null; })
+        .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return catAddLocal(name); });
+    }
+    return Promise.resolve(catAddLocal(name));
+  }
+  function catAddLocal(name) { var c = catEnsureLocal(); if (c.indexOf(name) < 0) { c.push(name); lSave(KEY_CATS, c); } return c; }
+  function catDel(name) {
+    if (mode.blog === "api") {
+      return jwrite("/api/blog", "DELETE", { kind: "cat", name: name, key: adminKey(), idToken: adminToken() })
+        .then(function (d) { return (d && d.cats) || null; })
+        .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return catDelLocal(name); });
+    }
+    return Promise.resolve(catDelLocal(name));
+  }
+  function catDelLocal(name) { var c = catEnsureLocal().filter(function (x) { return x !== name; }); lSave(KEY_CATS, c); return c; }
+
+  /* ── 이미지 → webp 변환(브라우저, 리사이즈+압축) ── */
+  function fileToWebp(file, maxW, quality) {
+    return new Promise(function (resolve, reject) {
+      if (!file || !/^image\//.test(file.type)) { reject(new Error("이미지 파일이 아닙니다.")); return; }
+      var img = new Image(), urlObj = URL.createObjectURL(file);
+      img.onload = function () {
+        var w = img.naturalWidth, h = img.naturalHeight;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        var c = document.createElement("canvas"); c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(urlObj);
+        c.toBlob(function (blob) {
+          if (!blob) { reject(new Error("변환에 실패했습니다.")); return; }
+          var fr = new FileReader();
+          fr.onload = function () { resolve(String(fr.result)); };
+          fr.onerror = function () { reject(new Error("읽기에 실패했습니다.")); };
+          fr.readAsDataURL(blob);
+        }, "image/webp", quality);
+      };
+      img.onerror = function () { URL.revokeObjectURL(urlObj); reject(new Error("이미지를 불러오지 못했습니다.")); };
+      img.src = urlObj;
+    });
+  }
 
   /* ── 설정 ── */
   function setGet() {
@@ -390,7 +443,7 @@
   function renderTab() {
     if (state.tab === "dash") return renderDash();
     if (state.tab === "board") return state.boardId ? renderBoardDetail() : renderBoardList();
-    if (state.tab === "blog") return state.blogMode === "write" ? renderBlogWrite() : renderBlog();
+    if (state.tab === "blog") return state.blogMode === "write" ? renderBlogWrite() : (state.blogMode === "cats" ? renderCats() : renderBlog());
     if (state.tab === "settings") return renderSettings();
   }
 
@@ -547,8 +600,7 @@
     setMain(
       '<div class="ax-card">' +
         '<div class="ax-page-h"><div><h1>성공 사례 관리</h1><p>성공 사례·법률 인사이트 글을 작성하면 홈과 성공 사례 페이지에 노출됩니다.</p></div>' +
-          '<div class="ax-page-actions"><button class="ax-btn">' + icon("download") + '데이터 내보내기</button><button class="ax-btn">카테고리 관리</button><button class="ax-btn pri" data-act="bl-new">+ 새 글 작성</button></div></div>' +
-        '<div class="ax-bulkbar"><label><input type="checkbox"> 전체 선택</label><span></span><button>발행</button><button class="danger">삭제</button><i></i></div>' +
+          '<div class="ax-page-actions"><button class="ax-btn" data-act="bl-cats">카테고리 관리</button><button class="ax-btn pri" data-act="bl-new">+ 새 글 작성</button></div></div>' +
         '<div id="bl-list"><div class="ax-loading">불러오는 중…</div></div>' +
       '</div>');
     drawBlogList();
@@ -556,47 +608,83 @@
   function drawBlogList() {
     blogList().then(function (posts) {
       var trs = posts.length ? posts.map(function (p) {
+        var thumb = p.image ? '<span class="ax-blog-thumb" style="background-image:url(' + esc(p.image) + ')"></span>' : '<span class="ax-blog-thumb"></span>';
         return '<tr>' +
-          '<td class="ax-check"><input type="checkbox"></td>' +
-          '<td><div class="ax-blog-title"><span class="ax-blog-thumb"></span><div><b>' + esc(p.title) + '</b><small>작성자: 관리자</small></div></div></td>' +
+          '<td><div class="ax-blog-title">' + thumb + '<div><b>' + esc(p.title) + '</b><small>' + (p.cat ? esc(p.cat) : "미분류") + '</small></div></div></td>' +
           '<td><span class="ax-st ok">발행됨</span></td>' +
-          '<td class="ax-muted-c">--</td>' +
           '<td class="ax-date">' + fmtKDate(p.ts) + '</td>' +
           '<td class="ax-r"><button class="ax-cmt-del" data-del-blog="' + esc(p.id) + '">삭제</button></td>' +
         '</tr>';
-      }).join("") : '<tr><td colspan="6"><div class="ax-empty">아직 발행한 글이 없습니다.</div></td></tr>';
+      }).join("") : '<tr><td colspan="4"><div class="ax-empty">아직 발행한 글이 없습니다.</div></td></tr>';
       var el = $("#bl-list"); if (el) el.innerHTML =
         '<div class="ax-tbl-wrap"><table class="ax-tbl"><thead><tr>' +
-          '<th></th><th>제목</th><th>상태</th><th>조회수</th><th>날짜</th><th></th>' +
+          '<th>제목</th><th>상태</th><th>날짜</th><th></th>' +
         '</tr></thead><tbody>' + trs + '</tbody></table></div>';
       refreshBanner();
     });
   }
 
   function renderBlogWrite() {
+    state.editorImage = "";
     setMain(
       '<div class="ax-editor-page">' +
-        '<div class="ax-page-h"><div><h1>새 글 작성</h1><p>글로벌 법률 사무소의 블로그에 새로운 전문 지식을 공유하세요.</p></div>' +
-          '<div class="ax-page-actions"><button class="ax-btn" data-act="bl-cancel-write">목록으로</button><button class="ax-btn">임시 저장</button><button class="ax-btn pri" data-act="bl-add">발행하기</button></div></div>' +
+        '<div class="ax-page-h"><div><h1>새 글 작성</h1><p>글로벌 법률 사무소의 성공 사례에 새로운 글을 공유하세요.</p></div>' +
+          '<div class="ax-page-actions"><button class="ax-btn" data-act="bl-cancel-write">목록으로</button><button class="ax-btn pri" data-act="bl-add">발행하기</button></div></div>' +
         '<div class="ax-editor-grid">' +
           '<main>' +
             '<section class="ax-card ax-form">' +
               '<div class="ax-field"><label>제목</label><input id="bl-title" maxlength="160" placeholder="포스트 제목을 입력하세요"></div>' +
-              '<div class="ax-grid2"><div class="ax-field"><label>카테고리</label><input id="bl-cat" maxlength="40" value="성공사례" placeholder="예: 성공사례, 법률정보"></div>' +
-              '<div class="ax-field"><label>태그 (쉼표로 구분)</label><input id="bl-tags" placeholder="예: 상속, 증여, 자문"></div></div>' +
+              '<div class="ax-field"><label>카테고리</label><select id="bl-cat"><option>성공사례</option></select></div>' +
+              '<div class="ax-field"><label>대표 이미지 <span class="ax-muted-c">(자동 webp 변환·리사이즈)</span></label>' +
+                '<div class="ax-img-up">' +
+                  '<button type="button" class="ax-btn" data-act="bl-pick-img">' + icon("download") + '이미지 선택</button>' +
+                  '<input id="bl-img-input" type="file" accept="image/*" style="display:none">' +
+                  '<button type="button" class="ax-btn danger" data-act="bl-img-clear" id="bl-img-clear" style="display:none">제거</button>' +
+                  '<span id="bl-img-name" class="ax-muted-c">선택된 파일 없음</span>' +
+                '</div>' +
+                '<div id="bl-img-prev" class="ax-img-prev" style="display:none"></div>' +
+              '</div>' +
             '</section>' +
             '<section class="ax-card ax-editor">' +
-              '<div class="ax-toolbar"><button>B</button><button><i>I</i></button><button><u>U</u></button><button>≡</button><button>❝</button><button>▧</button><button>↔</button></div>' +
-              '<textarea id="bl-body" rows="18" placeholder="본문 내용을 입력하세요..."></textarea>' +
+              '<textarea id="bl-body" rows="16" placeholder="본문 내용을 입력하세요..."></textarea>' +
             '</section>' +
           '</main>' +
           '<aside>' +
-            '<section class="ax-card ax-preview"><h3>미리보기</h3><div class="ax-preview-img"></div><h4>여기에 제목이 표시됩니다...</h4><p>본문 내용이 여기에 요약되어 노출됩니다.</p></section>' +
-            '<section class="ax-card ax-publish"><h3>발행 설정</h3><label>공개 여부 <select><option>전체 공개</option><option>비공개</option></select></label><label>댓글 허용 <input type="checkbox" checked></label><label>발행 예약 <button type="button">날짜 선택</button></label></section>' +
-            '<section class="ax-card ax-seo"><h3>SEO 최적화</h3><p>검색엔진에서 더 잘 노출될 수 있도록 메타 설명을 추가하세요.</p><textarea rows="4" placeholder="검색 결과에 표시될 설명을 입력하세요..."></textarea></section>' +
+            '<section class="ax-card ax-publish"><h3>발행 안내</h3><p class="ax-note">발행하면 홈 "언어가 장벽이 되지 않도록" 슬라이더와 성공 사례 페이지에 노출됩니다. 대표 이미지는 카드 배경으로 사용됩니다.</p></section>' +
           '</aside>' +
         '</div>' +
       '</div>');
+    // 카테고리 옵션 채우기
+    catList().then(function (cats) {
+      var sel = $("#bl-cat"); if (!sel) return;
+      var list = (cats && cats.length) ? cats : ["성공사례"];
+      sel.innerHTML = list.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + "</option>"; }).join("");
+      refreshBanner();
+    });
+  }
+
+  /* ════════ 카테고리 관리 ════════ */
+  function renderCats() {
+    setMain(
+      '<div class="ax-card">' +
+        '<div class="ax-page-h"><div><h1>카테고리 관리</h1><p>성공 사례 글을 분류할 카테고리를 만들고 삭제합니다.</p></div>' +
+          '<div class="ax-page-actions"><button class="ax-btn" data-act="bl-cats-back">목록으로</button></div></div>' +
+        '<div class="ax-form">' +
+          '<div class="ax-cat-add"><input id="cat-new" maxlength="40" placeholder="새 카테고리 이름"><button class="ax-btn pri" data-act="cat-add">추가</button></div>' +
+          '<div id="cat-list"><div class="ax-loading">불러오는 중…</div></div>' +
+        '</div>' +
+      '</div>');
+    drawCats();
+  }
+  function drawCats() {
+    catList().then(function (cats) {
+      var el = $("#cat-list"); if (!el) return;
+      if (!cats || !cats.length) { el.innerHTML = '<div class="ax-empty">카테고리가 없습니다. 위에서 추가하세요.</div>'; refreshBanner(); return; }
+      el.innerHTML = '<ul class="ax-cat-ul">' + cats.map(function (c) {
+        return '<li><span>' + esc(c) + '</span><button class="ax-cmt-del" data-del-cat="' + esc(c) + '">삭제</button></li>';
+      }).join("") + "</ul>";
+      refreshBanner();
+    });
   }
 
   /* ════════ 4) 사이트 정보(설정) ════════ */
@@ -660,6 +748,32 @@
 
     if (act === "bl-new") { state.blogMode = "write"; renderTab(); return; }
     if (act === "bl-cancel-write") { state.blogMode = "list"; renderTab(); return; }
+    if (act === "bl-cats") { state.blogMode = "cats"; renderTab(); return; }
+    if (act === "bl-cats-back") { state.blogMode = "list"; renderTab(); return; }
+    if (act === "bl-pick-img") { var fi = $("#bl-img-input"); if (fi) fi.click(); return; }
+    if (act === "bl-img-clear") {
+      state.editorImage = "";
+      var nm = $("#bl-img-name"); if (nm) nm.textContent = "선택된 파일 없음";
+      var pv = $("#bl-img-prev"); if (pv) { pv.style.display = "none"; pv.innerHTML = ""; }
+      var cb = $("#bl-img-clear"); if (cb) cb.style.display = "none";
+      var fi2 = $("#bl-img-input"); if (fi2) fi2.value = "";
+      return;
+    }
+    if (act === "cat-add") {
+      var nm2 = val("#cat-new"); if (!nm2) { alert("카테고리 이름을 입력하세요."); return; }
+      busy = true;
+      catAdd(nm2).then(function () { busy = false; var i = $("#cat-new"); if (i) i.value = ""; drawCats(); })
+        .catch(function (err) { busy = false; handleErr(err, "카테고리 추가에 실패했습니다."); });
+      return;
+    }
+    var delCat = e.target.closest("[data-del-cat]");
+    if (delCat) {
+      if (!confirm("이 카테고리를 삭제하시겠습니까? (해당 카테고리로 작성된 글은 그대로 유지됩니다)")) return;
+      busy = true;
+      catDel(delCat.getAttribute("data-del-cat")).then(function () { busy = false; drawCats(); })
+        .catch(function (err) { busy = false; handleErr(err, "카테고리 삭제에 실패했습니다."); });
+      return;
+    }
 
     // 상담 글 열기(대시보드/목록 공용)
     var openEl = e.target.closest("[data-open]");
@@ -703,12 +817,10 @@
       if (!t) { alert("제목을 입력하세요."); return; }
       if (!bd) { alert("내용을 입력하세요."); return; }
       busy = true;
-      blogAdd(t, cat, bd).then(function () {
-        busy = false;
-        var ti = $("#bl-title"), ci = $("#bl-cat"), bi = $("#bl-body");
-        if (ti) ti.value = ""; if (ci) ci.value = ""; if (bi) bi.value = "";
+      blogAdd(t, cat, bd, state.editorImage).then(function () {
+        busy = false; state.editorImage = "";
         state.blogMode = "list"; renderBlog();
-      }).catch(function (err) { busy = false; handleErr(err, "블로그 글 등록에 실패했습니다."); });
+      }).catch(function (err) { busy = false; handleErr(err, "성공 사례 글 등록에 실패했습니다."); });
       return;
     }
 
@@ -742,6 +854,23 @@
         else if (state.tab === "board" && !state.boardId) drawBoardRows();
       }, 220);
     }
+  });
+
+  // 대표 이미지 선택 → 브라우저에서 webp 변환·리사이즈 후 미리보기
+  root.addEventListener("change", function (e) {
+    if (!e.target || e.target.id !== "bl-img-input") return;
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var nm = $("#bl-img-name"); if (nm) nm.textContent = "변환 중…";
+    fileToWebp(file, 1280, 0.82).then(function (dataUrl) {
+      state.editorImage = dataUrl;
+      var kb = Math.round((dataUrl.length * 0.75) / 1024);
+      if (nm) nm.textContent = (file.name || "이미지") + " · webp " + kb + "KB";
+      var pv = $("#bl-img-prev"); if (pv) { pv.style.display = "block"; pv.innerHTML = '<img src="' + dataUrl + '" alt="대표 이미지 미리보기">'; }
+      var cb = $("#bl-img-clear"); if (cb) cb.style.display = "";
+    }).catch(function () {
+      if (nm) nm.textContent = "변환 실패 — 다른 이미지를 시도하세요.";
+    });
   });
 
   /* ── 진입 ── */

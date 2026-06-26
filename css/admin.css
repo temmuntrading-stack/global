@@ -259,11 +259,28 @@
 .ax-bulkbar button.danger{color:var(--ax-red);}
 .ax-check{width:26px;}
 .ax-blog-title{display:flex;align-items:center;gap:14px;}
-.ax-blog-thumb{width:48px;height:48px;flex:none;border-radius:8px;background:linear-gradient(135deg,#102033,#426176);border:1px solid var(--ax-line);box-shadow:inset 0 0 18px rgba(255,255,255,.12);}
+.ax-blog-thumb{width:48px;height:48px;flex:none;border-radius:8px;background:linear-gradient(135deg,#102033,#426176);background-size:cover;background-position:center;border:1px solid var(--ax-line);}
 .ax-blog-title b{display:block;font-size:13.5px;color:var(--ax-ink);margin-bottom:4px;}
 .ax-blog-title small{display:block;color:var(--ax-muted);font-size:12px;}
 .ax-editor-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start;}
 .ax-editor-grid main,.ax-editor-grid aside{min-width:0;}
+
+/* 폼 select */
+.ax-field select{width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;color:var(--ax-ink);background:var(--ax-bg);border:1px solid var(--ax-line-2);border-radius:10px;padding:11px 13px;}
+.ax-field select:focus{outline:none;border-color:var(--ax-blue);background:#fff;}
+
+/* 이미지 업로드 */
+.ax-img-up{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ax-img-prev{margin-top:12px;}
+.ax-img-prev img{max-width:100%;max-height:220px;border-radius:10px;border:1px solid var(--ax-line);display:block;}
+
+/* 카테고리 관리 */
+.ax-cat-add{display:flex;gap:10px;margin-bottom:16px;}
+.ax-cat-add input{flex:1;box-sizing:border-box;font-family:inherit;font-size:14px;color:var(--ax-ink);background:var(--ax-bg);border:1px solid var(--ax-line-2);border-radius:10px;padding:11px 13px;}
+.ax-cat-add input:focus{outline:none;border-color:var(--ax-blue);background:#fff;}
+.ax-cat-ul{list-style:none;margin:0;padding:0;border:1px solid var(--ax-line);border-radius:12px;overflow:hidden;}
+.ax-cat-ul li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid var(--ax-line);font-size:14px;color:var(--ax-ink);}
+.ax-cat-ul li:last-child{border-bottom:none;}
 .ax-editor{overflow:hidden;}
 .ax-toolbar{height:44px;display:flex;align-items:center;gap:6px;padding:0 14px;border-bottom:1px solid var(--ax-line);background:#FBFBFC;}
 .ax-toolbar button{width:30px;height:30px;border:0;background:none;border-radius:7px;font-weight:800;cursor:pointer;color:var(--ax-ink);}

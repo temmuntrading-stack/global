@@ -23,7 +23,10 @@
     var catDflt = tr("blog.cat", "성공 사례");
     track.innerHTML = posts.slice(0, 8).map(function (p, i) {
       var n = (i + 1 < 10 ? "0" : "") + (i + 1);
-      return '<a class="mag-card ' + grad[i % 4] + '" href="blog.html?id=' + encodeURIComponent(p.id) + '">'
+      var hasImg = !!p.image;
+      var cls = "mag-card" + (hasImg ? " mag-card--img" : " " + grad[i % 4]);
+      var style = hasImg ? ' style="background-image:url(' + esc(p.image) + ')"' : "";
+      return '<a class="' + cls + '"' + style + ' href="blog.html?id=' + encodeURIComponent(p.id) + '">'
         + '<span class="mag-scrim" aria-hidden="true"></span>'
         + '<div class="mag-body">'
         + '<span class="mag-cat">' + esc(p.cat || catDflt) + "</span>"

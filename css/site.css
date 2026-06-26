@@ -692,6 +692,25 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:translateY(0);}
 .bd-answered{font-size:11.5px;font-weight:700;color:#0a7d72;background:var(--teal-soft);border-radius:999px;padding:3px 10px;}
 .bd-row-meta{display:flex;gap:14px;color:var(--muted);font-size:13px;}
 .bd-empty{padding:48px;text-align:center;color:var(--muted);}
+
+/* 성공 사례: 카테고리 탭 */
+.bd-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.bd-tab{background:var(--bg-soft);border:1px solid var(--line);color:var(--muted);font-family:inherit;font-size:13.5px;font-weight:600;padding:8px 16px;border-radius:999px;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.bd-tab:hover{color:var(--ink);}
+.bd-tab.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+
+/* 성공 사례: 이미지 카드 행 */
+.bd-row--case{flex-direction:row;align-items:stretch;gap:16px;}
+.bd-thumb{flex:none;width:120px;align-self:stretch;min-height:84px;border-radius:12px;background:var(--bg-soft) center/cover no-repeat;border:1px solid var(--line);}
+.bd-row--case .bd-row-text{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1;}
+@media(max-width:560px){.bd-row--case{flex-direction:column;}.bd-thumb{width:100%;aspect-ratio:16/9;min-height:0;}}
+
+/* 성공 사례 상세: 커버 이미지 */
+.bd-post-cover{margin:0 0 18px;border-radius:14px;overflow:hidden;border:1px solid var(--line);}
+.bd-post-cover img{display:block;width:100%;height:auto;}
+
+/* 홈 슬라이더: 이미지 카드 */
+.mag-card.mag-card--img{background:#0a1b33 center/cover no-repeat;}
 .bd-form-wrap,.bd-cform{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:clamp(20px,3vw,30px);box-shadow:var(--shadow-sm);}
 .bd-form-title{font-weight:800;font-size:1.3rem;letter-spacing:-.02em;margin-bottom:18px;}
 .bd-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}

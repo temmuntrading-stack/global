@@ -158,6 +158,7 @@ ko:{
   "blog.lead":"실제 상담과 해결 경험에서 나온 글로벌 법률사무소의 이야기입니다.",
   "blog.cat":"성공 사례",
   "blog.empty":"아직 등록된 글이 없습니다.",
+  "blog.all":"전체",
 
   "home.process.eyebrow":"진행 방식",
   "home.process.title":"명확한 4단계로 진행합니다.",
@@ -409,6 +410,7 @@ en:{
   "blog.lead":"Stories and insights from Global Law Office's real cases and outcomes.",
   "blog.cat":"Success Story",
   "blog.empty":"No success stories have been posted yet.",
+  "blog.all":"All",
 
   "home.process.eyebrow":"How We Work",
   "home.process.title":"A clear four-step process.",

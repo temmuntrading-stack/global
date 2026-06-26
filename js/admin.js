@@ -342,6 +342,41 @@
       });
     });
   }
+  /* data:image base64 → Blob (붙여넣기/드래그/구 데이터 정리에 사용) */
+  function dataUrlToBlob(dataUrl) {
+    return fetch(dataUrl).then(function (r) { return r.blob(); });
+  }
+  /* 파일/Blob 목록을 R2에 올려 에디터에 이미지로 삽입(붙여넣기·드래그 공용) */
+  function insertImagesToEditor(files, layout) {
+    if (!quill || !files || !files.length) return;
+    var range = quill.getSelection(true);
+    var idx = range ? range.index : quill.getLength();
+    (function next(i) {
+      if (i >= files.length) { quill.setSelection(idx, 0); return; }
+      uploadImage(files[i]).then(function (url) {
+        quill.insertEmbed(idx, "image", { src: url, layout: layout || "center" }, "user");
+        idx++; next(i + 1);
+      }).catch(function (e) { alert((e && e.message) || "이미지 업로드에 실패했습니다."); next(i + 1); });
+    })(0);
+  }
+  /* 저장 직전 안전망: 본문/대표이미지에 남은 base64를 모두 R2로 올려 URL로 치환.
+     (붙여넣은 HTML 안의 data:image 등 어떤 경로로 들어왔든 base64가 DB에 저장되지 않게 함) */
+  function flushBase64(html, cover) {
+    var out = { body: html || "", cover: cover || "" };
+    var tasks = [];
+    if (/^data:image\//i.test(out.cover)) {
+      tasks.push(dataUrlToBlob(out.cover).then(uploadImage).then(function (url) { out.cover = url; }));
+    }
+    var seen = {}, re = /data:image\/[a-z0-9.+-]+;base64,[^"')\s]+/gi, m;
+    while ((m = re.exec(html || ""))) {
+      var durl = m[0];
+      if (seen[durl]) continue; seen[durl] = true;
+      (function (d) {
+        tasks.push(dataUrlToBlob(d).then(uploadImage).then(function (url) { out.body = out.body.split(d).join(url); }));
+      })(durl);
+    }
+    return Promise.all(tasks).then(function () { return out; });
+  }
 
   /* ── 설정 ── */
   function setGet() {
@@ -732,6 +767,25 @@
         },
       },
     });
+    // 붙여넣기한 이미지(파일)를 base64 대신 R2로 업로드
+    quill.root.addEventListener("paste", function (e) {
+      var items = (e.clipboardData && e.clipboardData.items) || [];
+      var imgs = [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].kind === "file" && /^image\//.test(items[i].type)) { var f = items[i].getAsFile(); if (f) imgs.push(f); }
+      }
+      if (!imgs.length) return; // 일반 텍스트/HTML 붙여넣기는 그대로 둠(저장 시 안전망이 처리)
+      e.preventDefault();
+      insertImagesToEditor(imgs, "center");
+    });
+    // 드래그&드롭한 이미지도 R2로 업로드
+    quill.root.addEventListener("drop", function (e) {
+      var files = (e.dataTransfer && e.dataTransfer.files) || [];
+      var imgs = [].filter.call(files, function (f) { return /^image\//.test(f.type); });
+      if (!imgs.length) return;
+      e.preventDefault();
+      insertImagesToEditor(imgs, "center");
+    });
   }
   // 레이아웃(class)을 보존하는 커스텀 이미지 blot 등록(1회)
   function registerImageLayout() {
@@ -875,14 +929,14 @@
     var lang = ($("#bl-lang") || {}).value || "ko";
     var body = getEditorHtml();
     if (status === "published" && !body) { alert("내용을 입력하세요."); return; }
-    // 본문에 R2 미업로드 이미지(base64)가 있으면 경고 — R2 미연결 시 저장이 불안정/잘릴 수 있음
-    if (/(<img[^>]+src=["']data:image)|src=["']data:image/.test(body) || /^data:image/.test(state.editorImage || "")) {
-      if (!confirm("이미지가 서버(R2)에 업로드되지 않고 임시(base64)로만 들어가 있습니다.\nR2가 연결되지 않으면 저장 시 이미지가 사라질 수 있습니다.\n\nR2 연결을 권장합니다. 그래도 계속할까요?")) return;
-    }
     busy = true;
-    blogSave({ id: state.editId || null, title: t, cat: cat, body: body, image: state.editorImage, status: status, lang: lang })
+    // 안전망: 본문/대표이미지에 base64가 남아 있으면 저장 전에 자동으로 R2에 올려 URL로 치환(경고창 없음)
+    flushBase64(body, state.editorImage).then(function (res) {
+      state.editorImage = res.cover;
+      return blogSave({ id: state.editId || null, title: t, cat: cat, body: res.body, image: res.cover, status: status, lang: lang });
+    })
       .then(function () { busy = false; state.editId = null; state.editorImage = ""; state.blogMode = "list"; renderBlog(); })
-      .catch(function (err) { busy = false; handleErr(err, "저장에 실패했습니다."); });
+      .catch(function (err) { busy = false; handleErr(err, (err && err.message) || "저장에 실패했습니다."); });
   }
 
   /* ════════ 카테고리 관리 ════════ */

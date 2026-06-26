@@ -8,7 +8,8 @@
   "use strict";
 
   /* ── 저장소 키 ── */
-  var KEY_ADMIN = "glo-admin-key";   // 관리자 키(쓰기 인증)
+  var KEY_ADMIN = "glo-admin-key";   // 관리자 비밀번호(쓰기 인증)
+  var KEY_ADMIN_ID = "glo-admin-id"; // 관리자 아이디(표시용)
   var KEY_BOARD = "glo-board-v1";    // 데모 게시판 (board.js와 공유)
   var KEY_BLOG = "glo-blog-v1";      // 데모 블로그
   var KEY_SET = "glo-settings-v1";   // 데모 설정
@@ -253,29 +254,57 @@
      인증 화면 / 로그아웃
      ════════════════════════════════════════════════════════════ */
   function renderLogin() {
+    var savedId = localStorage.getItem(KEY_ADMIN_ID) || "";
     root.innerHTML =
       '<div class="ax-login">' +
         '<div class="ax-login-card">' +
           '<div class="ax-login-logo">' + LOGO + '</div>' +
           '<h1>관리자 로그인</h1>' +
-          '<p>관리자 키를 입력하세요. 이 브라우저에 저장되어 모든 변경 작업에 사용됩니다.</p>' +
-          '<div class="ax-field"><label>관리자 키</label><input id="adm-key" type="password" autocomplete="current-password" placeholder="관리자 키"></div>' +
+          '<p>아이디와 비밀번호를 입력하세요.</p>' +
+          '<div class="ax-field"><label>아이디</label><input id="adm-id" type="text" autocomplete="username" value="' + esc(savedId) + '" placeholder="아이디"></div>' +
+          '<div class="ax-field"><label>비밀번호</label><input id="adm-key" type="password" autocomplete="current-password" placeholder="비밀번호"></div>' +
           '<button class="ax-btn pri ax-login-btn" data-act="login">로그인</button>' +
-          '<p class="ax-login-note">키가 설정되지 않은(데모) 환경에서도 임의의 값으로 진입할 수 있습니다.</p>' +
+          '<p class="ax-login-note" id="adm-login-msg">아이디·비밀번호는 Cloudflare 환경변수(ADMIN_ID·ADMIN_KEY)로 설정합니다. 미설정 시(데모) 임의 값으로 진입됩니다.</p>' +
         '</div>' +
       '</div>';
-    var inp = $("#adm-key");
-    if (inp) { inp.focus(); inp.addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); }); }
+    var idEl = $("#adm-id"), keyEl = $("#adm-key");
+    function onEnter(e) { if (e.key === "Enter") doLogin(); }
+    if (idEl) idEl.addEventListener("keydown", onEnter);
+    if (keyEl) keyEl.addEventListener("keydown", onEnter);
+    (savedId ? keyEl : idEl || keyEl).focus();
   }
   function doLogin() {
-    var k = val("#adm-key");
-    if (!k) { alert("관리자 키를 입력하세요."); return; }
-    localStorage.setItem(KEY_ADMIN, k);
-    state.tab = "dash"; renderApp();
+    var id = val("#adm-id"), k = val("#adm-key");
+    if (!k) { alert("비밀번호를 입력하세요."); return; }
+    var btn = $('[data-act="login"]');
+    if (btn) { btn.disabled = true; btn.textContent = "확인 중…"; }
+    function fail(msg) {
+      if (btn) { btn.disabled = false; btn.textContent = "로그인"; }
+      var m = $("#adm-login-msg"); if (m) { m.textContent = msg; m.style.color = "var(--ax-red)"; }
+    }
+    function enter() {
+      localStorage.setItem(KEY_ADMIN, k);
+      if (id) localStorage.setItem(KEY_ADMIN_ID, id); else localStorage.removeItem(KEY_ADMIN_ID);
+      state.tab = "dash"; renderApp();
+    }
+    fetch("/api/admin-login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: id, key: k }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        var d = res.d || {};
+        if (d.ok === true) { enter(); return; }
+        if (d.ok === false) { fail(d.error || "아이디 또는 비밀번호가 올바르지 않습니다."); return; }
+        // 엔드포인트 없음(로컬 정적 서버 등) → 데모 진입 허용
+        demo = true; enter();
+      })
+      .catch(function () {
+        // 검증 API 네트워크 오류(로컬 미리보기 등) → 데모 진입 허용
+        demo = true; enter();
+      });
   }
   function logout() {
-    if (!confirm("로그아웃 하시겠습니까? 저장된 관리자 키가 이 브라우저에서 삭제됩니다.")) return;
+    if (!confirm("로그아웃 하시겠습니까? 저장된 로그인 정보가 이 브라우저에서 삭제됩니다.")) return;
     localStorage.removeItem(KEY_ADMIN);
+    localStorage.removeItem(KEY_ADMIN_ID);
     renderLogin();
   }
 

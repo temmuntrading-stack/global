@@ -285,8 +285,8 @@
   }
   function catDelLocal(name) { var c = catEnsureLocal().filter(function (x) { return x !== name; }); lSave(KEY_CATS, c); return c; }
 
-  /* ── 이미지 → webp 변환(브라우저, 리사이즈+압축) ── */
-  function fileToWebp(file, maxW, quality) {
+  /* ── 이미지 → webp(브라우저 리사이즈+압축) Blob 생성 ── */
+  function fileToWebpBlob(file, maxW, quality) {
     return new Promise(function (resolve, reject) {
       if (!file || !/^image\//.test(file.type)) { reject(new Error("이미지 파일이 아닙니다.")); return; }
       var img = new Image(), urlObj = URL.createObjectURL(file);
@@ -296,16 +296,32 @@
         var c = document.createElement("canvas"); c.width = w; c.height = h;
         c.getContext("2d").drawImage(img, 0, 0, w, h);
         URL.revokeObjectURL(urlObj);
-        c.toBlob(function (blob) {
-          if (!blob) { reject(new Error("변환에 실패했습니다.")); return; }
-          var fr = new FileReader();
-          fr.onload = function () { resolve(String(fr.result)); };
-          fr.onerror = function () { reject(new Error("읽기에 실패했습니다.")); };
-          fr.readAsDataURL(blob);
-        }, "image/webp", quality);
+        c.toBlob(function (blob) { blob ? resolve(blob) : reject(new Error("변환에 실패했습니다.")); }, "image/webp", quality);
       };
       img.onerror = function () { URL.revokeObjectURL(urlObj); reject(new Error("이미지를 불러오지 못했습니다.")); };
       img.src = urlObj;
+    });
+  }
+  function blobToDataUrl(blob) {
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () { resolve(String(fr.result)); };
+      fr.onerror = function () { reject(new Error("읽기 실패")); };
+      fr.readAsDataURL(blob);
+    });
+  }
+  /* 이미지 업로드: webp로 변환 → R2(/api/upload)에 저장하고 URL 반환.
+     R2 미연결/로컬/오류면 base64 data URL로 폴백. */
+  function uploadImage(file) {
+    return fileToWebpBlob(file, 1280, 0.82).then(function (blob) {
+      var fd = new FormData();
+      fd.append("file", blob, "image.webp");
+      fd.append("key", adminKey());
+      fd.append("idToken", adminToken());
+      return fetch("/api/upload", { method: "POST", body: fd })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { return (d && d.url) ? d.url : blobToDataUrl(blob); })
+        .catch(function () { return blobToDataUrl(blob); });
     });
   }
 
@@ -698,11 +714,11 @@
     input.type = "file"; input.accept = "image/*";
     input.onchange = function () {
       var f = input.files && input.files[0]; if (!f || !quill) return;
-      fileToWebp(f, 1280, 0.82).then(function (url) {
+      uploadImage(f).then(function (url) {
         var range = quill.getSelection(true);
         quill.insertEmbed(range ? range.index : 0, "image", url, "user");
         quill.setSelection((range ? range.index : 0) + 1, 0);
-      }).catch(function () { alert("이미지 변환에 실패했습니다."); });
+      }).catch(function () { alert("이미지 업로드에 실패했습니다."); });
     };
     input.click();
   }
@@ -975,15 +991,14 @@
     if (!e.target || e.target.id !== "bl-img-input") return;
     var file = e.target.files && e.target.files[0];
     if (!file) return;
-    var nm = $("#bl-img-name"); if (nm) nm.textContent = "변환 중…";
-    fileToWebp(file, 1280, 0.82).then(function (dataUrl) {
-      state.editorImage = dataUrl;
-      var kb = Math.round((dataUrl.length * 0.75) / 1024);
-      if (nm) nm.textContent = (file.name || "이미지") + " · webp " + kb + "KB";
-      var pv = $("#bl-img-prev"); if (pv) { pv.style.display = "block"; pv.innerHTML = '<img src="' + dataUrl + '" alt="대표 이미지 미리보기">'; }
+    var nm = $("#bl-img-name"); if (nm) nm.textContent = "업로드 중…";
+    uploadImage(file).then(function (url) {
+      state.editorImage = url;
+      if (nm) nm.textContent = (file.name || "이미지") + (/^data:/.test(url) ? " · webp(임시)" : " · 업로드됨");
+      var pv = $("#bl-img-prev"); if (pv) { pv.style.display = "block"; pv.innerHTML = '<img src="' + url + '" alt="대표 이미지 미리보기">'; }
       var cb = $("#bl-img-clear"); if (cb) cb.style.display = "";
     }).catch(function () {
-      if (nm) nm.textContent = "변환 실패 — 다른 이미지를 시도하세요.";
+      if (nm) nm.textContent = "업로드 실패 — 다른 이미지를 시도하세요.";
     });
   });
 

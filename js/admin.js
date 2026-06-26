@@ -870,6 +870,10 @@
     var lang = ($("#bl-lang") || {}).value || "ko";
     var body = getEditorHtml();
     if (status === "published" && !body) { alert("내용을 입력하세요."); return; }
+    // 본문에 R2 미업로드 이미지(base64)가 있으면 경고 — R2 미연결 시 저장이 불안정/잘릴 수 있음
+    if (/(<img[^>]+src=["']data:image)|src=["']data:image/.test(body) || /^data:image/.test(state.editorImage || "")) {
+      if (!confirm("이미지가 서버(R2)에 업로드되지 않고 임시(base64)로만 들어가 있습니다.\nR2가 연결되지 않으면 저장 시 이미지가 사라질 수 있습니다.\n\nR2 연결을 권장합니다. 그래도 계속할까요?")) return;
+    }
     busy = true;
     blogSave({ id: state.editId || null, title: t, cat: cat, body: body, image: state.editorImage, status: status, lang: lang })
       .then(function () { busy = false; state.editId = null; state.editorImage = ""; state.blogMode = "list"; renderBlog(); })

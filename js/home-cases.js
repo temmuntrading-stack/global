@@ -37,7 +37,8 @@
     }).join("");
   }
 
-  fetch("/api/blog", { headers: { accept: "application/json" } })
+  var lang = window.getLang ? window.getLang() : "ko";
+  fetch("/api/blog?lang=" + encodeURIComponent(lang), { headers: { accept: "application/json" } })
     .then(function (r) { if (!r.ok) throw new Error("api"); return r.json(); })
     .then(function (d) {
       var posts = (d && d.posts) || [];

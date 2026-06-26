@@ -19,14 +19,16 @@ let _schemaReady = false;
 async function ensureSchema(db) {
   if (_schemaReady) return;
   await db.batch([
-    db.prepare("CREATE TABLE IF NOT EXISTS blog (id TEXT PRIMARY KEY, title TEXT NOT NULL, cat TEXT, body TEXT NOT NULL, ts INTEGER NOT NULL, image TEXT, status TEXT)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS blog (id TEXT PRIMARY KEY, title TEXT NOT NULL, cat TEXT, body TEXT NOT NULL, ts INTEGER NOT NULL, image TEXT, status TEXT, lang TEXT)"),
     db.prepare("CREATE INDEX IF NOT EXISTS idx_blog_ts ON blog(ts)"),
     db.prepare("CREATE TABLE IF NOT EXISTS blog_cats (name TEXT PRIMARY KEY, ts INTEGER NOT NULL)"),
   ]);
   // 기존 blog 테이블에 누락 컬럼 추가
   try { await db.prepare("ALTER TABLE blog ADD COLUMN image TEXT").run(); } catch (e) {}
   try { await db.prepare("ALTER TABLE blog ADD COLUMN status TEXT").run(); } catch (e) {}
+  try { await db.prepare("ALTER TABLE blog ADD COLUMN lang TEXT").run(); } catch (e) {}
   try { await db.prepare("UPDATE blog SET status='published' WHERE status IS NULL OR status=''").run(); } catch (e) {}
+  try { await db.prepare("UPDATE blog SET lang='ko' WHERE lang IS NULL OR lang=''").run(); } catch (e) {}
   // 기본 카테고리 1개 시드(카테고리가 하나도 없을 때만)
   try {
     const c = await db.prepare("SELECT COUNT(*) AS n FROM blog_cats").first();
@@ -54,18 +56,24 @@ export async function onRequest(context) {
       }
       const id = url.searchParams.get("id");
       if (id) {
-        const post = await db.prepare("SELECT id,title,cat,body,ts,image,status FROM blog WHERE id=?").bind(id).first();
+        const post = await db.prepare("SELECT id,title,cat,body,ts,image,status,lang FROM blog WHERE id=?").bind(id).first();
         if (!post) return json({ error: "not found" }, 404);
         return json({ post });
       }
       // ?all=1 → 임시저장 포함(관리자), 기본 → 발행글만(공개)
+      // ?lang=xx → 해당 언어 글만(공개 페이지/홈). all=1이면 언어 무시(관리자 전체).
       const all = url.searchParams.get("all");
-      const sql = "SELECT id,title,cat,body,ts,image,status FROM blog" +
-        (all ? "" : " WHERE status='published' OR status IS NULL") + " ORDER BY ts DESC LIMIT 200";
-      const { results } = await db.prepare(sql).all();
+      const lang = url.searchParams.get("lang");
+      let sql = "SELECT id,title,cat,body,ts,image,status,lang FROM blog";
+      const where = [], binds = [];
+      if (!all) where.push("(status='published' OR status IS NULL)");
+      if (!all && lang) { where.push("(lang=? OR lang IS NULL OR lang='')"); binds.push(lang); }
+      if (where.length) sql += " WHERE " + where.join(" AND ");
+      sql += " ORDER BY ts DESC LIMIT 200";
+      const { results } = await db.prepare(sql).bind(...binds).all();
       return json({
         posts: (results || []).map((p) => ({
-          id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, image: p.image || "", status: p.status || "published",
+          id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, image: p.image || "", status: p.status || "published", lang: p.lang || "ko",
           excerpt: clamp(String(p.body || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " "), 110),
         })),
       });
@@ -88,14 +96,15 @@ export async function onRequest(context) {
       if (!b.title) return json({ error: "제목을 입력하세요." }, 400);
       // 본문 한도: R2 미연결 시 이미지가 base64로 본문에 포함될 수 있어 넉넉히(잘림 방지)
       var BODY_MAX = 5000000;
+      var lang = clamp(b.lang, 8) || "ko";
       if (b.id) {
-        await db.prepare("UPDATE blog SET title=?, cat=?, body=?, image=?, status=? WHERE id=?")
-          .bind(clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, BODY_MAX), clamp(b.image, 1800000), status, b.id).run();
+        await db.prepare("UPDATE blog SET title=?, cat=?, body=?, image=?, status=?, lang=? WHERE id=?")
+          .bind(clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, BODY_MAX), clamp(b.image, 1800000), status, lang, b.id).run();
         return json({ id: b.id, updated: true });
       }
       const id = "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-      await db.prepare("INSERT INTO blog (id,title,cat,body,ts,image,status) VALUES (?,?,?,?,?,?,?)")
-        .bind(id, clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, BODY_MAX), Date.now(), clamp(b.image, 1800000), status).run();
+      await db.prepare("INSERT INTO blog (id,title,cat,body,ts,image,status,lang) VALUES (?,?,?,?,?,?,?,?)")
+        .bind(id, clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, BODY_MAX), Date.now(), clamp(b.image, 1800000), status, lang).run();
       return json({ id });
     }
 

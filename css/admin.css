@@ -302,8 +302,10 @@ body.adm-body{ overflow-x:clip; }
 .ax-mag-badge.draft{background:#FBEFD8;color:#B7791F;}
 .ax-mag-info{padding:14px 16px 12px;display:flex;flex-direction:column;gap:8px;flex:1;}
 .ax-mag-info h3{margin:0;font-size:14.5px;font-weight:700;line-height:1.4;color:var(--ax-ink);}
-.ax-mag-cat{align-self:flex-start;font-size:11.5px;font-weight:600;color:var(--ax-blue);background:var(--ax-blue-soft);padding:3px 10px;border-radius:999px;}
+.ax-mag-meta{display:flex;flex-wrap:wrap;gap:6px;}
+.ax-mag-cat{font-size:11.5px;font-weight:600;color:var(--ax-blue);background:var(--ax-blue-soft);padding:3px 10px;border-radius:999px;}
 .ax-mag-cat.muted{color:var(--ax-muted);background:var(--ax-bg);}
+.ax-mag-lang{font-size:11.5px;font-weight:600;color:var(--ax-ink-2);background:var(--ax-bg);border:1px solid var(--ax-line);padding:3px 10px;border-radius:999px;}
 .ax-mag-actions{display:flex;gap:6px;margin-top:auto;padding-top:6px;}
 .ax-icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--ax-line-2);background:#fff;color:var(--ax-ink-2);display:grid;place-items:center;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
 .ax-icon-btn svg{width:16px;height:16px;}

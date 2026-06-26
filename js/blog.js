@@ -50,9 +50,10 @@
     if (!r.ok) throw new Error("api " + r.status);
     return r.json();
   }
+  function curLang() { return window.getLang ? window.getLang() : "ko"; }
   async function listPosts() {
     if (mode === "api") {
-      try { return (await apiGet("")).posts; } catch (e) { mode = "local"; }
+      try { return (await apiGet("?lang=" + encodeURIComponent(curLang()))).posts; } catch (e) { mode = "local"; }
     }
     return lEnsure().slice().sort(function (a, b) { return b.ts - a.ts; })
       .map(function (p) { return { id: p.id, title: p.title, cat: p.cat, excerpt: p.excerpt, image: p.image || "", ts: p.ts }; });

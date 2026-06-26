@@ -216,7 +216,7 @@
   }
   function blogListLocal() {
     return blogEnsure().slice().sort(function (a, b) { return b.ts - a.ts; }).map(function (p) {
-      return { id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, image: p.image || "", status: p.status || "published", excerpt: String(p.body || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 110) };
+      return { id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, image: p.image || "", status: p.status || "published", lang: p.lang || "ko", excerpt: String(p.body || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 110) };
     });
   }
   function blogGet(id) {
@@ -227,10 +227,10 @@
     return Promise.resolve(blogGetLocal(id));
   }
   function blogGetLocal(id) { return blogEnsure().filter(function (x) { return x.id === id; })[0] || null; }
-  // post = { id?, title, cat, body, image, status }
+  // post = { id?, title, cat, body, image, status, lang }
   function blogSave(post) {
     if (mode.blog === "api") {
-      var payload = { title: post.title, cat: post.cat, body: post.body, image: post.image || "", status: post.status || "published", key: adminKey(), idToken: adminToken(), session: adminSession() };
+      var payload = { title: post.title, cat: post.cat, body: post.body, image: post.image || "", status: post.status || "published", lang: post.lang || "ko", key: adminKey(), idToken: adminToken(), session: adminSession() };
       if (post.id) payload.id = post.id;
       return jwrite("/api/blog", "POST", payload)
         .then(function () { return true; })
@@ -242,11 +242,21 @@
     var p = blogEnsure();
     if (post.id) {
       var t = p.filter(function (x) { return x.id === post.id; })[0];
-      if (t) { t.title = post.title; t.cat = post.cat; t.body = post.body; t.image = post.image || ""; t.status = post.status || "published"; }
+      if (t) { t.title = post.title; t.cat = post.cat; t.body = post.body; t.image = post.image || ""; t.status = post.status || "published"; t.lang = post.lang || "ko"; }
     } else {
-      p.push({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), title: post.title, cat: post.cat, body: post.body, image: post.image || "", status: post.status || "published", ts: Date.now() });
+      p.push({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), title: post.title, cat: post.cat, body: post.body, image: post.image || "", status: post.status || "published", lang: post.lang || "ko", ts: Date.now() });
     }
     lSave(KEY_BLOG, p); return true;
+  }
+  /* 언어 목록(코드→표시명). window.LANGS(i18n.js) 사용, 없으면 기본값. */
+  function langOptions() {
+    var L = (window.LANGS && window.LANGS.length) ? window.LANGS : [{ code: "ko", label: "한국어" }, { code: "en", label: "English" }];
+    return L.map(function (l) { return { code: l.code, label: (l.label || l.native || l.code) }; });
+  }
+  function langLabel(code) {
+    code = code || "ko";
+    var f = langOptions().filter(function (l) { return l.code === code; })[0];
+    return f ? f.label : code.toUpperCase();
   }
   function blogDel(id) {
     if (mode.blog === "api") {
@@ -674,7 +684,10 @@
           '<div class="ax-mag-cover' + (p.image ? "" : " noimg") + '"' + cover + '>' + st + '</div>' +
           '<div class="ax-mag-info">' +
             '<h3>' + esc(p.title) + '</h3>' +
-            (p.cat ? '<span class="ax-mag-cat">' + esc(p.cat) + '</span>' : '<span class="ax-mag-cat muted">미분류</span>') +
+            '<div class="ax-mag-meta">' +
+              (p.cat ? '<span class="ax-mag-cat">' + esc(p.cat) + '</span>' : '<span class="ax-mag-cat muted">미분류</span>') +
+              '<span class="ax-mag-lang">' + esc(langLabel(p.lang)) + '</span>' +
+            '</div>' +
             '<div class="ax-mag-actions">' +
               '<button class="ax-icon-btn" data-edit-blog="' + esc(p.id) + '" title="수정">' + icon("pencil") + '</button>' +
               '<button class="ax-icon-btn danger" data-del-blog="' + esc(p.id) + '" title="삭제">' + icon("trash") + '</button>' +
@@ -802,25 +815,32 @@
               '<div class="ax-field"><input id="bl-title" class="ax-title-input" maxlength="160" placeholder="제목을 입력하세요"></div>' +
               '<div class="ax-grid2">' +
                 '<div class="ax-field"><label>카테고리</label><select id="bl-cat"></select></div>' +
-                '<div class="ax-field"><label>대표 이미지 <span class="ax-muted-c">(자동 webp)</span></label>' +
-                  '<div class="ax-img-up">' +
-                    '<button type="button" class="ax-btn" data-act="bl-pick-img">' + icon("download") + '이미지 선택</button>' +
-                    '<input id="bl-img-input" type="file" accept="image/*" style="display:none">' +
-                    '<button type="button" class="ax-btn danger" data-act="bl-img-clear" id="bl-img-clear" style="display:none">제거</button>' +
-                  '</div>' +
+                '<div class="ax-field"><label>언어 <span class="ax-muted-c">(이 언어 화면에 노출)</span></label><select id="bl-lang"></select></div>' +
+              '</div>' +
+              '<div class="ax-field"><label>대표 이미지 <span class="ax-muted-c">(자동 webp · R2 저장)</span></label>' +
+                '<div class="ax-img-up">' +
+                  '<button type="button" class="ax-btn" data-act="bl-pick-img">' + icon("download") + '이미지 선택</button>' +
+                  '<input id="bl-img-input" type="file" accept="image/*" style="display:none">' +
+                  '<button type="button" class="ax-btn danger" data-act="bl-img-clear" id="bl-img-clear" style="display:none">제거</button>' +
                   '<span id="bl-img-name" class="ax-muted-c">선택된 파일 없음</span>' +
-                  '<div id="bl-img-prev" class="ax-img-prev" style="display:none"></div>' +
                 '</div>' +
+                '<div id="bl-img-prev" class="ax-img-prev" style="display:none"></div>' +
               '</div>' +
             '</section>' +
             '<section class="ax-card ax-editor-card"><div id="bl-editor"></div></section>' +
           '</main>' +
           '<aside>' +
-            '<section class="ax-card ax-publish"><h3>발행 안내</h3><p class="ax-note">발행하면 홈 "언어가 장벽이 되지 않도록" 슬라이더와 성공 사례 페이지에 노출됩니다. 임시 저장은 공개되지 않습니다. 대표 이미지는 카드 배경으로 쓰입니다.</p></section>' +
+            '<section class="ax-card ax-publish"><h3>발행 안내</h3><p class="ax-note">선택한 <b>언어</b> 화면(홈 성공 사례 슬라이더·성공 사례 페이지)에만 노출됩니다. 각 언어로 보이게 하려면 그 언어를 선택해 글을 따로 올리세요. 임시 저장은 공개되지 않습니다. 대표 이미지는 R2에 저장됩니다.</p></section>' +
           '</aside>' +
         '</div>' +
       '</div>');
     initEditor();
+    // 언어 옵션(기본: 현재 사이트 언어)
+    var lsel = $("#bl-lang");
+    if (lsel) {
+      var cur = window.getLang ? window.getLang() : "ko";
+      lsel.innerHTML = langOptions().map(function (l) { return '<option value="' + esc(l.code) + '"' + (l.code === cur ? " selected" : "") + '>' + esc(l.label) + "</option>"; }).join("");
+    }
     catList().then(function (cats) {
       var sel = $("#bl-cat"); var list = (cats && cats.length) ? cats : ["성공사례"];
       if (sel) sel.innerHTML = list.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + "</option>"; }).join("");
@@ -833,6 +853,7 @@
       if (!p) return;
       var ti = $("#bl-title"); if (ti) ti.value = p.title || "";
       var sel = $("#bl-cat"); if (sel && p.cat) { sel.value = p.cat; }
+      var lsel = $("#bl-lang"); if (lsel && p.lang) { lsel.value = p.lang; }
       if (quill) { try { quill.setContents([]); quill.clipboard.dangerouslyPasteHTML(0, p.body || ""); } catch (e) { quill.root.innerHTML = p.body || ""; } }
       else { var bt = $("#bl-body"); if (bt) bt.value = p.body || ""; }
       state.editorImage = p.image || "";
@@ -846,10 +867,11 @@
   function saveBlog(status) {
     var t = val("#bl-title"); if (!t) { alert("제목을 입력하세요."); return; }
     var cat = ($("#bl-cat") || {}).value || "";
+    var lang = ($("#bl-lang") || {}).value || "ko";
     var body = getEditorHtml();
     if (status === "published" && !body) { alert("내용을 입력하세요."); return; }
     busy = true;
-    blogSave({ id: state.editId || null, title: t, cat: cat, body: body, image: state.editorImage, status: status })
+    blogSave({ id: state.editId || null, title: t, cat: cat, body: body, image: state.editorImage, status: status, lang: lang })
       .then(function () { busy = false; state.editId = null; state.editorImage = ""; state.blogMode = "list"; renderBlog(); })
       .catch(function (err) { busy = false; handleErr(err, "저장에 실패했습니다."); });
   }

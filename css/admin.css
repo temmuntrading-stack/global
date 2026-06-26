@@ -281,6 +281,40 @@
 .ax-cat-ul{list-style:none;margin:0;padding:0;border:1px solid var(--ax-line);border-radius:12px;overflow:hidden;}
 .ax-cat-ul li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid var(--ax-line);font-size:14px;color:var(--ax-ink);}
 .ax-cat-ul li:last-child{border-bottom:none;}
+
+/* ════════ 매거진(성공 사례) 목록 ════════ */
+.ax-mag-tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--ax-line);}
+.ax-mag-tab{background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:700;color:var(--ax-muted);padding:8px 4px;margin-right:14px;}
+.ax-mag-tab.active{color:var(--ax-ink);border-bottom-color:var(--ax-blue);}
+.ax-mag-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+.ax-mag-search{flex:1;min-width:200px;max-width:340px;}
+.ax-mag-filter{font-family:inherit;font-size:13.5px;color:var(--ax-ink);background:#fff;border:1px solid var(--ax-line-2);border-radius:10px;padding:9px 13px;cursor:pointer;}
+.ax-mag-new{margin-left:auto;}
+.ax-mag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;}
+.ax-mag-card{background:#fff;border:1px solid var(--ax-line);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(20,30,50,.04);display:flex;flex-direction:column;}
+.ax-mag-cover{position:relative;aspect-ratio:16/10;background:#1a2740 center/cover no-repeat;}
+.ax-mag-cover.noimg{background:linear-gradient(135deg,#2D5BE3,#16365E);}
+.ax-mag-badge{position:absolute;top:10px;left:10px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.92);color:var(--ax-ink-2);}
+.ax-mag-badge.pub{background:#E4F5EA;color:#1E8E50;}
+.ax-mag-badge.draft{background:#FBEFD8;color:#B7791F;}
+.ax-mag-info{padding:14px 16px 12px;display:flex;flex-direction:column;gap:8px;flex:1;}
+.ax-mag-info h3{margin:0;font-size:14.5px;font-weight:700;line-height:1.4;color:var(--ax-ink);}
+.ax-mag-cat{align-self:flex-start;font-size:11.5px;font-weight:600;color:var(--ax-blue);background:var(--ax-blue-soft);padding:3px 10px;border-radius:999px;}
+.ax-mag-cat.muted{color:var(--ax-muted);background:var(--ax-bg);}
+.ax-mag-actions{display:flex;gap:6px;margin-top:auto;padding-top:6px;}
+.ax-icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--ax-line-2);background:#fff;color:var(--ax-ink-2);display:grid;place-items:center;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
+.ax-icon-btn svg{width:16px;height:16px;}
+.ax-icon-btn:hover{background:#F7F8FA;}
+.ax-icon-btn.danger:hover{background:var(--ax-red-soft);border-color:#F0B6B8;color:var(--ax-red);}
+
+/* ════════ 에디터(제목 + Quill) ════════ */
+.ax-title-input{width:100%;box-sizing:border-box;border:none;outline:none;font-family:inherit;font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--ax-ink);padding:6px 2px;background:none;}
+.ax-title-input::placeholder{color:#C2C8D2;}
+.ax-editor-card{padding:0;overflow:hidden;}
+.ax-editor-card .ql-toolbar.ql-snow{border:none;border-bottom:1px solid var(--ax-line);}
+.ax-editor-card .ql-container.ql-snow{border:none;font-family:inherit;font-size:15px;}
+.ax-editor-card .ql-editor{min-height:420px;line-height:1.7;}
+.ax-editor-card .ql-editor img{max-width:100%;border-radius:8px;}
 .ax-editor{overflow:hidden;}
 .ax-toolbar{height:44px;display:flex;align-items:center;gap:6px;padding:0 14px;border-bottom:1px solid var(--ax-line);background:#FBFBFC;}
 .ax-toolbar button{width:30px;height:30px;border:0;background:none;border-radius:7px;font-weight:800;cursor:pointer;color:var(--ax-ink);}

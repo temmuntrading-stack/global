@@ -122,7 +122,7 @@
       + '<div class="bd-post-meta">'
       + (p.cat ? "<span>" + esc(p.cat) + "</span>" : "")
       + "<span>" + fmt(p.ts) + "</span></div>"
-      + '<div class="bd-post-body">' + nl2br(p.body) + "</div></article>";
+      + '<div class="bd-post-body">' + (/<[a-z][\s\S]*>/i.test(p.body || "") ? (p.body || "") : nl2br(p.body)) + "</div></article>";
   }
 
   /* ── 이벤트 ── */

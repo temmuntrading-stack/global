@@ -23,8 +23,9 @@
   var root = document.getElementById("admin");
   if (!root) return;
 
-  var state = { tab: "dash", boardId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", _rows: [] };
+  var state = { tab: "dash", boardId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", editId: null, blogQ: "", blogFilterCat: "all", _rows: [] };
   var busy = false;
+  var quill = null; // Quill 에디터 인스턴스
 
   /* ── 헬퍼 ── */
   function $(s, el) { return (el || document).querySelector(s); }
@@ -76,6 +77,8 @@
     chev: '<path d="m6 9 6 6 6-6"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
     back: '<path d="m15 18-6-6 6-6"/>',
+    pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    trash: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>',
     scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>'
   };
   function icon(name, sw) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.9) + '" stroke-linecap="round" stroke-linejoin="round">' + (IP[name] || "") + '</svg>'; }
@@ -204,26 +207,44 @@
   /* ── 블로그 ── */
   function blogList() {
     if (mode.blog === "api") {
-      return jget("/api/blog", "blog").then(function (d) { return d.posts || []; })
+      return jget("/api/blog?all=1", "blog").then(function (d) { return d.posts || []; })
         .catch(function () { goDemo("blog"); return blogListLocal(); });
     }
     return Promise.resolve(blogListLocal());
   }
   function blogListLocal() {
     return blogEnsure().slice().sort(function (a, b) { return b.ts - a.ts; }).map(function (p) {
-      return { id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, image: p.image || "", excerpt: String(p.body || "").replace(/\s+/g, " ").slice(0, 110) };
+      return { id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, image: p.image || "", status: p.status || "published", excerpt: String(p.body || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 110) };
     });
   }
-  function blogAdd(title, cat, body, image) {
+  function blogGet(id) {
     if (mode.blog === "api") {
-      return jwrite("/api/blog", "POST", { title: title, cat: cat, body: body, image: image || "", key: adminKey(), idToken: adminToken() })
-        .then(function () { return true; })
-        .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return blogAddLocal(title, cat, body, image); });
+      return jget("/api/blog?id=" + encodeURIComponent(id), "blog").then(function (d) { return d.post || null; })
+        .catch(function () { goDemo("blog"); return blogGetLocal(id); });
     }
-    return Promise.resolve(blogAddLocal(title, cat, body, image));
+    return Promise.resolve(blogGetLocal(id));
   }
-  function blogAddLocal(title, cat, body, image) {
-    var p = blogEnsure(); p.push({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), title: title, cat: cat, body: body, image: image || "", ts: Date.now() }); lSave(KEY_BLOG, p); return true;
+  function blogGetLocal(id) { return blogEnsure().filter(function (x) { return x.id === id; })[0] || null; }
+  // post = { id?, title, cat, body, image, status }
+  function blogSave(post) {
+    if (mode.blog === "api") {
+      var payload = { title: post.title, cat: post.cat, body: post.body, image: post.image || "", status: post.status || "published", key: adminKey(), idToken: adminToken() };
+      if (post.id) payload.id = post.id;
+      return jwrite("/api/blog", "POST", payload)
+        .then(function () { return true; })
+        .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return blogSaveLocal(post); });
+    }
+    return Promise.resolve(blogSaveLocal(post));
+  }
+  function blogSaveLocal(post) {
+    var p = blogEnsure();
+    if (post.id) {
+      var t = p.filter(function (x) { return x.id === post.id; })[0];
+      if (t) { t.title = post.title; t.cat = post.cat; t.body = post.body; t.image = post.image || ""; t.status = post.status || "published"; }
+    } else {
+      p.push({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), title: post.title, cat: post.cat, body: post.body, image: post.image || "", status: post.status || "published", ts: Date.now() });
+    }
+    lSave(KEY_BLOG, p); return true;
   }
   function blogDel(id) {
     if (mode.blog === "api") {
@@ -595,80 +616,170 @@
     });
   }
 
-  /* ════════ 3) 블로그 ════════ */
+  /* ════════ 3) 매거진(성공 사례) ════════ */
+  function blogTabs(active) {
+    return '<div class="ax-mag-tabs">' +
+      '<button class="ax-mag-tab' + (active === "list" ? " active" : "") + '" data-act="bl-tab-list">매거진 목록</button>' +
+      '<button class="ax-mag-tab' + (active === "cats" ? " active" : "") + '" data-act="bl-cats">카테고리 관리</button>' +
+    '</div>';
+  }
   function renderBlog() {
     setMain(
-      '<div class="ax-card">' +
-        '<div class="ax-page-h"><div><h1>성공 사례 관리</h1><p>성공 사례·법률 인사이트 글을 작성하면 홈과 성공 사례 페이지에 노출됩니다.</p></div>' +
-          '<div class="ax-page-actions"><button class="ax-btn" data-act="bl-cats">카테고리 관리</button><button class="ax-btn pri" data-act="bl-new">+ 새 글 작성</button></div></div>' +
-        '<div id="bl-list"><div class="ax-loading">불러오는 중…</div></div>' +
-      '</div>');
-    drawBlogList();
+      blogTabs("list") +
+      '<div class="ax-mag-toolbar">' +
+        '<div class="ax-search ax-mag-search">' + icon("search") + '<input id="mag-q" type="search" placeholder="매거진 제목 검색" value="' + esc(state.blogQ) + '"></div>' +
+        '<select id="mag-filter" class="ax-mag-filter"><option value="all">전체 카테고리</option></select>' +
+        '<button class="ax-btn pri ax-mag-new" data-act="bl-new">+ 매거진 작성</button>' +
+      '</div>' +
+      '<div id="bl-list"><div class="ax-loading">불러오는 중…</div></div>');
+    catList().then(function (cats) {
+      var sel = $("#mag-filter"); if (!sel) return;
+      sel.innerHTML = '<option value="all">전체 카테고리</option>' + (cats || []).map(function (c) { return '<option value="' + esc(c) + '"' + (state.blogFilterCat === c ? " selected" : "") + '>' + esc(c) + "</option>"; }).join("");
+    });
+    drawMagGrid();
   }
-  function drawBlogList() {
+  function drawMagGrid() {
     blogList().then(function (posts) {
-      var trs = posts.length ? posts.map(function (p) {
-        var thumb = p.image ? '<span class="ax-blog-thumb" style="background-image:url(' + esc(p.image) + ')"></span>' : '<span class="ax-blog-thumb"></span>';
-        return '<tr>' +
-          '<td><div class="ax-blog-title">' + thumb + '<div><b>' + esc(p.title) + '</b><small>' + (p.cat ? esc(p.cat) : "미분류") + '</small></div></div></td>' +
-          '<td><span class="ax-st ok">발행됨</span></td>' +
-          '<td class="ax-date">' + fmtKDate(p.ts) + '</td>' +
-          '<td class="ax-r"><button class="ax-cmt-del" data-del-blog="' + esc(p.id) + '">삭제</button></td>' +
-        '</tr>';
-      }).join("") : '<tr><td colspan="4"><div class="ax-empty">아직 발행한 글이 없습니다.</div></td></tr>';
-      var el = $("#bl-list"); if (el) el.innerHTML =
-        '<div class="ax-tbl-wrap"><table class="ax-tbl"><thead><tr>' +
-          '<th>제목</th><th>상태</th><th>날짜</th><th></th>' +
-        '</tr></thead><tbody>' + trs + '</tbody></table></div>';
+      var q = (state.blogQ || "").toLowerCase(), fc = state.blogFilterCat || "all";
+      var shown = posts.filter(function (p) {
+        if (fc !== "all" && (p.cat || "") !== fc) return false;
+        if (q && (p.title || "").toLowerCase().indexOf(q) < 0) return false;
+        return true;
+      });
+      var cards = shown.length ? shown.map(function (p) {
+        var st = p.status === "draft" ? '<span class="ax-mag-badge draft">임시저장</span>' : '<span class="ax-mag-badge pub">발행됨</span>';
+        var cover = p.image ? ' style="background-image:url(' + esc(p.image) + ')"' : "";
+        return '<div class="ax-mag-card">' +
+          '<div class="ax-mag-cover' + (p.image ? "" : " noimg") + '"' + cover + '>' + st + '</div>' +
+          '<div class="ax-mag-info">' +
+            '<h3>' + esc(p.title) + '</h3>' +
+            (p.cat ? '<span class="ax-mag-cat">' + esc(p.cat) + '</span>' : '<span class="ax-mag-cat muted">미분류</span>') +
+            '<div class="ax-mag-actions">' +
+              '<button class="ax-icon-btn" data-edit-blog="' + esc(p.id) + '" title="수정">' + icon("pencil") + '</button>' +
+              '<button class="ax-icon-btn danger" data-del-blog="' + esc(p.id) + '" title="삭제">' + icon("trash") + '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join("") : '<div class="ax-empty">매거진이 없습니다. “+ 매거진 작성”으로 첫 글을 만들어 보세요.</div>';
+      var el = $("#bl-list"); if (el) el.innerHTML = '<div class="ax-mag-grid">' + cards + '</div>';
       refreshBanner();
     });
   }
 
+  /* ── Quill 에디터 ── */
+  function initEditor() {
+    quill = null;
+    if (typeof Quill === "undefined") {
+      var host = $("#bl-editor"); if (host) host.innerHTML = '<textarea id="bl-body" rows="14" style="width:100%;box-sizing:border-box;border:0;outline:none;font:inherit;padding:14px;resize:vertical" placeholder="본문 내용을 입력하세요..."></textarea>';
+      return;
+    }
+    quill = new Quill("#bl-editor", {
+      theme: "snow",
+      placeholder: "본문 내용을 입력하세요...",
+      modules: {
+        toolbar: {
+          container: [
+            [{ header: [1, 2, 3, false] }],
+            ["bold", "italic", "underline", "strike"],
+            ["blockquote"],
+            [{ list: "ordered" }, { list: "bullet" }],
+            [{ color: [] }, { background: [] }],
+            [{ align: [] }],
+            ["link", "image", "video"],
+            ["clean"],
+          ],
+          handlers: { image: editorImageHandler },
+        },
+      },
+    });
+  }
+  function editorImageHandler() {
+    var input = document.createElement("input");
+    input.type = "file"; input.accept = "image/*";
+    input.onchange = function () {
+      var f = input.files && input.files[0]; if (!f || !quill) return;
+      fileToWebp(f, 1280, 0.82).then(function (url) {
+        var range = quill.getSelection(true);
+        quill.insertEmbed(range ? range.index : 0, "image", url, "user");
+        quill.setSelection((range ? range.index : 0) + 1, 0);
+      }).catch(function () { alert("이미지 변환에 실패했습니다."); });
+    };
+    input.click();
+  }
+  function getEditorHtml() {
+    if (quill) { var h = quill.root.innerHTML; return (h === "<p><br></p>") ? "" : h; }
+    return val("#bl-body");
+  }
+
   function renderBlogWrite() {
-    state.editorImage = "";
     setMain(
       '<div class="ax-editor-page">' +
-        '<div class="ax-page-h"><div><h1>새 글 작성</h1><p>글로벌 법률 사무소의 성공 사례에 새로운 글을 공유하세요.</p></div>' +
-          '<div class="ax-page-actions"><button class="ax-btn" data-act="bl-cancel-write">목록으로</button><button class="ax-btn pri" data-act="bl-add">발행하기</button></div></div>' +
+        '<div class="ax-page-h"><div><h1>' + (state.editId ? "매거진 수정" : "새 글 작성") + '</h1><p>제목·본문·대표 이미지·카테고리를 작성하세요.</p></div>' +
+          '<div class="ax-page-actions"><button class="ax-btn" data-act="bl-cancel-write">목록으로</button><button class="ax-btn" data-act="bl-draft">임시 저장</button><button class="ax-btn pri" data-act="bl-publish">발행하기</button></div></div>' +
         '<div class="ax-editor-grid">' +
           '<main>' +
             '<section class="ax-card ax-form">' +
-              '<div class="ax-field"><label>제목</label><input id="bl-title" maxlength="160" placeholder="포스트 제목을 입력하세요"></div>' +
-              '<div class="ax-field"><label>카테고리</label><select id="bl-cat"><option>성공사례</option></select></div>' +
-              '<div class="ax-field"><label>대표 이미지 <span class="ax-muted-c">(자동 webp 변환·리사이즈)</span></label>' +
-                '<div class="ax-img-up">' +
-                  '<button type="button" class="ax-btn" data-act="bl-pick-img">' + icon("download") + '이미지 선택</button>' +
-                  '<input id="bl-img-input" type="file" accept="image/*" style="display:none">' +
-                  '<button type="button" class="ax-btn danger" data-act="bl-img-clear" id="bl-img-clear" style="display:none">제거</button>' +
+              '<div class="ax-field"><input id="bl-title" class="ax-title-input" maxlength="160" placeholder="제목을 입력하세요"></div>' +
+              '<div class="ax-grid2">' +
+                '<div class="ax-field"><label>카테고리</label><select id="bl-cat"></select></div>' +
+                '<div class="ax-field"><label>대표 이미지 <span class="ax-muted-c">(자동 webp)</span></label>' +
+                  '<div class="ax-img-up">' +
+                    '<button type="button" class="ax-btn" data-act="bl-pick-img">' + icon("download") + '이미지 선택</button>' +
+                    '<input id="bl-img-input" type="file" accept="image/*" style="display:none">' +
+                    '<button type="button" class="ax-btn danger" data-act="bl-img-clear" id="bl-img-clear" style="display:none">제거</button>' +
+                  '</div>' +
                   '<span id="bl-img-name" class="ax-muted-c">선택된 파일 없음</span>' +
+                  '<div id="bl-img-prev" class="ax-img-prev" style="display:none"></div>' +
                 '</div>' +
-                '<div id="bl-img-prev" class="ax-img-prev" style="display:none"></div>' +
               '</div>' +
             '</section>' +
-            '<section class="ax-card ax-editor">' +
-              '<textarea id="bl-body" rows="16" placeholder="본문 내용을 입력하세요..."></textarea>' +
-            '</section>' +
+            '<section class="ax-card ax-editor-card"><div id="bl-editor"></div></section>' +
           '</main>' +
           '<aside>' +
-            '<section class="ax-card ax-publish"><h3>발행 안내</h3><p class="ax-note">발행하면 홈 "언어가 장벽이 되지 않도록" 슬라이더와 성공 사례 페이지에 노출됩니다. 대표 이미지는 카드 배경으로 사용됩니다.</p></section>' +
+            '<section class="ax-card ax-publish"><h3>발행 안내</h3><p class="ax-note">발행하면 홈 "언어가 장벽이 되지 않도록" 슬라이더와 성공 사례 페이지에 노출됩니다. 임시 저장은 공개되지 않습니다. 대표 이미지는 카드 배경으로 쓰입니다.</p></section>' +
           '</aside>' +
         '</div>' +
       '</div>');
-    // 카테고리 옵션 채우기
+    initEditor();
     catList().then(function (cats) {
-      var sel = $("#bl-cat"); if (!sel) return;
-      var list = (cats && cats.length) ? cats : ["성공사례"];
-      sel.innerHTML = list.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + "</option>"; }).join("");
+      var sel = $("#bl-cat"); var list = (cats && cats.length) ? cats : ["성공사례"];
+      if (sel) sel.innerHTML = list.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + "</option>"; }).join("");
+      if (state.editId) loadEditing(); else { state.editorImage = ""; }
       refreshBanner();
     });
+  }
+  function loadEditing() {
+    blogGet(state.editId).then(function (p) {
+      if (!p) return;
+      var ti = $("#bl-title"); if (ti) ti.value = p.title || "";
+      var sel = $("#bl-cat"); if (sel && p.cat) { sel.value = p.cat; }
+      if (quill) { try { quill.setContents([]); quill.clipboard.dangerouslyPasteHTML(0, p.body || ""); } catch (e) { quill.root.innerHTML = p.body || ""; } }
+      else { var bt = $("#bl-body"); if (bt) bt.value = p.body || ""; }
+      state.editorImage = p.image || "";
+      if (p.image) {
+        var nm = $("#bl-img-name"); if (nm) nm.textContent = "기존 대표 이미지";
+        var pv = $("#bl-img-prev"); if (pv) { pv.style.display = "block"; pv.innerHTML = '<img src="' + p.image + '" alt="">'; }
+        var cb = $("#bl-img-clear"); if (cb) cb.style.display = "";
+      }
+    });
+  }
+  function saveBlog(status) {
+    var t = val("#bl-title"); if (!t) { alert("제목을 입력하세요."); return; }
+    var cat = ($("#bl-cat") || {}).value || "";
+    var body = getEditorHtml();
+    if (status === "published" && !body) { alert("내용을 입력하세요."); return; }
+    busy = true;
+    blogSave({ id: state.editId || null, title: t, cat: cat, body: body, image: state.editorImage, status: status })
+      .then(function () { busy = false; state.editId = null; state.editorImage = ""; state.blogMode = "list"; renderBlog(); })
+      .catch(function (err) { busy = false; handleErr(err, "저장에 실패했습니다."); });
   }
 
   /* ════════ 카테고리 관리 ════════ */
   function renderCats() {
     setMain(
+      blogTabs("cats") +
       '<div class="ax-card">' +
-        '<div class="ax-page-h"><div><h1>카테고리 관리</h1><p>성공 사례 글을 분류할 카테고리를 만들고 삭제합니다.</p></div>' +
-          '<div class="ax-page-actions"><button class="ax-btn" data-act="bl-cats-back">목록으로</button></div></div>' +
+        '<div class="ax-card-h"><div><h2>카테고리 관리</h2><p>성공 사례 글을 분류할 카테고리를 만들고 삭제합니다.</p></div></div>' +
         '<div class="ax-form">' +
           '<div class="ax-cat-add"><input id="cat-new" maxlength="40" placeholder="새 카테고리 이름"><button class="ax-btn pri" data-act="cat-add">추가</button></div>' +
           '<div id="cat-list"><div class="ax-loading">불러오는 중…</div></div>' +
@@ -746,10 +857,10 @@
     // CSV 내보내기
     if (act === "csv") { exportCsv(); return; }
 
-    if (act === "bl-new") { state.blogMode = "write"; renderTab(); return; }
-    if (act === "bl-cancel-write") { state.blogMode = "list"; renderTab(); return; }
+    if (act === "bl-tab-list") { state.blogMode = "list"; renderTab(); return; }
+    if (act === "bl-new") { state.editId = null; state.editorImage = ""; state.blogMode = "write"; renderTab(); return; }
+    if (act === "bl-cancel-write") { state.editId = null; state.editorImage = ""; state.blogMode = "list"; renderTab(); return; }
     if (act === "bl-cats") { state.blogMode = "cats"; renderTab(); return; }
-    if (act === "bl-cats-back") { state.blogMode = "list"; renderTab(); return; }
     if (act === "bl-pick-img") { var fi = $("#bl-img-input"); if (fi) fi.click(); return; }
     if (act === "bl-img-clear") {
       state.editorImage = "";
@@ -812,24 +923,18 @@
       return;
     }
 
-    if (act === "bl-add") {
-      var t = val("#bl-title"), cat = val("#bl-cat"), bd = val("#bl-body");
-      if (!t) { alert("제목을 입력하세요."); return; }
-      if (!bd) { alert("내용을 입력하세요."); return; }
-      busy = true;
-      blogAdd(t, cat, bd, state.editorImage).then(function () {
-        busy = false; state.editorImage = "";
-        state.blogMode = "list"; renderBlog();
-      }).catch(function (err) { busy = false; handleErr(err, "성공 사례 글 등록에 실패했습니다."); });
-      return;
-    }
+    if (act === "bl-draft") { saveBlog("draft"); return; }
+    if (act === "bl-publish") { saveBlog("published"); return; }
+
+    var editB = e.target.closest("[data-edit-blog]");
+    if (editB) { state.editId = editB.getAttribute("data-edit-blog"); state.editorImage = ""; state.blogMode = "write"; renderTab(); return; }
 
     var delB = e.target.closest("[data-del-blog]");
     if (delB) {
-      if (!confirm("이 블로그 글을 삭제하시겠습니까?")) return;
+      if (!confirm("이 매거진 글을 삭제하시겠습니까?")) return;
       busy = true;
-      blogDel(delB.getAttribute("data-del-blog")).then(function () { busy = false; drawBlogList(); })
-        .catch(function (err) { busy = false; handleErr(err, "블로그 글 삭제에 실패했습니다."); });
+      blogDel(delB.getAttribute("data-del-blog")).then(function () { busy = false; drawMagGrid(); })
+        .catch(function (err) { busy = false; handleErr(err, "매거진 글 삭제에 실패했습니다."); });
       return;
     }
 
@@ -844,7 +949,7 @@
   });
 
   // 검색(디바운스) — 현재 탭의 목록만 다시 그림(입력 포커스 유지)
-  var qTimer = null;
+  var qTimer = null, magTimer = null;
   root.addEventListener("input", function (e) {
     if (e.target && e.target.id === "ax-q") {
       state.q = e.target.value.trim();
@@ -853,7 +958,16 @@
         if (state.tab === "dash") drawDash();
         else if (state.tab === "board" && !state.boardId) drawBoardRows();
       }, 220);
+    } else if (e.target && e.target.id === "mag-q") {
+      state.blogQ = e.target.value.trim();
+      clearTimeout(magTimer);
+      magTimer = setTimeout(drawMagGrid, 200);
     }
+  });
+
+  // 카테고리 필터(select) 변경
+  root.addEventListener("change", function (e) {
+    if (e.target && e.target.id === "mag-filter") { state.blogFilterCat = e.target.value; drawMagGrid(); }
   });
 
   // 대표 이미지 선택 → 브라우저에서 webp 변환·리사이즈 후 미리보기

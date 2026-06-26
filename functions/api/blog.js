@@ -19,12 +19,14 @@ let _schemaReady = false;
 async function ensureSchema(db) {
   if (_schemaReady) return;
   await db.batch([
-    db.prepare("CREATE TABLE IF NOT EXISTS blog (id TEXT PRIMARY KEY, title TEXT NOT NULL, cat TEXT, body TEXT NOT NULL, ts INTEGER NOT NULL, image TEXT)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS blog (id TEXT PRIMARY KEY, title TEXT NOT NULL, cat TEXT, body TEXT NOT NULL, ts INTEGER NOT NULL, image TEXT, status TEXT)"),
     db.prepare("CREATE INDEX IF NOT EXISTS idx_blog_ts ON blog(ts)"),
     db.prepare("CREATE TABLE IF NOT EXISTS blog_cats (name TEXT PRIMARY KEY, ts INTEGER NOT NULL)"),
   ]);
-  // 기존 blog 테이블에 image 컬럼이 없으면 추가
+  // 기존 blog 테이블에 누락 컬럼 추가
   try { await db.prepare("ALTER TABLE blog ADD COLUMN image TEXT").run(); } catch (e) {}
+  try { await db.prepare("ALTER TABLE blog ADD COLUMN status TEXT").run(); } catch (e) {}
+  try { await db.prepare("UPDATE blog SET status='published' WHERE status IS NULL OR status=''").run(); } catch (e) {}
   // 기본 카테고리 1개 시드(카테고리가 하나도 없을 때만)
   try {
     const c = await db.prepare("SELECT COUNT(*) AS n FROM blog_cats").first();
@@ -52,15 +54,19 @@ export async function onRequest(context) {
       }
       const id = url.searchParams.get("id");
       if (id) {
-        const post = await db.prepare("SELECT id,title,cat,body,ts,image FROM blog WHERE id=?").bind(id).first();
+        const post = await db.prepare("SELECT id,title,cat,body,ts,image,status FROM blog WHERE id=?").bind(id).first();
         if (!post) return json({ error: "not found" }, 404);
         return json({ post });
       }
-      const { results } = await db.prepare("SELECT id,title,cat,body,ts,image FROM blog ORDER BY ts DESC LIMIT 200").all();
+      // ?all=1 → 임시저장 포함(관리자), 기본 → 발행글만(공개)
+      const all = url.searchParams.get("all");
+      const sql = "SELECT id,title,cat,body,ts,image,status FROM blog" +
+        (all ? "" : " WHERE status='published' OR status IS NULL") + " ORDER BY ts DESC LIMIT 200";
+      const { results } = await db.prepare(sql).all();
       return json({
         posts: (results || []).map((p) => ({
-          id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, image: p.image || "",
-          excerpt: clamp((p.body || "").replace(/\s+/g, " "), 110),
+          id: p.id, title: p.title, cat: p.cat || "", ts: p.ts, image: p.image || "", status: p.status || "published",
+          excerpt: clamp(String(p.body || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " "), 110),
         })),
       });
     }
@@ -77,11 +83,17 @@ export async function onRequest(context) {
         return json({ ok: true, cats: await listCats(db) });
       }
 
-      // 글 작성
-      if (!b.title || !b.body) return json({ error: "제목과 내용을 입력하세요." }, 400);
+      // 글 수정(기존 id) 또는 작성
+      const status = b.status === "draft" ? "draft" : "published";
+      if (!b.title) return json({ error: "제목을 입력하세요." }, 400);
+      if (b.id) {
+        await db.prepare("UPDATE blog SET title=?, cat=?, body=?, image=?, status=? WHERE id=?")
+          .bind(clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, 60000), clamp(b.image, 1800000), status, b.id).run();
+        return json({ id: b.id, updated: true });
+      }
       const id = "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-      await db.prepare("INSERT INTO blog (id,title,cat,body,ts,image) VALUES (?,?,?,?,?,?)")
-        .bind(id, clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, 20000), Date.now(), clamp(b.image, 1800000)).run();
+      await db.prepare("INSERT INTO blog (id,title,cat,body,ts,image,status) VALUES (?,?,?,?,?,?,?)")
+        .bind(id, clamp(b.title, 160), clamp(b.cat, 40), clamp(b.body, 60000), Date.now(), clamp(b.image, 1800000), status).run();
       return json({ id });
     }
 

@@ -11,6 +11,7 @@
   var KEY_ADMIN = "glo-admin-key";       // 관리자 비밀번호(쓰기 인증)
   var KEY_ADMIN_ID = "glo-admin-id";     // 관리자 아이디(표시용)
   var KEY_ADMIN_TOKEN = "glo-admin-tok"; // 구글 로그인 idToken(쓰기 인증)
+  var KEY_ADMIN_SESSION = "glo-admin-sess"; // 서버 발급 세션 토큰(만료 7일)
   var KEY_ADMIN_NAME = "glo-admin-name"; // 로그인한 관리자 표시 이름
   var KEY_BOARD = "glo-board-v1";    // 데모 게시판 (board.js와 공유)
   var KEY_BLOG = "glo-blog-v1";      // 데모 블로그
@@ -40,8 +41,9 @@
   function fmtKDate(ts) { var d = new Date(ts); return d.getFullYear() + "년 " + (d.getMonth() + 1) + "월 " + d.getDate() + "일"; }
   function adminKey() { return localStorage.getItem(KEY_ADMIN) || ""; }
   function adminToken() { return localStorage.getItem(KEY_ADMIN_TOKEN) || ""; }
-  /* 쓰기 요청에 함께 보낼 관리자 인증(비밀번호 또는 구글 토큰) */
-  function adminAuth() { return { key: adminKey(), idToken: adminToken() }; }
+  function adminSession() { return localStorage.getItem(KEY_ADMIN_SESSION) || ""; }
+  /* 쓰기 요청에 함께 보낼 관리자 인증(세션 우선, 비밀번호/구글 토큰 보조) */
+  function adminAuth() { return { key: adminKey(), idToken: adminToken(), session: adminSession() }; }
   function isToday(ts) {
     var d = new Date(ts), n = new Date();
     return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
@@ -164,7 +166,7 @@
   }
   function boardReply(postId, body) {
     if (mode.board === "api") {
-      return jwrite("/api/board", "POST", { type: "comment", postId: postId, name: "글로벌 법률사무소", body: body, official: true, key: adminKey(), idToken: adminToken() })
+      return jwrite("/api/board", "POST", { type: "comment", postId: postId, name: "글로벌 법률사무소", body: body, official: true, key: adminKey(), idToken: adminToken(), session: adminSession() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("board"); return boardReplyLocal(postId, body); });
     }
@@ -177,7 +179,7 @@
   }
   function boardDelPost(id) {
     if (mode.board === "api") {
-      return jwrite("/api/board", "DELETE", { type: "post", id: id, key: adminKey(), idToken: adminToken() })
+      return jwrite("/api/board", "DELETE", { type: "post", id: id, key: adminKey(), idToken: adminToken(), session: adminSession() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("board"); return boardDelPostLocal(id); });
     }
@@ -188,7 +190,7 @@
   }
   function boardDelComment(postId, c) {
     if (mode.board === "api" && c.id) {
-      return jwrite("/api/board", "DELETE", { type: "comment", id: c.id, key: adminKey(), idToken: adminToken() })
+      return jwrite("/api/board", "DELETE", { type: "comment", id: c.id, key: adminKey(), idToken: adminToken(), session: adminSession() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("board"); return boardDelCommentLocal(postId, c); });
     }
@@ -228,7 +230,7 @@
   // post = { id?, title, cat, body, image, status }
   function blogSave(post) {
     if (mode.blog === "api") {
-      var payload = { title: post.title, cat: post.cat, body: post.body, image: post.image || "", status: post.status || "published", key: adminKey(), idToken: adminToken() };
+      var payload = { title: post.title, cat: post.cat, body: post.body, image: post.image || "", status: post.status || "published", key: adminKey(), idToken: adminToken(), session: adminSession() };
       if (post.id) payload.id = post.id;
       return jwrite("/api/blog", "POST", payload)
         .then(function () { return true; })
@@ -248,7 +250,7 @@
   }
   function blogDel(id) {
     if (mode.blog === "api") {
-      return jwrite("/api/blog", "DELETE", { id: id, key: adminKey(), idToken: adminToken() })
+      return jwrite("/api/blog", "DELETE", { id: id, key: adminKey(), idToken: adminToken(), session: adminSession() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return blogDelLocal(id); });
     }
@@ -268,7 +270,7 @@
   }
   function catAdd(name) {
     if (mode.blog === "api") {
-      return jwrite("/api/blog", "POST", { kind: "cat", name: name, key: adminKey(), idToken: adminToken() })
+      return jwrite("/api/blog", "POST", { kind: "cat", name: name, key: adminKey(), idToken: adminToken(), session: adminSession() })
         .then(function (d) { return (d && d.cats) || null; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return catAddLocal(name); });
     }
@@ -277,7 +279,7 @@
   function catAddLocal(name) { var c = catEnsureLocal(); if (c.indexOf(name) < 0) { c.push(name); lSave(KEY_CATS, c); } return c; }
   function catDel(name) {
     if (mode.blog === "api") {
-      return jwrite("/api/blog", "DELETE", { kind: "cat", name: name, key: adminKey(), idToken: adminToken() })
+      return jwrite("/api/blog", "DELETE", { kind: "cat", name: name, key: adminKey(), idToken: adminToken(), session: adminSession() })
         .then(function (d) { return (d && d.cats) || null; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("blog"); return catDelLocal(name); });
     }
@@ -318,6 +320,7 @@
       fd.append("file", blob, "image.webp");
       fd.append("key", adminKey());
       fd.append("idToken", adminToken());
+      fd.append("session", adminSession());
       return fetch("/api/upload", { method: "POST", body: fd })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) { return (d && d.url) ? d.url : blobToDataUrl(blob); })
@@ -338,7 +341,7 @@
   }
   function setSave(s) {
     if (mode.set === "api") {
-      return jwrite("/api/settings", "POST", { settings: s, key: adminKey(), idToken: adminToken() })
+      return jwrite("/api/settings", "POST", { settings: s, key: adminKey(), idToken: adminToken(), session: adminSession() })
         .then(function () { return true; })
         .catch(function (e) { if (e.status === 403) throw e; goDemo("set"); lSave(KEY_SET, s); return true; });
     }
@@ -371,9 +374,10 @@
     var gb = $('[data-act="glogin"]'); if (gb) { gb.disabled = false; }
     var m = $("#adm-login-msg"); if (m) { m.textContent = msg; m.style.color = "var(--ax-red)"; }
   }
-  function enterAdmin(payload, name) {
+  function enterAdmin(payload, name, session) {
     if (payload.key) localStorage.setItem(KEY_ADMIN, payload.key);
     if (payload.idToken) localStorage.setItem(KEY_ADMIN_TOKEN, payload.idToken);
+    if (session) localStorage.setItem(KEY_ADMIN_SESSION, session);
     if (name) localStorage.setItem(KEY_ADMIN_NAME, name); else localStorage.removeItem(KEY_ADMIN_NAME);
     state.tab = "dash"; renderApp();
   }
@@ -383,7 +387,7 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
         var d = res.d || {};
-        if (d.ok === true) { enterAdmin(payload, name || d.name); return; }
+        if (d.ok === true) { enterAdmin(payload, name || d.name, d.token); return; }
         if (d.ok === false) { loginFail(d.error || "로그인에 실패했습니다."); return; }
         demo = true; enterAdmin(payload, name); // 엔드포인트 없음(로컬)
       })
@@ -409,6 +413,7 @@
     localStorage.removeItem(KEY_ADMIN);
     localStorage.removeItem(KEY_ADMIN_ID);
     localStorage.removeItem(KEY_ADMIN_TOKEN);
+    localStorage.removeItem(KEY_ADMIN_SESSION);
     localStorage.removeItem(KEY_ADMIN_NAME);
     if (window.AuthGoogle && AuthGoogle.signOut) { try { AuthGoogle.signOut(); } catch (e) {} }
     renderLogin();
@@ -904,8 +909,15 @@
      이벤트 위임
      ════════════════════════════════════════════════════════════ */
   function handleErr(e, fallbackMsg) {
-    if (e && e.status === 403) alert("관리자 키가 올바르지 않습니다. 다시 로그인해 주세요.");
-    else alert(fallbackMsg || "처리 중 오류가 발생했습니다.");
+    if (e && (e.status === 403 || e.status === 401)) {
+      alert("로그인이 만료되었거나 권한이 없습니다. 다시 로그인해 주세요.");
+      // 만료된 인증 정리 후 로그인 화면으로
+      localStorage.removeItem(KEY_ADMIN_SESSION);
+      localStorage.removeItem(KEY_ADMIN_TOKEN);
+      renderLogin();
+    } else {
+      alert(fallbackMsg || "처리 중 오류가 발생했습니다.");
+    }
   }
 
   root.addEventListener("click", function (e) {
@@ -1062,5 +1074,5 @@
   });
 
   /* ── 진입 ── */
-  if (adminKey() || adminToken()) renderApp(); else renderLogin();
+  if (adminSession() || adminKey() || adminToken()) renderApp(); else renderLogin();
 })();

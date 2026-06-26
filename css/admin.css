@@ -314,7 +314,25 @@
 .ax-editor-card .ql-toolbar.ql-snow{border:none;border-bottom:1px solid var(--ax-line);}
 .ax-editor-card .ql-container.ql-snow{border:none;font-family:inherit;font-size:15px;}
 .ax-editor-card .ql-editor{min-height:420px;line-height:1.7;}
-.ax-editor-card .ql-editor img{max-width:100%;border-radius:8px;}
+.ax-editor-card .ql-editor::after{content:"";display:block;clear:both;}
+/* 이미지 배치(레이아웃) */
+.ql-editor img{max-width:100%;border-radius:8px;}
+.ql-editor img.ql-img-full{display:block;width:100%;margin:.6em 0;}
+.ql-editor img.ql-img-center{display:block;margin:.6em auto;max-width:82%;}
+.ql-editor img.ql-img-left{float:left;width:46%;margin:.3em 1.1em .6em 0;}
+.ql-editor img.ql-img-right{float:right;width:46%;margin:.3em 0 .6em 1.1em;}
+.ql-editor img.ql-img-half{display:inline-block;width:48%;vertical-align:top;margin:.3em 1% .6em 0;}
+
+/* 이미지 배치 선택 팝업 */
+.ax-imgpick{position:fixed;inset:0;z-index:300;background:rgba(15,22,34,.5);display:grid;place-items:center;padding:20px;}
+.ax-imgpick-card{width:100%;max-width:380px;background:#fff;border-radius:16px;padding:22px;box-shadow:0 24px 60px rgba(20,30,50,.25);}
+.ax-imgpick-card h3{margin:0 0 14px;font-size:16px;font-weight:800;color:var(--ax-ink);}
+.ax-imgpick-opts{display:flex;flex-direction:column;gap:8px;}
+.ax-imgpick-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid var(--ax-line-2);border-radius:10px;padding:12px 14px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:var(--ax-ink-2);transition:background .15s,border-color .15s;}
+.ax-imgpick-opt:hover{background:var(--ax-blue-soft);border-color:var(--ax-blue);color:var(--ax-blue);}
+.ax-imgpick-opt svg{width:30px;height:24px;flex:none;color:var(--ax-muted);}
+.ax-imgpick-opt:hover svg{color:var(--ax-blue);}
+.ax-imgpick-x{margin-top:14px;width:100%;background:none;border:none;cursor:pointer;font-family:inherit;font-size:13.5px;color:var(--ax-muted);padding:6px;}
 .ax-editor{overflow:hidden;}
 .ax-toolbar{height:44px;display:flex;align-items:center;gap:6px;padding:0 14px;border-bottom:1px solid var(--ax-line);background:#FBFBFC;}
 .ax-toolbar button{width:30px;height:30px;border:0;background:none;border-radius:7px;font-weight:800;cursor:pointer;color:var(--ax-ink);}

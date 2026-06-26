@@ -689,6 +689,7 @@
       var host = $("#bl-editor"); if (host) host.innerHTML = '<textarea id="bl-body" rows="14" style="width:100%;box-sizing:border-box;border:0;outline:none;font:inherit;padding:14px;resize:vertical" placeholder="본문 내용을 입력하세요..."></textarea>';
       return;
     }
+    registerImageLayout();
     quill = new Quill("#bl-editor", {
       theme: "snow",
       placeholder: "본문 내용을 입력하세요...",
@@ -709,18 +710,76 @@
       },
     });
   }
+  // 레이아웃(class)을 보존하는 커스텀 이미지 blot 등록(1회)
+  function registerImageLayout() {
+    if (typeof Quill === "undefined" || Quill.__layoutImgDone) return;
+    var BaseImage = Quill.import("formats/image");
+    class LayoutImage extends BaseImage {
+      static create(value) {
+        var src = (value && typeof value === "object") ? value.src : value;
+        var node = super.create(src);
+        var layout = (value && typeof value === "object") ? value.layout : "";
+        if (layout) node.setAttribute("class", "ql-img-" + layout);
+        return node;
+      }
+      static value(node) {
+        var m = (node.getAttribute("class") || "").match(/ql-img-([a-z]+)/);
+        return { src: node.getAttribute("src"), layout: m ? m[1] : "" };
+      }
+    }
+    LayoutImage.blotName = "image";
+    LayoutImage.tagName = "IMG";
+    Quill.register(LayoutImage, true);
+    Quill.__layoutImgDone = true;
+  }
+
+  // 이미지 배치 선택 팝업
+  var IMG_LAYOUTS = [
+    { k: "center", label: "기본 (가운데)", ic: '<rect x="6" y="7" width="12" height="10" rx="1.5"/>' },
+    { k: "full", label: "전체 너비", ic: '<rect x="3" y="7" width="18" height="10" rx="1.5"/>' },
+    { k: "left", label: "좌측 정렬 (글 감싸기)", ic: '<rect x="3" y="7" width="9" height="10" rx="1.5"/><path d="M14 9h7M14 12h7M14 15h7"/>' },
+    { k: "right", label: "우측 정렬 (글 감싸기)", ic: '<rect x="12" y="7" width="9" height="10" rx="1.5"/><path d="M3 9h7M3 12h7M3 15h7"/>' },
+    { k: "half", label: "2장 나란히", ic: '<rect x="3" y="7" width="8" height="10" rx="1.5"/><rect x="13" y="7" width="8" height="10" rx="1.5"/>' },
+  ];
+  function openImageLayoutPicker(cb) {
+    var back = document.createElement("div");
+    back.className = "ax-imgpick";
+    back.innerHTML = '<div class="ax-imgpick-card"><h3>이미지 배치 선택</h3><div class="ax-imgpick-opts">' +
+      IMG_LAYOUTS.map(function (o) {
+        return '<button class="ax-imgpick-opt" data-layout="' + o.k + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + o.ic + '</svg>' +
+          '<span>' + o.label + '</span></button>';
+      }).join("") +
+      '</div><button class="ax-imgpick-x" data-act="imgpick-close">취소</button></div>';
+    document.body.appendChild(back);
+    function close() { if (back.parentNode) back.parentNode.removeChild(back); }
+    back.addEventListener("click", function (e) {
+      if (e.target === back) { close(); return; }
+      var x = e.target.closest("[data-act='imgpick-close']"); if (x) { close(); return; }
+      var opt = e.target.closest("[data-layout]");
+      if (opt) { var layout = opt.getAttribute("data-layout"); close(); cb(layout); }
+    });
+  }
   function editorImageHandler() {
-    var input = document.createElement("input");
-    input.type = "file"; input.accept = "image/*";
-    input.onchange = function () {
-      var f = input.files && input.files[0]; if (!f || !quill) return;
-      uploadImage(f).then(function (url) {
+    if (!quill) return;
+    openImageLayoutPicker(function (layout) {
+      var input = document.createElement("input");
+      input.type = "file"; input.accept = "image/*";
+      if (layout === "half") input.multiple = true;
+      input.onchange = function () {
+        var files = [].slice.call(input.files || []); if (!files.length) return;
         var range = quill.getSelection(true);
-        quill.insertEmbed(range ? range.index : 0, "image", url, "user");
-        quill.setSelection((range ? range.index : 0) + 1, 0);
-      }).catch(function () { alert("이미지 업로드에 실패했습니다."); });
-    };
-    input.click();
+        var idx = range ? range.index : quill.getLength();
+        (function next(i) {
+          if (i >= files.length) { quill.setSelection(idx, 0); return; }
+          uploadImage(files[i]).then(function (url) {
+            quill.insertEmbed(idx, "image", { src: url, layout: layout }, "user");
+            idx++; next(i + 1);
+          }).catch(function () { next(i + 1); });
+        })(0);
+      };
+      input.click();
+    });
   }
   function getEditorHtml() {
     if (quill) { var h = quill.root.innerHTML; return (h === "<p><br></p>") ? "" : h; }

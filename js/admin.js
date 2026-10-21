@@ -117,7 +117,7 @@
   function blogEnsure() { var p = lLoad(KEY_BLOG); if (!p) { p = blogSeed(); lSave(KEY_BLOG, p); } return p; }
 
   function setDefaults() {
-    return { phone: "02 2277 2442", email: "lawsqare@naver.com", address: "서울특별시 중구 을지로 254, 3층 301호", hours: "평일 09:00 – 18:00", kakao: "", blogUrl: "https://blog.naver.com/lawsqare" };
+    return { phone: "02 2277 2442", email: "global22772442@gmail.com", address: "서울특별시 중구 을지로 254, 3층 301호", hours: "평일 09:00 – 18:00", kakao: "", blogUrl: "https://blog.naver.com/lawsqare" };
   }
   function setEnsure() { var s = lLoad(KEY_SET); if (!s) { s = setDefaults(); lSave(KEY_SET, s); } return s; }
 
@@ -1084,7 +1084,7 @@
   /* ════════ 4) 사이트 정보(설정) ════════ */
   var SET_FIELDS = [
     { k: "phone", label: "전화", ph: "02 2277 2442" },
-    { k: "email", label: "이메일", ph: "lawsqare@naver.com" },
+    { k: "email", label: "이메일", ph: "global22772442@gmail.com" },
     { k: "address", label: "주소", ph: "서울특별시 중구 …" },
     { k: "hours", label: "영업시간", ph: "평일 09:00 – 18:00" },
     { k: "kakao", label: "카카오톡", ph: "카카오 채널/오픈채팅 링크 또는 ID" },

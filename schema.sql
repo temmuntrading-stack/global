@@ -54,7 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_inq_ts ON inquiries(ts);
 -- 기본 사이트 정보(원하면 수정)
 INSERT OR IGNORE INTO settings (k,v) VALUES
   ('phone','02 2277 2442'),
-  ('email','lawsqare@naver.com'),
+  ('email','global22772442@gmail.com'),
   ('address','서울특별시 중구 을지로 254, 3층 301호'),
   ('hours','평일 09:00 – 18:00'),
   ('kakao',''),

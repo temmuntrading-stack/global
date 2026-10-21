@@ -15,7 +15,7 @@ async function ensureSchema(db) {
   if (_schemaReady) return;
   await db.prepare("CREATE TABLE IF NOT EXISTS settings (k TEXT PRIMARY KEY, v TEXT)").run();
   await db.batch([
-    ["phone", "02 2277 2442"], ["email", "lawsqare@naver.com"],
+    ["phone", "02 2277 2442"], ["email", "global22772442@gmail.com"],
     ["address", "서울특별시 중구 을지로 254, 3층 301호"], ["hours", "평일 09:00 – 18:00"],
     ["kakao", ""], ["blogUrl", "https://blog.naver.com/lawsqare"],
   ].map((kv) => db.prepare("INSERT OR IGNORE INTO settings (k,v) VALUES (?,?)").bind(kv[0], kv[1])));

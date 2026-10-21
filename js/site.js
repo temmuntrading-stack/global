@@ -106,7 +106,7 @@
   drawer.innerHTML = '<nav>'+navLinks(true)+'</nav>'
     + '<div class="drawer-foot">'
       + '<span class="num" data-set="phone">02 2277 2442</span>'
-      + '<span data-set="email">lawsqare@naver.com</span>'
+      + '<span data-set="email">global22772442@gmail.com</span>'
       + '<span data-i18n="ci.addr.v" data-set="address"></span></div>';
   document.body.appendChild(drawer);
 
@@ -137,7 +137,7 @@
         + '<li><a href="contact.html" data-i18n="nav.contact"></a></li></ul></div>'
       + '<div class="foot-col"><h4 data-i18n="foot.contact"></h4><ul>'
         + '<li><a href="tel:+82222772442" class="num" data-set="phone" data-set-tel>02 2277 2442</a></li>'
-        + '<li><a href="mailto:lawsqare@naver.com" data-set="email" data-set-mail>lawsqare@naver.com</a></li>'
+        + '<li><a href="mailto:global22772442@gmail.com" data-set="email" data-set-mail>global22772442@gmail.com</a></li>'
         + '<li data-i18n="ci.addr.v" data-set="address"></li>'
         + '<li data-i18n="ci.hours.v" data-set="hours"></li></ul></div>'
       + '</div>'

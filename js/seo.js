@@ -150,7 +150,7 @@
         "name":"글로벌 법률사무소",
         "url":BASE_URL + "/",
         "telephone":"+82-2-2277-2442",
-        "email":"lawsqare@naver.com",
+        "email":"global22772442@gmail.com",
         "address":{"@type":"PostalAddress","streetAddress":"서울특별시 중구 을지로 254, 3층 301호","addressLocality":"서울","addressCountry":"KR"},
         "areaServed":["KR","Seoul"],
         "availableLanguage":LANGS.map(function(l){ return l.name; }),

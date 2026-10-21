@@ -12,20 +12,20 @@ import { isAdmin } from "./_auth.js";
 
 function json(d, s) { return new Response(JSON.stringify(d), { status: s || 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }); }
 function clamp(s, n) { return String(s == null ? "" : s).slice(0, n); }
-function rid(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function rid(p) { return p + crypto.randomUUID(); }
 
-let _ready = false;
+const readyDatabases = new WeakSet();
 async function ensureSchema(db) {
-  if (_ready) return;
+  if (readyDatabases.has(db)) return;
   await db.prepare("CREATE TABLE IF NOT EXISTS inquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, lang TEXT, area TEXT, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new', ts INTEGER NOT NULL)").run();
   await db.prepare("CREATE INDEX IF NOT EXISTS idx_inq_ts ON inquiries(ts)").run();
-  _ready = true;
+  readyDatabases.add(db);
 }
 
 export async function onRequest(context) {
   const { request, env } = context;
   const db = env.DB;
-  if (!db) return json({ error: "D1 바인딩(DB)이 설정되지 않았습니다." }, 500);
+  if (!db) return json({ error: "Consultation service unavailable", code: "unavailable" }, 503);
   const url = new URL(request.url);
   try {
     await ensureSchema(db);
@@ -38,7 +38,10 @@ export async function onRequest(context) {
       if (b.adminAction) {
         if (!(await isAdmin(env, b)).ok) return json({ error: "관리자 인증 실패" }, 403);
         if (b.adminAction === "status" && b.id) {
-          const st = clamp(b.status, 20) || "new";
+          const st = b.status;
+          if (st !== "new" && st !== "done") return json({ error: "Invalid status", code: "invalid" }, 400);
+          const existing = await db.prepare("SELECT id FROM inquiries WHERE id=?").bind(b.id).first();
+          if (!existing) return json({ error: "not found" }, 404);
           await db.prepare("UPDATE inquiries SET status=? WHERE id=?").bind(st, b.id).run();
           return json({ ok: true });
         }
@@ -46,11 +49,15 @@ export async function onRequest(context) {
       }
 
       // 공개: 상담 신청 접수
-      const message = clamp(b.message, 5000);
-      if (!message) return json({ error: "문의 내용을 입력하세요." }, 400);
+      const name = typeof b.name === "string" ? b.name.trim() : "";
+      const email = typeof b.email === "string" ? b.email.trim() : "";
+      const message = typeof b.message === "string" ? b.message.trim() : "";
+      if (!name || name.length > 60 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120 || !message || message.length > 5000) {
+        return json({ error: "Check name, email and message", code: "invalid" }, 400);
+      }
       const id = rid("q");
       await db.prepare("INSERT INTO inquiries (id,name,email,phone,lang,area,message,status,ts) VALUES (?,?,?,?,?,?,?,?,?)")
-        .bind(id, clamp(b.name, 60) || "익명", clamp(b.email, 120), clamp(b.phone, 40), clamp(b.lang, 8), clamp(b.area, 80), message, "new", Date.now())
+        .bind(id, name, email, clamp(b.phone, 40), clamp(b.lang, 8), clamp(b.area, 80), message, "new", Date.now())
         .run();
       return json({ ok: true, id });
     }
@@ -79,6 +86,6 @@ export async function onRequest(context) {
 
     return json({ error: "method not allowed" }, 405);
   } catch (e) {
-    return json({ error: String((e && e.message) || e) }, 500);
+    return json({ error: "Consultation service unavailable", code: "unavailable" }, 500);
   }
 }

@@ -216,20 +216,20 @@
     return p.join("&");
   }
   function inqList() {
-    if (mode.inq === "api") {
-      var qs = authQS();
-      return jget("/api/contact" + (qs ? "?" + qs : "")).then(function (d) { return d.inquiries || []; })
-        .catch(function () { goDemo("inq"); return []; });
-    }
-    return Promise.resolve([]);
+    var qs = authQS();
+    return jget("/api/contact" + (qs ? "?" + qs : "")).then(function(d){
+      if(!Array.isArray(d.inquiries)) throw new Error("Invalid consultation response");
+      return d.inquiries;
+    });
   }
   function inqGet(id) {
-    if (mode.inq === "api") {
-      var qs = authQS();
-      return jget("/api/contact?id=" + encodeURIComponent(id) + (qs ? "&" + qs : "")).then(function (d) { return d.inquiry; })
-        .catch(function () { return null; });
-    }
-    return Promise.resolve(null);
+    var qs = authQS();
+    return jget("/api/contact?id=" + encodeURIComponent(id) + (qs ? "&" + qs : "")).then(function(d){ return d.inquiry; });
+  }
+  function showInqError(selector) {
+    state._rows = [];
+    var el = $(selector);
+    if(el) el.innerHTML = '<div class="ax-empty" role="alert">상담 신청을 불러오지 못했습니다. 관리자 로그인과 서버 연결을 확인한 후 다시 시도해 주세요. 접수 내역이 없는 상태와는 다릅니다.</div>';
   }
   function inqSetStatus(id, status) {
     return jwrite("/api/contact", "POST", { adminAction: "status", id: id, status: status, key: adminKey(), idToken: adminToken(), session: adminSession() });
@@ -568,7 +568,7 @@
       var on = rows.filter(function (r) { return r.status !== "done"; }).length > 0;
       setDot($('.ax-icon[data-act="notif"]'), on);
       setDot($('.ax-nav-i[data-tab="inq"]'), on);
-    });
+    }).catch(function(){});
     // 자유게시판 미답변 → "자유게시판" 탭 점
     boardList().then(function (posts) {
       setDot($('.ax-nav-i[data-tab="board"]'), posts.filter(function (p) { return !p.answered; }).length > 0);
@@ -631,7 +631,7 @@
           '<th>이름</th><th>문의 분야</th><th>상담 언어</th><th>접수일</th><th>상태</th><th></th>' +
         '</tr></thead><tbody>' + trs + '</tbody></table></div>' + more;
       refreshBanner();
-    });
+    }).catch(function(){ showInqError("#dash-body"); });
   }
   function exportCsv() {
     var rows = state._rows || [];
@@ -763,7 +763,7 @@
           '<th>이름</th><th>문의 분야</th><th>상담 언어</th><th>접수일</th><th>상태</th><th></th>' +
         '</tr></thead><tbody>' + trs + '</tbody></table></div>';
       refreshBanner();
-    });
+    }).catch(function(){ showInqError("#inq-list"); });
   }
   function renderInqDetail() {
     setMain('<button class="ax-back" data-act="inq-back">' + icon("back") + '목록으로</button><div id="inq-detail"><div class="ax-loading">불러오는 중…</div></div>');
@@ -801,7 +801,7 @@
         '</div>';
       var el = $("#inq-detail"); if (el) el.innerHTML = html;
       refreshBanner();
-    });
+    }).catch(function(){ showInqError("#inq-detail"); });
   }
 
   /* ════════ 3) 매거진(성공 사례) ════════ */
@@ -809,6 +809,7 @@
     return '<div class="ax-mag-tabs">' +
       '<button class="ax-mag-tab' + (active === "list" ? " active" : "") + '" data-act="bl-tab-list">매거진 목록</button>' +
       '<button class="ax-mag-tab' + (active === "cats" ? " active" : "") + '" data-act="bl-cats">카테고리 관리</button>' +
+      '<button class="ax-mag-tab" data-act="bl-import">네이버 글 일괄 가져오기</button>' +
     '</div>';
   }
   function renderBlog() {
@@ -1162,6 +1163,7 @@
     if (act === "csv") { exportCsv(); return; }
 
     if (act === "bl-tab-list") { state.blogMode = "list"; renderTab(); return; }
+    if (act === "bl-import") { if(window.openBlogImport) window.openBlogImport(); else alert("가져오기 도구를 불러오는 중입니다. 잠시 후 다시 시도해 주세요."); return; }
     if (act === "bl-new") { state.editId = null; state.editorImage = ""; state.blogMode = "write"; renderTab(); return; }
     if (act === "bl-cancel-write") { state.editId = null; state.editorImage = ""; state.blogMode = "list"; renderTab(); return; }
     if (act === "bl-cats") { state.blogMode = "cats"; renderTab(); return; }

@@ -37,6 +37,20 @@ CREATE INDEX IF NOT EXISTS idx_posts_ts ON posts(ts);
 CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id);
 CREATE INDEX IF NOT EXISTS idx_blog_ts ON blog(ts);
 
+-- 연락하기 폼 상담 접수 (관리자 전용 조회)
+CREATE TABLE IF NOT EXISTS inquiries (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  email TEXT,
+  phone TEXT,
+  lang TEXT,
+  area TEXT,
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new',
+  ts INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_inq_ts ON inquiries(ts);
+
 -- 기본 사이트 정보(원하면 수정)
 INSERT OR IGNORE INTO settings (k,v) VALUES
   ('phone','02 2277 2442'),

@@ -402,7 +402,8 @@
       var trk = function(k){ return dict[k] || en[k] || ko[k] || k; };
       var langSel = document.getElementById("cf-lang");
       if(langSel && window.LANGS){
-        var prevL = langSel.value;
+        var prevL = langSel.dataset.initialized ? langSel.value : cur;
+        langSel.dataset.initialized = "true";
         langSel.innerHTML = window.LANGS.map(function(l){
           return '<option value="'+fesc(l.code)+'">'+(l.flag?l.flag+" ":"")+fesc(l.label)+'</option>';
         }).join("");
@@ -420,23 +421,41 @@
       }
     };
     var fval = function(n){ var x = form.elements[n]; return x ? String(x.value||"").trim() : ""; };
+    var submitting = false;
+    var contactText = function(k){
+      var I = window.I18N || {}, d = I[window.getLang ? window.getLang() : "ko"] || {};
+      return d[k] || (I.en || {})[k] || (I.ko || {})[k] || k;
+    };
     form.addEventListener("submit", function(e){
       e.preventDefault();
-      var ok = document.getElementById("formOk");
+      if(submitting || !form.reportValidity()) return;
+      var ok = document.getElementById("formOk"), error = document.getElementById("formError");
       var btn = form.querySelector('button[type="submit"]');
-      var payload = { name: fval("name"), email: fval("email"), phone: fval("phone"),
-        lang: (form.elements.lang && form.elements.lang.value) || "",
-        area: (form.elements.area && form.elements.area.value) || "", message: fval("message") };
-      if(!payload.message) return;
+      if(ok) ok.classList.remove("show");
+      if(error){ error.hidden = true; error.textContent = ""; }
+      var payload = { name:fval("name"), email:fval("email"), phone:fval("phone"),
+        lang:fval("lang"), area:fval("area"), message:fval("message") };
+      if(!payload.name || !payload.message){
+        if(error){ error.setAttribute("data-i18n", "f.validation"); error.textContent = contactText("f.validation"); error.hidden = false; }
+        return;
+      }
+      submitting = true;
+      form.setAttribute("aria-busy", "true");
       if(btn) btn.disabled = true;
-      fetch("/api/contact", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(payload) })
-        .then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ return { ok: r.ok && d && d.ok, err: d && d.error }; }); })
+      var showError = function(key){ if(error){ error.setAttribute("data-i18n", key); error.textContent = contactText(key); error.hidden = false; } };
+      fetch("/api/contact", {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(payload)})
+        .then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ return {status:r.status, ok:r.ok && d.ok === true && !!d.id}; }); })
         .then(function(res){
-          if(res.ok){ if(ok){ ok.classList.add("show"); if(ok.scrollIntoView) ok.scrollIntoView({behavior:"smooth",block:"center"}); } form.reset(); fillContactSelects(); }
-          else { alert(res.err || "전송에 실패했습니다. 잠시 후 다시 시도해 주세요."); }
+          if(res.ok){
+            if(ok){ ok.classList.add("show"); ok.scrollIntoView({behavior:"smooth",block:"center"}); }
+            form.reset();
+            var langSel = document.getElementById("cf-lang");
+            if(langSel) delete langSel.dataset.initialized;
+            fillContactSelects();
+          } else showError(res.status === 400 ? "f.validation" : res.status >= 500 || res.status === 404 ? "f.unavailable" : "f.error");
         })
-        .catch(function(){ alert("전송에 실패했습니다. 네트워크 상태를 확인해 주세요."); })
-        .then(function(){ if(btn) btn.disabled = false; });
+        .catch(function(){ showError("f.network"); })
+        .then(function(){ submitting = false; form.removeAttribute("aria-busy"); if(btn) btn.disabled = false; });
     });
     fillContactSelects();
     document.addEventListener("langchange", fillContactSelects);
@@ -467,6 +486,13 @@
     document.querySelectorAll("[data-set]").forEach(function(el){
       var k = el.getAttribute("data-set"); var v = s[k];
       if(v == null || v === "") return;
+      // The stored legacy address is this same office. Keep its translated
+      // building/room information instead of replacing it with Korean text.
+      if(k === "address" && (v === "서울특별시 중구 을지로 254, 3층 301호" || v === "서울시 중구 을지로 254, 타임캐슬 오피스텔 301호")){
+        var current = window.getLang ? window.getLang() : "ko";
+        var translated = window.I18N && window.I18N[current];
+        if(translated && translated["ci.addr.v"]) v = translated["ci.addr.v"];
+      }
       el.textContent = v;
       if(el.hasAttribute("data-set-tel")) el.setAttribute("href", "tel:" + String(v).replace(/[^0-9+]/g, ""));
       if(el.hasAttribute("data-set-mail")) el.setAttribute("href", "mailto:" + v);

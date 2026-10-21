@@ -27,6 +27,7 @@ async function ensureSchema(db) {
   try { await db.prepare("ALTER TABLE blog ADD COLUMN image TEXT").run(); } catch (e) {}
   try { await db.prepare("ALTER TABLE blog ADD COLUMN status TEXT").run(); } catch (e) {}
   try { await db.prepare("ALTER TABLE blog ADD COLUMN lang TEXT").run(); } catch (e) {}
+  try { await db.prepare("ALTER TABLE blog ADD COLUMN excerpt TEXT").run(); } catch (e) {}
   try { await db.prepare("UPDATE blog SET status='published' WHERE status IS NULL OR status=''").run(); } catch (e) {}
   try { await db.prepare("UPDATE blog SET lang='ko' WHERE lang IS NULL OR lang=''").run(); } catch (e) {}
   // 기본 카테고리 1개 시드(카테고리가 하나도 없을 때만)
@@ -58,18 +59,22 @@ export async function onRequest(context) {
       if (id) {
         const post = await db.prepare("SELECT id,title,cat,body,ts,image,status,lang FROM blog WHERE id=?").bind(id).first();
         if (!post) return json({ error: "not found" }, 404);
+        const requestedLanguage=url.searchParams.get('lang');
+        if(requestedLanguage && ((post.lang || 'ko')!==requestedLanguage || (post.status && post.status!=='published')))return json({error:'not found'},404);
         return json({ post });
       }
       // ?all=1 → 임시저장 포함(관리자), 기본 → 발행글만(공개)
       // ?lang=xx → 해당 언어 글만(공개 페이지/홈). all=1이면 언어 무시(관리자 전체).
       const all = url.searchParams.get("all");
       const lang = url.searchParams.get("lang");
-      let sql = "SELECT id,title,cat,body,ts,image,status,lang FROM blog";
+      let sql = "SELECT id,title,cat,COALESCE(NULLIF(excerpt,''),substr(body,1,2000)) AS body,ts,image,status,lang FROM blog";
       const where = [], binds = [];
       if (!all) where.push("(status='published' OR status IS NULL)");
       if (!all && lang) { where.push("(lang=? OR lang IS NULL OR lang='')"); binds.push(lang); }
       if (where.length) sql += " WHERE " + where.join(" AND ");
-      sql += " ORDER BY ts DESC LIMIT 200";
+      const requestedLimit=parseInt(url.searchParams.get('limit'),10);
+      const limit=Number.isFinite(requestedLimit)?Math.min(2000,Math.max(1,requestedLimit)):2000;
+      sql += " ORDER BY ts DESC LIMIT "+limit;
       const { results } = await db.prepare(sql).bind(...binds).all();
       return json({
         posts: (results || []).map((p) => ({

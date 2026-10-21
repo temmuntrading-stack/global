@@ -260,7 +260,7 @@ ko:{
   "f.note":"※ 제출하신 정보는 상담 목적으로만 사용되며, 영업일 기준 빠르게 회신드립니다.",
   "f.success":"신청이 접수되었습니다. 빠르게 회신드리겠습니다.",
   "contact.blog.title":"네이버블로그에서 더 많은 이야기를","contact.blog.desc":"최신 판례 해설과 사건 후기, 법률 상식을 블로그에서 만나보세요.","contact.blog.btn":"블로그 방문하기",
-  "contact.map.label":"을지로 254 · 지하철 2·3호선 을지로3가역 인근",
+  "contact.map.label":"네이버 지도 보기",
 
   "foot.tag":"국경을 넘는 사건을 10개 언어로 함께 풀어가는 글로벌 법률 파트너.",
   "foot.menu":"메뉴","foot.contact":"연락처","foot.office":"오시는 길",
@@ -513,7 +513,7 @@ en:{
   "f.note":"※ Your information is used only for consultation, and we will reply as soon as possible on business days.",
   "f.success":"Your request has been received. We'll reply soon.",
   "contact.blog.title":"More on our Naver Blog","contact.blog.desc":"Find precedent explainers, case notes and legal tips on our blog.","contact.blog.btn":"Visit the blog",
-  "contact.map.label":"254 Eulji-ro · near Euljiro 3-ga Station (Lines 2 & 3)",
+  "contact.map.label":"View Naver Map",
 
   "foot.tag":"A global legal partner solving cross-border cases in 10 languages.",
   "foot.menu":"Menu","foot.contact":"Contact","foot.office":"Directions",
@@ -712,7 +712,7 @@ vi:{
   "f.note":"※ Thông tin của bạn chỉ dùng cho mục đích tư vấn; chúng tôi sẽ phản hồi sớm nhất trong ngày làm việc.",
   "f.success":"Đã nhận yêu cầu của bạn. Chúng tôi sẽ phản hồi sớm.",
   "contact.blog.title":"Thêm nội dung trên Naver Blog","contact.blog.desc":"Đọc giải thích án lệ, ghi chú vụ việc và kiến thức pháp luật trên blog của chúng tôi.","contact.blog.btn":"Truy cập blog",
-  "contact.map.label":"254 Eulji-ro · gần ga Euljiro 3-ga (tuyến 2 & 3)",
+  "contact.map.label":"Xem bản đồ Naver",
 
   "foot.tag":"Đối tác pháp lý toàn cầu giải quyết vụ việc xuyên biên giới bằng 10 ngôn ngữ.",
   "foot.menu":"Menu","foot.contact":"Liên hệ","foot.office":"Chỉ đường",
@@ -934,7 +934,7 @@ ru:{
   "f.note":"※ Ваши данные используются только для консультации; мы ответим как можно скорее в рабочие дни.",
   "f.success":"Заявка принята. Мы скоро ответим.",
   "contact.blog.title":"Больше в нашем Naver Blog","contact.blog.desc":"Разборы прецедентов, заметки по делам и юридические советы в нашем блоге.","contact.blog.btn":"Открыть блог",
-  "contact.map.label":"254 Ыльчжи-ро · рядом со ст. Ыльчжиро 3-га (линии 2 и 3)",
+  "contact.map.label":"Открыть Naver Map",
 
   "foot.tag":"Глобальный юридический партнёр, решающий трансграничные дела на 10 языках.",
   "foot.menu":"Меню","foot.contact":"Контакты","foot.office":"Как добраться",
@@ -1156,7 +1156,7 @@ zh:{
   "f.note":"※ 您提交的信息仅用于咨询目的,我们将在工作日尽快回复。",
   "f.success":"已收到您的申请,我们将尽快回复。",
   "contact.blog.title":"更多内容尽在 Naver 博客","contact.blog.desc":"在博客中阅读判例解读、案件手记与法律常识。","contact.blog.btn":"访问博客",
-  "contact.map.label":"乙支路254号 · 邻近地铁2·3号线乙支路3街站",
+  "contact.map.label":"查看Naver地图",
 
   "foot.tag":"以十种语言解决跨境案件的全球法律伙伴。",
   "foot.menu":"菜单","foot.contact":"联系方式","foot.office":"交通指引",
@@ -1504,7 +1504,7 @@ uz:{
   "contact.blog.title":"Naver Blogimizda batafsil",
   "contact.blog.desc":"Blogimizda sud amaliyoti sharhlari, ish yozuvlari va huquqiy maslahatlarni toping.",
   "contact.blog.btn":"Blogga tashrif buyuring",
-  "contact.map.label":"Eulji-ro 254 · Euljiro 3-ga bekati yaqinida (2 va 3-liniyalar)",
+  "contact.map.label":"Naver xaritasini ochish",
   "foot.tag":"Chegaralararo ishlarni 10 tilda hal qiluvchi global huquqiy hamkor.",
   "foot.menu":"Menyu",
   "foot.contact":"Aloqa",
@@ -1830,7 +1830,7 @@ th:{
   "contact.blog.title":"อ่านเพิ่มเติมได้ที่ Naver Blog ของเรา",
   "contact.blog.desc":"พบคำอธิบายคำพิพากษา บันทึกคดี และเคล็ดลับทางกฎหมายได้ที่บล็อกของเรา",
   "contact.blog.btn":"เยี่ยมชมบล็อก",
-  "contact.map.label":"ถนนอึลจี-โร เลขที่ 254 · ใกล้สถานีอึลจีโร 3-กา (สาย 2 และ 3)",
+  "contact.map.label":"ดูแผนที่ Naver",
   "foot.tag":"พันธมิตรทางกฎหมายระดับโลกที่แก้ไขคดีข้ามพรมแดนใน 10 ภาษา",
   "foot.menu":"เมนู",
   "foot.contact":"ติดต่อเรา",
@@ -2156,7 +2156,7 @@ km:{
   "contact.blog.title":"ព័ត៌មានបន្ថែមនៅ Naver Blog របស់យើង",
   "contact.blog.desc":"ស្វែងរកការពន្យល់អំពីគំរូសេចក្តីសម្រេច កំណត់ត្រារឿងក្តី និងគន្លឹះផ្នែកច្បាប់នៅលើប្លុករបស់យើង។",
   "contact.blog.btn":"ចូលមើលប្លុក",
-  "contact.map.label":"254 Eulji-ro · ក្បែរស្ថានីយ៍ Euljiro 3-ga (ខ្សែទី ២ និងទី ៣)",
+  "contact.map.label":"មើលផែនទី Naver",
   "foot.tag":"ដៃគូផ្នែកច្បាប់សកល ដែលដោះស្រាយរឿងក្តីឆ្លងព្រំដែនជា ១០ ភាសា។",
   "foot.menu":"ម៉ឺនុយ",
   "foot.contact":"ទំនាក់ទំនង",
@@ -2482,7 +2482,7 @@ si:{
   "contact.blog.title":"අපගේ Naver Blog හි තවත්",
   "contact.blog.desc":"අපගේ බ්ලොග් අඩවියේ පූර්වාදර්ශ පැහැදිලි කිරීම්, නඩු සටහන් සහ නෛතික ඉඟි සොයාගන්න.",
   "contact.blog.btn":"බ්ලොග් අඩවියට පිවිසෙන්න",
-  "contact.map.label":"254 Eulji-ro · Euljiro 3-ga දුම්රිය ස්ථානය අසල (මාර්ග 2 සහ 3)",
+  "contact.map.label":"Naver සිතියම බලන්න",
   "foot.tag":"භාෂා 10කින් දේශසීමා-හරස් නඩු විසඳන ගෝලීය නෛතික හවුල්කරුවෙකි.",
   "foot.menu":"මෙනුව",
   "foot.contact":"සම්බන්ධ වන්න",
@@ -2808,7 +2808,7 @@ ne:{
   "contact.blog.title":"हाम्रो Naver Blog मा थप",
   "contact.blog.desc":"हाम्रो ब्लगमा नजिर व्याख्या, मुद्दा टिप्पणी तथा कानुनी सुझावहरू पाउनुहोस्।",
   "contact.blog.btn":"ब्लग हेर्नुहोस्",
-  "contact.map.label":"२५४ उल्जी-रो · उल्जिरो ३-गा स्टेशन नजिक (लाइन २ र ३)",
+  "contact.map.label":"Naver नक्सा हेर्नुहोस्",
   "foot.tag":"१० भाषामा सीमापार मुद्दाहरू समाधान गर्ने ग्लोबल कानुनी साझेदार।",
   "foot.menu":"मेनु",
   "foot.contact":"सम्पर्क",
@@ -3164,7 +3164,7 @@ mn:{
   "contact.blog.title":"Манай Naver Blog дээр дэлгэрэнгүй",
   "contact.blog.desc":"Манай блогоос шүүхийн шийдвэрийн тайлбар, хэргийн тэмдэглэл болон эрх зүйн зөвлөмжийг олоорой.",
   "contact.blog.btn":"Блог үзэх",
-  "contact.map.label":"Ыльжи-ро 254 · Ыльжиро 3-га буудлын ойролцоо (2, 3-р шугам)",
+  "contact.map.label":"Naver газрын зураг үзэх",
   "foot.tag":"Эх хэлээрээ хуулийн зөвлөгөөгөө аваарай.",
   "foot.menu":"Цэс",
   "foot.contact":"Холбоо барих",
@@ -3174,6 +3174,603 @@ mn:{
   "foot.disclaimer":"Энэ сайт дахь мэдээлэл нь ерөнхий зөвлөмж бөгөөд тодорхой асуудлаар өгсөн эрх зүйн зөвлөгөө биш."
 }
 };
+
+/* Home office location translations. */
+Object.assign(window.I18N.ko, {
+  "loc.title": "글로벌 법률사무소\n오시는 길",
+  "loc.address": "서울시 중구 을지로 254,\n타임캐슬 오피스텔 301호",
+  "loc.buildingLabel": "건물 안내",
+  "loc.building": "타임캐슬 오피스텔 · 301호",
+  "loc.map": "네이버 지도 보기",
+  "loc.visit": "방문 안내",
+  "loc.visitText": "타임캐슬 오피스텔 301호로 방문해 주세요.",
+  "loc.parking": "주차 안내",
+  "loc.parkingText": "건물 내 지하주차장 이용",
+  "loc.eyebrow": "연락처 · 오시는 길"
+});
+Object.assign(window.I18N.en, {
+  "loc.title": "Global Law Office\nFind us",
+  "loc.address": "254 Eulji-ro, Jung-gu, Seoul\nTime Castle Officetel, Room 301",
+  "loc.buildingLabel": "Building",
+  "loc.building": "Time Castle Officetel · Room 301",
+  "loc.map": "View Naver Map",
+  "loc.visit": "Visiting our office",
+  "loc.visitText": "Please visit Room 301, Time Castle Officetel.",
+  "loc.parking": "Parking",
+  "loc.parkingText": "Use the underground parking in the building.",
+  "loc.eyebrow": "CONTACT & LOCATION"
+});
+Object.assign(window.I18N.vi, {
+  "loc.title": "Văn phòng Luật Global\nĐường đến văn phòng",
+  "loc.address": "254 Eulji-ro, Jung-gu, Seoul\nTime Castle Officetel, phòng 301",
+  "loc.buildingLabel": "Tòa nhà",
+  "loc.building": "Time Castle Officetel · Phòng 301",
+  "loc.map": "Xem bản đồ Naver",
+  "loc.visit": "Hướng dẫn đến văn phòng",
+  "loc.visitText": "Vui lòng đến phòng 301, Time Castle Officetel.",
+  "loc.parking": "Đỗ xe",
+  "loc.parkingText": "Sử dụng bãi đỗ xe ngầm trong tòa nhà.",
+  "loc.eyebrow": "LIÊN HỆ & ĐỊA ĐIỂM"
+});
+Object.assign(window.I18N.ru, {
+  "loc.title": "Юридический офис Global\nКак нас найти",
+  "loc.address": "Сеул, Чун-гу, Ыльчжи-ро, 254\nTime Castle Officetel, офис 301",
+  "loc.buildingLabel": "Здание",
+  "loc.building": "Time Castle Officetel · Офис 301",
+  "loc.map": "Открыть Naver Map",
+  "loc.visit": "Посещение офиса",
+  "loc.visitText": "Приходите в офис 301, Time Castle Officetel.",
+  "loc.parking": "Парковка",
+  "loc.parkingText": "Воспользуйтесь подземной парковкой здания.",
+  "loc.eyebrow": "КОНТАКТЫ И АДРЕС"
+});
+Object.assign(window.I18N.zh, {
+  "loc.title": "Global律师事务所\n交通指南",
+  "loc.address": "首尔市中区乙支路254号\nTime Castle Officetel 301室",
+  "loc.buildingLabel": "大楼信息",
+  "loc.building": "Time Castle Officetel · 301室",
+  "loc.map": "查看Naver地图",
+  "loc.visit": "来访指南",
+  "loc.visitText": "请前往Time Castle Officetel 301室。",
+  "loc.parking": "停车指南",
+  "loc.parkingText": "请使用楼内地下停车场。",
+  "loc.eyebrow": "联系方式 · 交通指南"
+});
+Object.assign(window.I18N.uz, {
+  "loc.title": "Global yuridik idorasi\nBizni qanday topish mumkin",
+  "loc.address": "Seul, Jung-gu, Eulji-ro 254\nTime Castle Officetel, 301-xona",
+  "loc.buildingLabel": "Bino",
+  "loc.building": "Time Castle Officetel · 301-xona",
+  "loc.map": "Naver xaritasini ochish",
+  "loc.visit": "Tashrif haqida",
+  "loc.visitText": "Time Castle Officetel binosining 301-xonasiga tashrif buyuring.",
+  "loc.parking": "Avtoturargoh",
+  "loc.parkingText": "Binoning yerosti avtoturargohidan foydalaning.",
+  "loc.eyebrow": "ALOQA VA MANZIL"
+});
+Object.assign(window.I18N.th, {
+  "loc.title": "สำนักงานกฎหมาย Global\nการเดินทาง",
+  "loc.address": "254 Eulji-ro, Jung-gu, โซล\nTime Castle Officetel ห้อง 301",
+  "loc.buildingLabel": "อาคาร",
+  "loc.building": "Time Castle Officetel · ห้อง 301",
+  "loc.map": "ดูแผนที่ Naver",
+  "loc.visit": "คำแนะนำการเข้าพบ",
+  "loc.visitText": "กรุณามาที่ห้อง 301 อาคาร Time Castle Officetel",
+  "loc.parking": "ที่จอดรถ",
+  "loc.parkingText": "ใช้ที่จอดรถใต้ดินภายในอาคาร",
+  "loc.eyebrow": "ติดต่อและที่ตั้ง"
+});
+Object.assign(window.I18N.km, {
+  "loc.title": "ការិយាល័យច្បាប់ Global\nទីតាំងរបស់យើង",
+  "loc.address": "254 Eulji-ro, Jung-gu, សេអ៊ូល\nTime Castle Officetel បន្ទប់ 301",
+  "loc.buildingLabel": "អគារ",
+  "loc.building": "Time Castle Officetel · បន្ទប់ 301",
+  "loc.map": "មើលផែនទី Naver",
+  "loc.visit": "ការណែនាំសម្រាប់ការមកជួប",
+  "loc.visitText": "សូមមកបន្ទប់ 301 នៃអគារ Time Castle Officetel។",
+  "loc.parking": "កន្លែងចតរថយន្ត",
+  "loc.parkingText": "សូមប្រើចំណតរថយន្តក្រោមដីក្នុងអគារ។",
+  "loc.eyebrow": "ទំនាក់ទំនង និងទីតាំង"
+});
+Object.assign(window.I18N.si, {
+  "loc.title": "Global නීති කාර්යාලය\nඅප වෙත පැමිණෙන මඟ",
+  "loc.address": "254 Eulji-ro, Jung-gu, සෝල්\nTime Castle Officetel, කාමර 301",
+  "loc.buildingLabel": "ගොඩනැගිල්ල",
+  "loc.building": "Time Castle Officetel · කාමර 301",
+  "loc.map": "Naver සිතියම බලන්න",
+  "loc.visit": "පැමිණීමේ උපදෙස්",
+  "loc.visitText": "Time Castle Officetel හි කාමර 301 වෙත පැමිණෙන්න.",
+  "loc.parking": "වාහන නැවැත්වීම",
+  "loc.parkingText": "ගොඩනැගිල්ලේ භූගත රථගාල භාවිත කරන්න.",
+  "loc.eyebrow": "සම්බන්ධතා සහ ස්ථානය"
+});
+Object.assign(window.I18N.ne, {
+  "loc.title": "Global कानुन कार्यालय\nहामीकहाँ आउने बाटो",
+  "loc.address": "२५४ उल्जी-रो, जुङ-गु, सियोल\nTime Castle Officetel, कोठा ३०१",
+  "loc.buildingLabel": "भवन",
+  "loc.building": "Time Castle Officetel · कोठा ३०१",
+  "loc.map": "Naver नक्सा हेर्नुहोस्",
+  "loc.visit": "भेटघाट जानकारी",
+  "loc.visitText": "कृपया Time Castle Officetel को कोठा ३०१ मा आउनुहोस्।",
+  "loc.parking": "पार्किङ",
+  "loc.parkingText": "भवनभित्रको भूमिगत पार्किङ प्रयोग गर्नुहोस्।",
+  "loc.eyebrow": "सम्पर्क र स्थान"
+});
+Object.assign(window.I18N.mn, {
+  "loc.title": "Манай хаяг",
+  "loc.address": "Сөүл, Жунг-гү, Ыльжи-ро 254\nTime Castle Officetel, 301 тоот",
+  "loc.buildingLabel": "Барилга",
+  "loc.building": "Time Castle Officetel · 301 тоот",
+  "loc.map": "Naver газрын зураг үзэх",
+  "loc.visit": "Ирэх заавар",
+  "loc.visitText": "Time Castle Officetel-ийн 301 тоотод хүрэлцэн ирнэ үү.",
+  "loc.parking": "Зогсоол",
+  "loc.parkingText": "Барилгын газар доорх зогсоолыг ашиглана уу.",
+  "loc.eyebrow": "ХОЛБОО БАРИХ · БАЙРШИЛ"
+});
+
+Object.assign(window.I18N.ko, {
+  "f.validation": "이름, 올바른 이메일 주소와 문의 내용을 확인해 주세요.",
+  "f.unavailable": "현재 상담 접수가 원활하지 않습니다. 전화 02-2277-2442로 문의해 주세요.",
+  "f.error": "접수하지 못했습니다. 입력 내용은 유지되니 잠시 후 다시 시도해 주세요.",
+  "f.network": "서버 응답을 확인하지 못했습니다. 중복 접수를 피하려면 재전송 전에 전화로 접수 여부를 확인해 주세요.",
+  "ci.addr.v": "서울시 중구 을지로 254, 타임캐슬 오피스텔 301호"
+});
+Object.assign(window.I18N.en, {
+  "f.validation": "Please check your name, valid email address and message.",
+  "f.unavailable": "Consultation requests are currently unavailable. Please call 02-2277-2442.",
+  "f.error": "Your request could not be submitted. Your entries are kept; please try again later.",
+  "f.network": "We could not confirm the server response. Please call to check receipt before resending to avoid duplicates.",
+  "ci.addr.v": "254 Eulji-ro, Jung-gu, Seoul, Time Castle Officetel, Room 301"
+});
+Object.assign(window.I18N.vi, {
+  "f.validation": "Vui lòng kiểm tra tên, địa chỉ email hợp lệ và nội dung.",
+  "f.unavailable": "Hiện chưa thể tiếp nhận yêu cầu. Vui lòng gọi 02-2277-2442.",
+  "f.error": "Chưa gửi được yêu cầu. Nội dung được giữ lại; vui lòng thử lại sau.",
+  "f.network": "Chưa xác nhận được phản hồi máy chủ. Vui lòng gọi kiểm tra trước khi gửi lại để tránh trùng lặp.",
+  "ci.addr.v": "254 Eulji-ro, Jung-gu, Seoul, Time Castle Officetel, phòng 301",
+  "board.crumb": "Diễn đàn",
+  "board.title": "Diễn đàn",
+  "board.lead": "Hãy để lại câu hỏi pháp lý. Không đăng thông tin cá nhân; hãy đặt lịch tư vấn cho trường hợp cụ thể."
+});
+Object.assign(window.I18N.ru, {
+  "f.validation": "Проверьте имя, корректный адрес электронной почты и сообщение.",
+  "f.unavailable": "Приём заявок сейчас недоступен. Позвоните по номеру 02-2277-2442.",
+  "f.error": "Не удалось отправить заявку. Введённые данные сохранены в форме; попробуйте позже.",
+  "f.network": "Ответ сервера не подтверждён. Перед повторной отправкой уточните получение по телефону, чтобы избежать дублирования.",
+  "ci.addr.v": "Сеул, Чун-гу, Ыльчжи-ро, 254, Time Castle Officetel, офис 301",
+  "board.crumb": "Форум",
+  "board.title": "Форум",
+  "board.lead": "Оставьте юридический вопрос. Не публикуйте личные данные; для разбора конкретного дела запишитесь на консультацию."
+});
+Object.assign(window.I18N.zh, {
+  "f.validation": "请检查姓名、有效电子邮箱地址和咨询内容。",
+  "f.unavailable": "目前无法受理咨询申请，请致电02-2277-2442。",
+  "f.error": "未能提交申请。填写内容已保留，请稍后重试。",
+  "f.network": "未能确认服务器响应。为避免重复提交，请先致电确认是否已收到申请。",
+  "ci.addr.v": "首尔市中区乙支路254号, Time Castle Officetel 301室",
+  "board.crumb": "交流论坛",
+  "board.title": "交流论坛",
+  "board.lead": "欢迎留下法律问题。请勿发布个人信息；具体案件请预约咨询。"
+});
+Object.assign(window.I18N.uz, {
+  "f.validation": "Ismingizni, to‘g‘ri elektron pochta manzilingizni va xabaringizni tekshiring.",
+  "f.unavailable": "Hozir maslahat so‘rovini qabul qilib bo‘lmayapti. 02-2277-2442 raqamiga qo‘ng‘iroq qiling.",
+  "f.error": "So‘rov yuborilmadi. Kiritilgan ma’lumotlar saqlanadi; keyinroq qayta urinib ko‘ring.",
+  "f.network": "Server javobi tasdiqlanmadi. Takroriy so‘rov yubormaslik uchun qayta yuborishdan oldin telefon orqali tekshiring.",
+  "ci.addr.v": "Seul, Jung-gu, Eulji-ro 254, Time Castle Officetel, 301-xona",
+  "board.crumb": "Forum",
+  "board.title": "Forum",
+  "board.lead": "Huquqiy savolingizni qoldiring. Shaxsiy ma’lumotlarni yozmang; muayyan ish bo‘yicha maslahatga yoziling."
+});
+Object.assign(window.I18N.th, {
+  "f.validation": "โปรดตรวจสอบชื่อ อีเมลที่ถูกต้อง และข้อความ",
+  "f.unavailable": "ขณะนี้ไม่สามารถรับคำขอปรึกษาได้ โปรดโทร 02-2277-2442",
+  "f.error": "ส่งคำขอไม่สำเร็จ ข้อมูลที่กรอกยังอยู่ โปรดลองอีกครั้งภายหลัง",
+  "f.network": "ไม่สามารถยืนยันการตอบกลับจากเซิร์ฟเวอร์ได้ โปรดโทรตรวจสอบก่อนส่งซ้ำเพื่อหลีกเลี่ยงคำขอซ้ำ",
+  "ci.addr.v": "254 Eulji-ro, Jung-gu, โซล, Time Castle Officetel ห้อง 301",
+  "board.crumb": "กระดานสนทนา",
+  "board.title": "กระดานสนทนา",
+  "board.lead": "ฝากคำถามด้านกฎหมายได้ที่นี่ โปรดอย่าเปิดเผยข้อมูลส่วนบุคคล หากต้องการคำปรึกษาเฉพาะคดี โปรดจองการปรึกษา"
+});
+Object.assign(window.I18N.km, {
+  "f.validation": "សូមពិនិត្យឈ្មោះ អាសយដ្ឋានអ៊ីមែលត្រឹមត្រូវ និងសាររបស់អ្នក។",
+  "f.unavailable": "បច្ចុប្បន្នមិនអាចទទួលសំណើពិគ្រោះបានទេ។ សូមទូរស័ព្ទទៅ 02-2277-2442។",
+  "f.error": "មិនអាចផ្ញើសំណើបានទេ។ ព័ត៌មានដែលបានបញ្ចូលនៅរក្សាទុកក្នុងទម្រង់ សូមព្យាយាមម្ដងទៀតពេលក្រោយ។",
+  "f.network": "មិនអាចបញ្ជាក់ការឆ្លើយតបរបស់ម៉ាស៊ីនមេបានទេ។ សូមទូរស័ព្ទបញ្ជាក់ការទទួលមុនពេលផ្ញើម្ដងទៀត ដើម្បីជៀសវាងសំណើស្ទួន។",
+  "ci.addr.v": "254 Eulji-ro, Jung-gu, សេអ៊ូល, Time Castle Officetel បន្ទប់ 301",
+  "board.crumb": "វេទិកា",
+  "board.title": "វេទិកា",
+  "board.lead": "សូមទុកសំណួរផ្នែកច្បាប់។ កុំបង្ហោះព័ត៌មានផ្ទាល់ខ្លួន ហើយសូមកក់ការពិគ្រោះសម្រាប់ករណីជាក់លាក់។"
+});
+Object.assign(window.I18N.si, {
+  "f.validation": "ඔබගේ නම, වලංගු ඊමේල් ලිපිනය සහ පණිවිඩය පරීක්ෂා කරන්න.",
+  "f.unavailable": "මේ මොහොතේ උපදේශන ඉල්ලීම් භාරගත නොහැක. 02-2277-2442 අමතන්න.",
+  "f.error": "ඉල්ලීම යැවිය නොහැකි විය. ඇතුළත් කළ තොරතුරු රඳවා ඇත; පසුව නැවත උත්සාහ කරන්න.",
+  "f.network": "සේවාදායක ප්‍රතිචාරය තහවුරු කළ නොහැකි විය. නැවත යැවීමට පෙර ලැබී ඇත්දැයි දුරකථනයෙන් තහවුරු කරන්න.",
+  "ci.addr.v": "254 Eulji-ro, Jung-gu, සෝල්, Time Castle Officetel, කාමර 301",
+  "board.crumb": "සංවාද මණ්ඩපය",
+  "board.title": "සංවාද මණ්ඩපය",
+  "board.lead": "ඔබේ නීතිමය ප්‍රශ්නය මෙහි ලියන්න. පෞද්ගලික තොරතුරු පළ නොකරන්න; විශේෂිත නඩුවක් සඳහා උපදේශනයක් වෙන්කරවා ගන්න."
+});
+Object.assign(window.I18N.ne, {
+  "f.validation": "कृपया नाम, मान्य इमेल ठेगाना र सन्देश जाँच गर्नुहोस्।",
+  "f.unavailable": "अहिले परामर्श अनुरोध स्वीकार गर्न सकिँदैन। कृपया 02-2277-2442 मा फोन गर्नुहोस्।",
+  "f.error": "अनुरोध पठाउन सकिएन। भरिएको विवरण सुरक्षित छ; कृपया पछि फेरि प्रयास गर्नुहोस्।",
+  "f.network": "सर्भरको प्रतिक्रिया पुष्टि हुन सकेन। दोहोरो अनुरोध रोक्न फेरि पठाउनुअघि फोनबाट प्राप्ति पुष्टि गर्नुहोस्।",
+  "ci.addr.v": "२५४ उल्जी-रो, जुङ-गु, सियोल, Time Castle Officetel, कोठा ३०१",
+  "board.crumb": "सामुदायिक फोरम",
+  "board.title": "सामुदायिक फोरम",
+  "board.lead": "आफ्नो कानुनी प्रश्न लेख्नुहोस्। व्यक्तिगत विवरण नराख्नुहोस्; विशेष मुद्दाका लागि परामर्श बुक गर्नुहोस्।"
+});
+Object.assign(window.I18N.mn, {
+  "f.validation": "Нэр, зөв и-мэйл хаяг болон зурвасаа шалгана уу.",
+  "f.unavailable": "Одоогоор зөвлөгөөний хүсэлт хүлээн авах боломжгүй байна. 02-2277-2442 дугаарт залгана уу.",
+  "f.error": "Хүсэлтийг илгээж чадсангүй. Оруулсан мэдээлэл хэвээр үлдсэн тул дараа дахин оролдоно уу.",
+  "f.network": "Серверийн хариуг баталгаажуулж чадсангүй. Давхар хүсэлтээс сэргийлж дахин илгээхээсээ өмнө утсаар хүлээн авсан эсэхийг лавлана уу.",
+  "ci.addr.v": "Сөүл, Жунг-гү, Ыльжи-ро 254, Time Castle Officetel, 301 тоот"
+});
+
+Object.assign(window.I18N.vi, {
+  "board.error": "Không tải được diễn đàn. Vui lòng thử lại sau.",
+  "board.note": "Mọi người đều có thể đặt câu hỏi. Phản hồi sẽ được đăng sau khi xem xét.",
+  "board.write": "Viết bài",
+  "board.empty": "Chưa có bài viết.",
+  "board.answered": "Đã trả lời",
+  "board.back": "← Danh sách",
+  "board.name": "Biệt danh",
+  "board.anonymous": "Ẩn danh",
+  "board.namePh": "Tên hiển thị",
+  "board.postTitle": "Tiêu đề",
+  "board.titlePh": "Nhập tiêu đề",
+  "board.body": "Nội dung",
+  "board.bodyPh": "Viết câu hỏi của bạn",
+  "board.cancel": "Hủy",
+  "board.submit": "Gửi",
+  "board.official": "Chính thức",
+  "board.comments": "Bình luận",
+  "board.commentEmpty": "Chưa có bình luận.",
+  "board.commentPh": "Viết bình luận",
+  "board.commentSubmit": "Đăng bình luận",
+  "board.needTitle": "Vui lòng nhập tiêu đề.",
+  "board.needBody": "Vui lòng nhập nội dung.",
+  "board.needComment": "Vui lòng nhập bình luận.",
+  "board.saveError": "Không lưu được bài viết.",
+  "board.commentError": "Không lưu được bình luận.",
+  "auth.modalTitle": "Đăng nhập",
+  "auth.modalDesc": "Tiếp tục bằng Google, không cần đăng ký riêng.",
+  "auth.continueGoogle": "Tiếp tục bằng Google",
+  "auth.loggedInAs": "Đã đăng nhập",
+  "auth.logout": "Đăng xuất",
+  "auth.guest": "Khách",
+  "auth.login": "Đăng nhập / Đăng ký",
+  "auth.cancel": "Hủy",
+  "auth.namePrompt": "Nhập tên hiển thị",
+  "auth.required": "Vui lòng đăng nhập để đăng bài.",
+  "blog.all": "Tất cả",
+  "board.loading": "Đang tải…"
+});
+window.I18N.vi["board.officialName"] = window.I18N.vi["brand.name"];
+Object.assign(window.I18N.ru, {
+  "board.error": "Не удалось загрузить форум. Повторите позже.",
+  "board.note": "Любой может задать вопрос. Ответы публикуются после проверки.",
+  "board.write": "Написать сообщение",
+  "board.empty": "Публикаций пока нет.",
+  "board.answered": "Отвечено",
+  "board.back": "← К списку",
+  "board.name": "Псевдоним",
+  "board.anonymous": "Аноним",
+  "board.namePh": "Отображаемое имя",
+  "board.postTitle": "Заголовок",
+  "board.titlePh": "Введите заголовок",
+  "board.body": "Сообщение",
+  "board.bodyPh": "Напишите свой вопрос",
+  "board.cancel": "Отмена",
+  "board.submit": "Отправить",
+  "board.official": "Официальный ответ",
+  "board.comments": "Комментарии",
+  "board.commentEmpty": "Комментариев пока нет.",
+  "board.commentPh": "Написать комментарий",
+  "board.commentSubmit": "Отправить комментарий",
+  "board.needTitle": "Введите заголовок.",
+  "board.needBody": "Введите сообщение.",
+  "board.needComment": "Введите комментарий.",
+  "board.saveError": "Не удалось сохранить публикацию.",
+  "board.commentError": "Не удалось сохранить комментарий.",
+  "auth.modalTitle": "Войти",
+  "auth.modalDesc": "Продолжите через Google, без отдельной регистрации.",
+  "auth.continueGoogle": "Продолжить через Google",
+  "auth.loggedInAs": "Вы вошли",
+  "auth.logout": "Выйти",
+  "auth.guest": "Гость",
+  "auth.login": "Вход / Регистрация",
+  "auth.cancel": "Отмена",
+  "auth.namePrompt": "Введите отображаемое имя",
+  "auth.required": "Войдите, чтобы опубликовать сообщение.",
+  "blog.all": "Все",
+  "board.loading": "Загрузка…"
+});
+window.I18N.ru["board.officialName"] = window.I18N.ru["brand.name"];
+Object.assign(window.I18N.zh, {
+  "board.error": "无法加载论坛，请稍后重试。",
+  "board.note": "任何人都可以提问，回复经审核后发布。",
+  "board.write": "发布帖子",
+  "board.empty": "暂无帖子。",
+  "board.answered": "已回复",
+  "board.back": "← 返回列表",
+  "board.name": "昵称",
+  "board.anonymous": "匿名",
+  "board.namePh": "显示名称",
+  "board.postTitle": "标题",
+  "board.titlePh": "请输入标题",
+  "board.body": "内容",
+  "board.bodyPh": "请填写您的问题",
+  "board.cancel": "取消",
+  "board.submit": "提交",
+  "board.official": "官方",
+  "board.comments": "评论",
+  "board.commentEmpty": "暂无评论。",
+  "board.commentPh": "填写评论",
+  "board.commentSubmit": "发表评论",
+  "board.needTitle": "请输入标题。",
+  "board.needBody": "请输入内容。",
+  "board.needComment": "请输入评论。",
+  "board.saveError": "无法保存帖子。",
+  "board.commentError": "无法保存评论。",
+  "auth.modalTitle": "登录",
+  "auth.modalDesc": "使用Google继续，无需另外注册。",
+  "auth.continueGoogle": "使用Google继续",
+  "auth.loggedInAs": "已登录",
+  "auth.logout": "退出登录",
+  "auth.guest": "访客",
+  "auth.login": "登录 / 注册",
+  "auth.cancel": "取消",
+  "auth.namePrompt": "请输入显示名称",
+  "auth.required": "请先登录再发帖。",
+  "blog.all": "全部",
+  "board.loading": "加载中…"
+});
+window.I18N.zh["board.officialName"] = window.I18N.zh["brand.name"];
+Object.assign(window.I18N.uz, {
+  "board.error": "Forumni yuklab bo‘lmadi. Keyinroq urinib ko‘ring.",
+  "board.note": "Har kim savol qoldirishi mumkin. Javoblar ko‘rib chiqilgach e’lon qilinadi.",
+  "board.write": "Xabar yozish",
+  "board.empty": "Hozircha xabarlar yo‘q.",
+  "board.answered": "Javob berilgan",
+  "board.back": "← Ro‘yxatga qaytish",
+  "board.name": "Taxallus",
+  "board.anonymous": "Anonim",
+  "board.namePh": "Ko‘rsatiladigan ism",
+  "board.postTitle": "Sarlavha",
+  "board.titlePh": "Sarlavhani kiriting",
+  "board.body": "Xabar",
+  "board.bodyPh": "Savolingizni yozing",
+  "board.cancel": "Bekor qilish",
+  "board.submit": "Yuborish",
+  "board.official": "Rasmiy",
+  "board.comments": "Izohlar",
+  "board.commentEmpty": "Hozircha izohlar yo‘q.",
+  "board.commentPh": "Izoh qoldiring",
+  "board.commentSubmit": "Izoh yuborish",
+  "board.needTitle": "Sarlavhani kiriting.",
+  "board.needBody": "Xabarni kiriting.",
+  "board.needComment": "Izohni kiriting.",
+  "board.saveError": "Xabar saqlanmadi.",
+  "board.commentError": "Izoh saqlanmadi.",
+  "auth.modalTitle": "Kirish",
+  "auth.modalDesc": "Google orqali davom eting, alohida ro‘yxatdan o‘tish shart emas.",
+  "auth.continueGoogle": "Google orqali davom etish",
+  "auth.loggedInAs": "Tizimga kirilgan",
+  "auth.logout": "Chiqish",
+  "auth.guest": "Mehmon",
+  "auth.login": "Kirish / Ro‘yxatdan o‘tish",
+  "auth.cancel": "Bekor qilish",
+  "auth.namePrompt": "Ko‘rsatiladigan ismni kiriting",
+  "auth.required": "Xabar yozish uchun tizimga kiring.",
+  "blog.all": "Barchasi",
+  "board.loading": "Yuklanmoqda…"
+});
+window.I18N.uz["board.officialName"] = window.I18N.uz["brand.name"];
+Object.assign(window.I18N.th, {
+  "board.error": "โหลดกระดานสนทนาไม่สำเร็จ โปรดลองอีกครั้งภายหลัง",
+  "board.note": "ทุกคนสามารถฝากคำถามได้ คำตอบจะเผยแพร่หลังการตรวจสอบ",
+  "board.write": "เขียนโพสต์",
+  "board.empty": "ยังไม่มีโพสต์",
+  "board.answered": "ตอบแล้ว",
+  "board.back": "← กลับไปที่รายการ",
+  "board.name": "ชื่อเล่น",
+  "board.anonymous": "ไม่ระบุชื่อ",
+  "board.namePh": "ชื่อที่แสดง",
+  "board.postTitle": "หัวข้อ",
+  "board.titlePh": "กรอกหัวข้อ",
+  "board.body": "ข้อความ",
+  "board.bodyPh": "เขียนคำถามของคุณ",
+  "board.cancel": "ยกเลิก",
+  "board.submit": "ส่ง",
+  "board.official": "ทางการ",
+  "board.comments": "ความคิดเห็น",
+  "board.commentEmpty": "ยังไม่มีความคิดเห็น",
+  "board.commentPh": "เขียนความคิดเห็น",
+  "board.commentSubmit": "ส่งความคิดเห็น",
+  "board.needTitle": "โปรดกรอกหัวข้อ",
+  "board.needBody": "โปรดกรอกข้อความ",
+  "board.needComment": "โปรดกรอกความคิดเห็น",
+  "board.saveError": "บันทึกโพสต์ไม่สำเร็จ",
+  "board.commentError": "บันทึกความคิดเห็นไม่สำเร็จ",
+  "auth.modalTitle": "เข้าสู่ระบบ",
+  "auth.modalDesc": "ดำเนินการต่อด้วย Google โดยไม่ต้องสมัครแยก",
+  "auth.continueGoogle": "ดำเนินการต่อด้วย Google",
+  "auth.loggedInAs": "เข้าสู่ระบบแล้ว",
+  "auth.logout": "ออกจากระบบ",
+  "auth.guest": "ผู้เยี่ยมชม",
+  "auth.login": "เข้าสู่ระบบ / สมัครสมาชิก",
+  "auth.cancel": "ยกเลิก",
+  "auth.namePrompt": "กรอกชื่อที่แสดง",
+  "auth.required": "โปรดเข้าสู่ระบบเพื่อโพสต์",
+  "blog.all": "ทั้งหมด",
+  "board.loading": "กำลังโหลด…"
+});
+window.I18N.th["board.officialName"] = window.I18N.th["brand.name"];
+Object.assign(window.I18N.km, {
+  "board.error": "មិនអាចផ្ទុកវេទិកាបានទេ។ សូមព្យាយាមម្ដងទៀតពេលក្រោយ។",
+  "board.note": "អ្នកគ្រប់គ្នាអាចសួរសំណួរបាន។ ចម្លើយនឹងផ្សាយបន្ទាប់ពីការពិនិត្យ។",
+  "board.write": "សរសេរប្រកាស",
+  "board.empty": "មិនទាន់មានប្រកាសទេ។",
+  "board.answered": "បានឆ្លើយ",
+  "board.back": "← ត្រឡប់ទៅបញ្ជី",
+  "board.name": "ឈ្មោះហៅក្រៅ",
+  "board.anonymous": "អនាមិក",
+  "board.namePh": "ឈ្មោះបង្ហាញ",
+  "board.postTitle": "ចំណងជើង",
+  "board.titlePh": "បញ្ចូលចំណងជើង",
+  "board.body": "ខ្លឹមសារ",
+  "board.bodyPh": "សរសេរសំណួររបស់អ្នក",
+  "board.cancel": "បោះបង់",
+  "board.submit": "ផ្ញើ",
+  "board.official": "ផ្លូវការ",
+  "board.comments": "មតិយោបល់",
+  "board.commentEmpty": "មិនទាន់មានមតិយោបល់ទេ។",
+  "board.commentPh": "សរសេរមតិយោបល់",
+  "board.commentSubmit": "ផ្ញើមតិយោបល់",
+  "board.needTitle": "សូមបញ្ចូលចំណងជើង។",
+  "board.needBody": "សូមបញ្ចូលខ្លឹមសារ។",
+  "board.needComment": "សូមបញ្ចូលមតិយោបល់។",
+  "board.saveError": "មិនអាចរក្សាទុកប្រកាសបានទេ។",
+  "board.commentError": "មិនអាចរក្សាទុកមតិយោបល់បានទេ។",
+  "auth.modalTitle": "ចូលគណនី",
+  "auth.modalDesc": "បន្តជាមួយ Google ដោយមិនចាំបាច់ចុះឈ្មោះដាច់ដោយឡែក។",
+  "auth.continueGoogle": "បន្តជាមួយ Google",
+  "auth.loggedInAs": "បានចូលគណនី",
+  "auth.logout": "ចាកចេញ",
+  "auth.guest": "ភ្ញៀវ",
+  "auth.login": "ចូលគណនី / ចុះឈ្មោះ",
+  "auth.cancel": "បោះបង់",
+  "auth.namePrompt": "បញ្ចូលឈ្មោះបង្ហាញ",
+  "auth.required": "សូមចូលគណនីដើម្បីសរសេរប្រកាស។",
+  "blog.all": "ទាំងអស់",
+  "board.loading": "កំពុងផ្ទុក…"
+});
+window.I18N.km["board.officialName"] = window.I18N.km["brand.name"];
+Object.assign(window.I18N.si, {
+  "board.error": "සංවාද මණ්ඩපය පූරණය කළ නොහැකි විය. පසුව නැවත උත්සාහ කරන්න.",
+  "board.note": "ඕනෑම අයෙකුට ප්‍රශ්නයක් යොමු කළ හැක. සමාලෝචනයෙන් පසු පිළිතුරු පළ කෙරේ.",
+  "board.write": "සටහනක් ලියන්න",
+  "board.empty": "තවම සටහන් නොමැත.",
+  "board.answered": "පිළිතුරු දී ඇත",
+  "board.back": "← ලැයිස්තුවට",
+  "board.name": "අන්වර්ථ නාමය",
+  "board.anonymous": "නිර්නාමික",
+  "board.namePh": "පෙන්වන නම",
+  "board.postTitle": "මාතෘකාව",
+  "board.titlePh": "මාතෘකාව ඇතුළත් කරන්න",
+  "board.body": "පණිවිඩය",
+  "board.bodyPh": "ඔබේ ප්‍රශ්නය ලියන්න",
+  "board.cancel": "අවලංගු කරන්න",
+  "board.submit": "යවන්න",
+  "board.official": "නිල",
+  "board.comments": "අදහස්",
+  "board.commentEmpty": "තවම අදහස් නොමැත.",
+  "board.commentPh": "අදහසක් ලියන්න",
+  "board.commentSubmit": "අදහස පළ කරන්න",
+  "board.needTitle": "මාතෘකාව ඇතුළත් කරන්න.",
+  "board.needBody": "පණිවිඩයක් ඇතුළත් කරන්න.",
+  "board.needComment": "අදහසක් ඇතුළත් කරන්න.",
+  "board.saveError": "සටහන සුරැකිය නොහැකි විය.",
+  "board.commentError": "අදහස සුරැකිය නොහැකි විය.",
+  "auth.modalTitle": "පිවිසෙන්න",
+  "auth.modalDesc": "වෙනම ලියාපදිංචි වීමකින් තොරව Google සමඟ ඉදිරියට යන්න.",
+  "auth.continueGoogle": "Google සමඟ ඉදිරියට යන්න",
+  "auth.loggedInAs": "පිවිසී ඇත",
+  "auth.logout": "ඉවත් වන්න",
+  "auth.guest": "අමුත්තා",
+  "auth.login": "පිවිසීම / ලියාපදිංචිය",
+  "auth.cancel": "අවලංගු කරන්න",
+  "auth.namePrompt": "පෙන්වන නම ඇතුළත් කරන්න",
+  "auth.required": "සටහනක් පළ කිරීමට පිවිසෙන්න.",
+  "blog.all": "සියල්ල",
+  "board.loading": "පූරණය වෙමින්…"
+});
+window.I18N.si["board.officialName"] = window.I18N.si["brand.name"];
+Object.assign(window.I18N.ne, {
+  "board.error": "फोरम लोड गर्न सकिएन। कृपया पछि फेरि प्रयास गर्नुहोस्।",
+  "board.note": "सबैले प्रश्न राख्न सक्छन्। समीक्षापछि जवाफ प्रकाशित गरिन्छ।",
+  "board.write": "पोस्ट लेख्नुहोस्",
+  "board.empty": "अहिलेसम्म कुनै पोस्ट छैन।",
+  "board.answered": "जवाफ दिइएको",
+  "board.back": "← सूचीमा फर्कनुहोस्",
+  "board.name": "उपनाम",
+  "board.anonymous": "अज्ञात",
+  "board.namePh": "देखाइने नाम",
+  "board.postTitle": "शीर्षक",
+  "board.titlePh": "शीर्षक लेख्नुहोस्",
+  "board.body": "सन्देश",
+  "board.bodyPh": "आफ्नो प्रश्न लेख्नुहोस्",
+  "board.cancel": "रद्द गर्नुहोस्",
+  "board.submit": "पठाउनुहोस्",
+  "board.official": "आधिकारिक",
+  "board.comments": "टिप्पणीहरू",
+  "board.commentEmpty": "अहिलेसम्म टिप्पणी छैन।",
+  "board.commentPh": "टिप्पणी लेख्नुहोस्",
+  "board.commentSubmit": "टिप्पणी पठाउनुहोस्",
+  "board.needTitle": "कृपया शीर्षक लेख्नुहोस्।",
+  "board.needBody": "कृपया सन्देश लेख्नुहोस्।",
+  "board.needComment": "कृपया टिप्पणी लेख्नुहोस्।",
+  "board.saveError": "पोस्ट सुरक्षित गर्न सकिएन।",
+  "board.commentError": "टिप्पणी सुरक्षित गर्न सकिएन।",
+  "auth.modalTitle": "लगइन",
+  "auth.modalDesc": "छुट्टै दर्ताबिना Google बाट जारी राख्नुहोस्।",
+  "auth.continueGoogle": "Google बाट जारी राख्नुहोस्",
+  "auth.loggedInAs": "लगइन भएको",
+  "auth.logout": "लगआउट",
+  "auth.guest": "अतिथि",
+  "auth.login": "लगइन / दर्ता",
+  "auth.cancel": "रद्द गर्नुहोस्",
+  "auth.namePrompt": "देखाइने नाम लेख्नुहोस्",
+  "auth.required": "पोस्ट गर्न कृपया लगइन गर्नुहोस्।",
+  "blog.all": "सबै",
+  "board.loading": "लोड हुँदैछ…"
+});
+window.I18N.ne["board.officialName"] = window.I18N.ne["brand.name"];
+Object.assign(window.I18N.mn, {
+  "board.error": "Форумыг ачаалж чадсангүй. Дараа дахин оролдоно уу.",
+  "board.note": "Хүн бүр асуулт үлдээж болно. Хянасны дараа хариултыг нийтэлнэ.",
+  "board.write": "Нийтлэл бичих",
+  "board.empty": "Одоогоор нийтлэл алга.",
+  "board.answered": "Хариулсан",
+  "board.back": "← Жагсаалт руу",
+  "board.name": "Хоч",
+  "board.anonymous": "Нэргүй",
+  "board.namePh": "Харагдах нэр",
+  "board.postTitle": "Гарчиг",
+  "board.titlePh": "Гарчиг оруулна уу",
+  "board.body": "Зурвас",
+  "board.bodyPh": "Асуултаа бичнэ үү",
+  "board.cancel": "Цуцлах",
+  "board.submit": "Илгээх",
+  "board.official": "Албан ёсны",
+  "board.comments": "Сэтгэгдлүүд",
+  "board.commentEmpty": "Одоогоор сэтгэгдэл алга.",
+  "board.commentPh": "Сэтгэгдэл бичих",
+  "board.commentSubmit": "Сэтгэгдэл илгээх",
+  "board.needTitle": "Гарчиг оруулна уу.",
+  "board.needBody": "Зурвас оруулна уу.",
+  "board.needComment": "Сэтгэгдэл оруулна уу.",
+  "board.saveError": "Нийтлэлийг хадгалж чадсангүй.",
+  "board.commentError": "Сэтгэгдлийг хадгалж чадсангүй.",
+  "auth.modalTitle": "Нэвтрэх",
+  "auth.modalDesc": "Тусдаа бүртгэлгүйгээр Google-ээр үргэлжлүүлнэ үү.",
+  "auth.continueGoogle": "Google-ээр үргэлжлүүлэх",
+  "auth.loggedInAs": "Нэвтэрсэн",
+  "auth.logout": "Гарах",
+  "auth.guest": "Зочин",
+  "auth.login": "Нэвтрэх / Бүртгүүлэх",
+  "auth.cancel": "Цуцлах",
+  "auth.namePrompt": "Харагдах нэрээ оруулна уу",
+  "auth.required": "Нийтлэл бичихийн тулд нэвтэрнэ үү.",
+  "blog.all": "Бүгд",
+  "board.loading": "Ачаалж байна…"
+});
+window.I18N.mn["board.officialName"] = window.I18N.mn["brand.name"];
 
 /* ── apply (with English → Korean fallback for untranslated keys) ── */
 window.applyLang = function(code){
@@ -3206,6 +3803,14 @@ window.applyLang = function(code){
   });
   document.querySelectorAll("[data-i18n-aria]").forEach(function(el){
     var v = L(el.getAttribute("data-i18n-aria")); if(v != null) el.setAttribute("aria-label", v);
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach(function(el){
+    var v = L(el.getAttribute("data-i18n-title")); if(v != null) el.setAttribute("title", v.replace(/\n/g, ", "));
+  });
+  document.querySelectorAll("[data-office-map]").forEach(function(el){
+    var url = new URL(el.getAttribute("src"));
+    url.searchParams.set("hl", code === "zh" ? "zh-CN" : code);
+    if(el.getAttribute("src") !== url.href) el.setAttribute("src", url.href);
   });
   var titleEl = document.querySelector("title[data-i18n]");
   if(titleEl){ var tv = L(titleEl.getAttribute("data-i18n")); if(tv) document.title = tv; }

@@ -66,7 +66,10 @@
   }
   async function getPost(id) {
     if (mode === "api") {
-      try { return (await apiGet("?id=" + encodeURIComponent(id))).post; } catch (e) { mode = "local"; }
+      try {
+        const response = await apiGet("?id=" + encodeURIComponent(id) + "&lang=" + encodeURIComponent(curLang()));
+        return response.post;
+      } catch (e) { return null; }
     }
     var p = lEnsure().filter(function (x) { return x.id === id; })[0];
     return p ? { id: p.id, title: p.title, cat: p.cat, body: p.body, image: p.image || "", ts: p.ts } : null;
@@ -117,7 +120,7 @@
     if (!p) { view.mode = "list"; return render(); }
     blog.innerHTML =
       '<button class="bd-back" data-act="back">' + esc(tr("board.back")) + "</button>"
-      + '<article class="bd-post">'
+      + '<article class="bd-post' + ((p.body || '').indexOf('class="case-detail"') >= 0 ? ' bd-post--designed' : '') + '">'
       + (p.image ? '<div class="bd-post-cover"><img src="' + esc(p.image) + '" alt=""></div>' : "")
       + '<h2 class="bd-post-title">' + esc(p.title) + "</h2>"
       + '<div class="bd-post-meta">'

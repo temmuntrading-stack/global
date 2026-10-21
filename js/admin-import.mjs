@@ -33,13 +33,13 @@ window.openBlogImport = function(){
     const auth={session:localStorage.getItem('glo-admin-sess')||'',idToken:localStorage.getItem('glo-admin-tok')||'',key:localStorage.getItem('glo-admin-key')||''};
     const requestImport=async payload=>{
       const body=JSON.stringify({...auth,...payload});
-      for(let attempt=0;attempt<3;attempt++){
+      for(let attempt=0;attempt<5;attempt++){
         let response;
         try{response=await fetch('/api/blog-import',{method:'POST',headers:{'content-type':'application/json'},body});}
-        catch(e){if(attempt===2)throw Error('네트워크 연결 오류: '+e.message);await new Promise(r=>setTimeout(r,1000*(attempt+1)));continue;}
+        catch(e){if(attempt===4)throw Error('네트워크 연결 오류: '+e.message);status.textContent='연결 복구를 기다린 뒤 재시도합니다. '+(attempt+1)+'/5';await new Promise(r=>setTimeout(r,3000*2**attempt));continue;}
         const data=await response.json().catch(()=>({}));
         if(response.ok)return data;
-        if((response.status===429||response.status>=500)&&attempt<2){await new Promise(r=>setTimeout(r,1000*(attempt+1)));continue;}
+        if((response.status===429||response.status>=500)&&attempt<4){status.textContent='HTTP '+response.status+' · 서버 응답을 기다린 뒤 재시도합니다. '+(attempt+1)+'/5';await new Promise(r=>setTimeout(r,3000*2**attempt));continue;}
         if([401,403,404,405,503].includes(response.status))stop=true;
         throw Error((data.error||'서버 응답을 확인하세요.')+' (HTTP '+response.status+')');
       }
@@ -59,8 +59,9 @@ window.openBlogImport = function(){
           const copy={...post,blocks:post.blocks.map(b=>({...b}))};
           const images=[...new Set(copy.blocks.filter(b=>b.type==='image').map(b=>b.url))];
           const missing=images.filter(url=>!imageCache.has(url));
-          for(let i=0;i<missing.length;i+=3){
-            const migrated=await requestImport({action:'images',images:missing.slice(i,i+3).map(original=>sourceImages[original]?{original,dataUrl:sourceImages[original]}:original)});
+          const imageBatchSize=missing.some(url=>sourceImages[url])?1:3;
+          for(let i=0;i<missing.length;i+=imageBatchSize){
+            const migrated=await requestImport({action:'images',images:missing.slice(i,i+imageBatchSize).map(original=>sourceImages[original]?{original,dataUrl:sourceImages[original]}:original)});
             if(!Array.isArray(migrated.images))throw Error('이미지 이전 결과를 확인하지 못했습니다.');
             for(const image of migrated.images){if(image.error||!image.url)throw Error(image.error||'이미지 이전 실패');imageCache.set(image.original,image.url);}
           }

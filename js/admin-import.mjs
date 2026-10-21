@@ -5,14 +5,14 @@ window.openBlogImport = function(){
   const dialog=document.createElement('dialog');dialog.id='blog-import-dialog';dialog.className='blog-import-dialog';
   dialog.innerHTML='<form method="dialog"><button class="ax-btn" id="import-close">닫기</button></form><h2>네이버 글 일괄 가져오기</h2><p>한국어 글로 등록하고 원문 카테고리와 게시일을 유지합니다. 이미지는 사이트 저장소로 옮기고, 같은 원문은 중복 등록하지 않습니다.</p><label class="import-file">이전 자료 선택 <input id="import-file" type="file" accept=".json,application/json"></label><p id="import-summary" role="status"></p><progress id="import-progress" max="1" value="0"></progress><p id="import-status" role="status" aria-live="polite"></p><div class="import-actions"><button class="ax-btn pri" id="import-run" disabled>일괄 등록 시작</button><button class="ax-btn" id="import-stop" disabled>현재 글 처리 후 중지</button><button class="ax-btn" id="import-retry" hidden>실패 자료 내려받기</button></div><details><summary>상세페이지 디자인 미리보기</summary><iframe id="import-preview" title="상세페이지 미리보기" sandbox></iframe></details>';
   document.body.appendChild(dialog);dialog.showModal();
-  let posts=[],failed=[],running=false,stop=false;
+  let posts=[],failed=[],running=false,stop=false,sourceImages={};
   const $=id=>dialog.querySelector('#'+id),status=$('import-status');
   dialog.addEventListener('close',()=>{if(!running)dialog.remove();});
   dialog.addEventListener('cancel',e=>{if(running)e.preventDefault();});
   $('import-file').addEventListener('change',async e=>{
     try{
       const file=e.target.files[0];if(!file)return;if(file.size>40*1024*1024)throw Error('40MB 이하의 JSON 파일을 선택하세요.');
-      const data=JSON.parse(await file.text());posts=Array.isArray(data)?data:data.posts;
+      const data=JSON.parse(await file.text());posts=Array.isArray(data)?data:data.posts;sourceImages=data.images||{};
       if(!Array.isArray(posts)||!posts.length)throw Error('등록할 글이 없습니다.');
       posts.forEach(validatePost);
       $('import-summary').textContent=posts.length.toLocaleString()+'개 글 · 한국어 · 원문 카테고리별 분류';
@@ -50,7 +50,7 @@ window.openBlogImport = function(){
           const images=[...new Set(copy.blocks.filter(b=>b.type==='image').map(b=>b.url))];
           const missing=images.filter(url=>!imageCache.has(url));
           for(let i=0;i<missing.length;i+=3){
-            const migrated=await requestImport({action:'images',images:missing.slice(i,i+3)});
+            const migrated=await requestImport({action:'images',images:missing.slice(i,i+3).map(original=>sourceImages[original]?{original,dataUrl:sourceImages[original]}:original)});
             if(!Array.isArray(migrated.images))throw Error('이미지 이전 결과를 확인하지 못했습니다.');
             for(const image of migrated.images){if(image.error||!image.url)throw Error(image.error||'이미지 이전 실패');imageCache.set(image.original,image.url);}
           }

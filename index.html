@@ -119,20 +119,47 @@
   </div>
 </section>
 
-<!-- ════ CTA ════ -->
-<section class="section" style="padding-top:0;" data-screen-label="홈 CTA">
-  <div class="wrap">
-    <div class="cta-band reveal">
-      <h2 class="h1" data-i18n="home.cta.title"></h2>
-      <p class="lead" data-i18n="home.cta.desc"></p>
-      <div class="btns">
-        <a class="btn btn--gold btn--lg" href="contact.html" data-i18n="btn.consult"></a>
-        <a class="btn btn--ghost btn--lg" href="tel:+82222772442"><span class="num">02 2277 2442</span></a>
-      </div>
+<!-- ════ 오시는 길 ════ -->
+<section class="office-location" id="location" aria-labelledby="location-title">
+  <div class="location-motion" aria-hidden="true">
+    <span class="location-glow location-glow--one"></span>
+    <span class="location-glow location-glow--two"></span>
+    <svg class="location-flow" viewBox="0 0 1600 800" preserveAspectRatio="xMidYMid slice" fill="none">
+      <g class="location-waves">
+        <path d="M-200 580C180 150 470 850 880 420S1410 120 1800 340"/>
+        <path d="M-200 610C180 180 470 880 880 450S1410 150 1800 370"/>
+        <path d="M-200 640C180 210 470 910 880 480S1410 180 1800 400"/>
+        <path d="M-200 670C180 240 470 940 880 510S1410 210 1800 430"/>
+        <path d="M-200 700C180 270 470 970 880 540S1410 240 1800 460"/>
+      </g>
+      <g class="location-traces">
+        <path d="M-200 580C180 150 470 850 880 420S1410 120 1800 340"/>
+        <path d="M-200 670C180 240 470 940 880 510S1410 210 1800 430"/>
+      </g>
+    </svg>
+    <span class="location-spark location-spark--one"></span>
+    <span class="location-spark location-spark--two"></span>
+    <span class="location-spark location-spark--three"></span>
+  </div>
+  <div class="wrap location-grid">
+    <div class="location-info">
+      <span class="location-eyebrow" data-i18n="loc.eyebrow">CONTACT &amp; LOCATION</span>
+      <h2 id="location-title" data-i18n="loc.title">글로벌 법률사무소<br>오시는 길</h2>
+      <div class="location-rule"></div>
+      <p class="location-address" data-i18n="loc.address">서울시 중구 을지로 254,<br>타임캐슬 오피스텔 301호</p>
+      <dl class="location-details">
+        <div><dt data-i18n="ci.phone.k">전화번호</dt><dd><a href="tel:0222772442">02-2277-2442</a></dd></div>
+        <div><dt data-i18n="loc.buildingLabel">건물 안내</dt><dd data-i18n="loc.building">타임캐슬 오피스텔 · 301호</dd></div>
+      </dl>
     </div>
+    <div class="location-map">
+      <iframe data-office-map data-i18n-title="loc.address" title="글로벌 법률사무소 — 을지로 254 위치 지도" src="https://maps.google.com/maps?q=서울시%20중구%20을지로%20254&amp;output=embed&amp;z=17" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      <div class="location-mapbar"><span data-i18n="brand.name">글로벌 법률사무소</span><a href="https://map.naver.com/p/search/서울시%20중구%20을지로%20254" target="_blank" rel="noopener noreferrer"><span data-i18n="loc.map">네이버 지도 보기</span> ↗</a></div>
+    </div>
+    <div class="location-card"><span class="location-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span><div><h3 data-i18n="loc.visit">방문 안내</h3><p data-i18n="loc.visitText">타임캐슬 오피스텔 301호로 방문해 주세요.</p></div></div>
+    <div class="location-card"><span class="location-icon location-parking" aria-hidden="true">P</span><div><h3 data-i18n="loc.parking">주차 안내</h3><p data-i18n="loc.parkingText">건물 내 지하주차장 이용</p></div></div>
   </div>
 </section>
-
 <footer id="site-foot"></footer>
 
 <script src="image-slot.js"></script>

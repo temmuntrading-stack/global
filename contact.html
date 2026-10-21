@@ -72,27 +72,28 @@
       <!-- form -->
       <div class="card reveal" data-d="1">
         <h2 class="h3" style="margin-bottom:8px;" data-i18n="contact.form.title"></h2>
-        <div class="form-ok" id="formOk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="f.success"></span></div>
+        <div class="form-ok" id="formOk" role="status" aria-live="polite"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="f.success"></span></div>
+        <p id="formError" class="form-error" role="alert" hidden></p>
         <form class="form" id="consultForm" style="margin-top:18px;">
           <div class="field">
-            <label data-i18n="f.name"></label>
-            <input type="text" name="name" required data-i18n-ph="f.name.ph">
+            <label for="cf-name" data-i18n="f.name"></label>
+            <input type="text" id="cf-name" name="name" maxlength="60" required data-i18n-ph="f.name.ph">
           </div>
           <div class="field-row">
-            <div class="field"><label data-i18n="f.email"></label><input type="email" name="email" required data-i18n-ph="f.email.ph"></div>
-            <div class="field"><label data-i18n="f.phone"></label><input type="tel" name="phone" data-i18n-ph="f.phone.ph"></div>
+            <div class="field"><label for="cf-email" data-i18n="f.email"></label><input type="email" id="cf-email" name="email" maxlength="120" required data-i18n-ph="f.email.ph"></div>
+            <div class="field"><label for="cf-phone" data-i18n="f.phone"></label><input type="tel" id="cf-phone" name="phone" maxlength="40" data-i18n-ph="f.phone.ph"></div>
           </div>
           <div class="field-row">
-            <div class="field"><label data-i18n="f.lang"></label>
+            <div class="field"><label for="cf-lang" data-i18n="f.lang"></label>
               <select name="lang" id="cf-lang"><option value="ko">한국어</option></select>
             </div>
-            <div class="field"><label data-i18n="f.area"></label>
+            <div class="field"><label for="cf-area" data-i18n="f.area"></label>
               <select name="area" id="cf-area"><option></option></select>
             </div>
           </div>
           <div class="field">
-            <label data-i18n="f.msg"></label>
-            <textarea name="message" required data-i18n-ph="f.msg.ph"></textarea>
+            <label for="cf-message" data-i18n="f.msg"></label>
+            <textarea id="cf-message" name="message" maxlength="5000" required data-i18n-ph="f.msg.ph"></textarea>
           </div>
           <button type="submit" class="btn btn--gold btn--lg" style="width:100%;" data-i18n="f.submit"></button>
           <p class="form-note" data-i18n="f.note"></p>
@@ -102,18 +103,18 @@
   </div>
 </section>
 
-<!-- ════ MAP (OpenStreetMap 오픈데이터 지도) ════ -->
-<section class="section section--tight" data-screen-label="오시는 길">
+<!-- ════ MAP — same office address as the home page ════ -->
+<section class="section section--tight" id="location" data-screen-label="오시는 길">
   <div class="wrap">
     <div class="mapbox reveal">
-      <iframe class="map-embed" title="글로벌 법률사무소 위치 (을지로 254)" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-        src="https://www.openstreetmap.org/export/embed.html?bbox=126.9862%2C37.5631%2C126.9982%2C37.5695&amp;layer=mapnik&amp;marker=37.5663%2C126.9922"></iframe>
+      <iframe class="map-embed" data-office-map data-i18n-title="loc.address" title="서울시 중구 을지로 254, 타임캐슬 오피스텔 301호" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+        src="https://maps.google.com/maps?q=서울시%20중구%20을지로%20254&amp;output=embed&amp;z=17"></iframe>
     </div>
+    <div class="location-card contact-parking"><div><h3 data-i18n="loc.parking"></h3><p data-i18n="loc.parkingText"></p></div></div>
     <div class="map-foot2">
-      <span class="addr" data-i18n="ci.addr.v"></span>
+      <span class="addr" data-i18n="loc.address"></span>
       <span class="map-links">
-        <a class="btn btn--ghost" href="https://www.openstreetmap.org/?mlat=37.5663&mlon=126.9922#map=17/37.5663/126.9922" target="_blank" rel="noopener">OpenStreetMap</a>
-        <a class="btn btn--ghost" href="https://map.naver.com/p/search/%EC%9D%84%EC%A7%80%EB%A1%9C%20254" target="_blank" rel="noopener" data-i18n="contact.map.label"></a>
+        <a class="btn btn--ghost" href="https://map.naver.com/p/search/서울시%20중구%20을지로%20254" target="_blank" rel="noopener" data-i18n="contact.map.label"></a>
       </span>
     </div>
   </div>

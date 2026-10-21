@@ -26,20 +26,28 @@ window.openBlogImport = function(){
   $('import-stop').addEventListener('click',()=>{stop=true;status.textContent='진행 중인 글을 마무리한 뒤 멈춥니다. 같은 파일로 다시 시작하면 완료한 글은 건너뜁니다.';});
   $('import-run').addEventListener('click',async()=>{
     if(running||!posts.length)return;running=true;stop=false;failed=[];
-    const stats={created:0,updated:0,skipped:0,error:0};let cursor=0,done=0;
+    const stats={created:0,updated:0,skipped:0,error:0};let cursor=0,done=0,lastFailure='';
+    status.textContent='원본 이미지와 글을 등록하고 있습니다.';
     $('import-run').disabled=true;$('import-stop').disabled=false;$('import-close').disabled=true;$('import-file').disabled=true;$('import-retry').hidden=true;
     $('import-progress').max=totalPosts;
     const auth={session:localStorage.getItem('glo-admin-sess')||'',idToken:localStorage.getItem('glo-admin-tok')||'',key:localStorage.getItem('glo-admin-key')||''};
     const requestImport=async payload=>{
-      const response=await fetch('/api/blog-import',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...auth,...payload})});
-      const data=await response.json().catch(()=>({}));
-      if(!response.ok){if([401,403,404,405,503].includes(response.status))stop=true;throw Error(data.error||'서버 연결을 확인하세요.');}
-      return data;
+      const body=JSON.stringify({...auth,...payload});
+      for(let attempt=0;attempt<3;attempt++){
+        let response;
+        try{response=await fetch('/api/blog-import',{method:'POST',headers:{'content-type':'application/json'},body});}
+        catch(e){if(attempt===2)throw Error('네트워크 연결 오류: '+e.message);await new Promise(r=>setTimeout(r,1000*(attempt+1)));continue;}
+        const data=await response.json().catch(()=>({}));
+        if(response.ok)return data;
+        if((response.status===429||response.status>=500)&&attempt<2){await new Promise(r=>setTimeout(r,1000*(attempt+1)));continue;}
+        if([401,403,404,405,503].includes(response.status))stop=true;
+        throw Error((data.error||'서버 응답을 확인하세요.')+' (HTTP '+response.status+')');
+      }
     };
     const imageCache=new Map();
     let existingSources=new Set();
     try{const existing=await requestImport({action:'existing'});existingSources=new Set(existing.sourceUrls||[]);}
-    catch(e){stop=true;status.textContent=e.message;}
+    catch(e){stop=true;lastFailure=e.message;status.textContent=e.message;}
     const progress=()=>{
       done++;$('import-progress').value=done;
       $('import-summary').textContent=done+' / '+totalPosts+' · 신규 '+stats.created+' · 갱신 '+stats.updated+' · 중복 '+stats.skipped+' · 실패 '+stats.error;
@@ -60,7 +68,7 @@ window.openBlogImport = function(){
           const data=await requestImport({posts:[copy]});
           const result=data.results?.[0];if(!result||result.status==='error')throw Error(result?.error||'저장 결과를 확인하지 못했습니다.');
           stats[result.status]++;
-        }catch(e){stats.error++;failed.push(post);status.textContent=e.message;}
+        }catch(e){stats.error++;failed.push(post);lastFailure=e.message;status.textContent=e.message;}
         progress();
       }
     };
@@ -72,12 +80,12 @@ window.openBlogImport = function(){
         posts.forEach(validatePost);cursor=0;
         await Promise.all([worker(),worker(),worker()]);
       }
-    }catch(e){stop=true;status.textContent=e.message;}
+    }catch(e){stop=true;lastFailure=e.message;status.textContent=e.message;}
     running=false;$('import-run').disabled=false;$('import-stop').disabled=true;$('import-close').disabled=false;$('import-file').disabled=false;
     if(stop&&batchIndex>=0&&cursor<posts.length)failed.push(...posts.slice(cursor));
     if(stop)for(let i=batchIndex+1;i<files.length;i++){const next=JSON.parse(await files[i].text());failed.push(...(Array.isArray(next)?next:next.posts));}
     $('import-retry').hidden=!failed.length;
-    status.textContent=stop?'중지되었습니다. 같은 자료 파일을 다시 선택하면 완료한 글은 건너뜁니다.':failed.length?'등록이 끝났습니다. 실패한 글은 원본 자료를 다시 선택해 재시도할 수 있습니다.':'전체 등록이 완료되었습니다. 관리자 목록을 새로고침해 확인하세요.';
+    status.textContent=stop?'중지되었습니다. '+lastFailure+' 같은 자료 파일로 다시 시작하면 완료한 글은 건너뜁니다.':failed.length?'등록이 끝났습니다. '+lastFailure+' 실패한 글은 원본 자료를 다시 선택해 재시도할 수 있습니다.':'전체 등록이 완료되었습니다. 관리자 목록을 새로고침해 확인하세요.';
   });
   $('import-retry').addEventListener('click',()=>{
     const url=URL.createObjectURL(new Blob([JSON.stringify({version:1,blogId:'lawsqare',lang:'ko',posts:failed},null,2)],{type:'application/json'}));

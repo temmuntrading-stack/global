@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { renderCase,validatePost,sourceId } from '../js/case-layout.mjs';
-import { onRequest,migrateImage,allowedImageUrl } from '../functions/api/blog-import.js';
+import { onRequest,migrateImage,allowedImageUrl,uploadOriginalImage } from '../functions/api/blog-import.js';
 import { onRequest as publicBlog } from '../functions/api/blog.js';
 const post={sourceUrl:'https://blog.naver.com/lawsqare/224095160417',title:'법률정보 <제목>',cat:'형사소송',publishedAt:'2025. 12. 2. 9:30',blocks:[{type:'paragraph',text:'원문 문구 <script>alert(1)</script>'},{type:'heading',text:'검토할 사항'},{type:'paragraph',text:'법률 문구를 그대로 보존합니다.'},{type:'image',url:'https://postfiles.pstatic.net/test.png',alt:'원문 이미지'}]};
 function database(){const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../schema.sql',import.meta.url),'utf8'));return {async batch(statements){return Promise.all(statements.map(s=>s.run()));},prepare(query){return {bind(...args){this.args=args;return this;},async run(){return sql.prepare(query).run(...(this.args||[]));},async first(){return sql.prepare(query).get(...(this.args||[]))||null;},async all(){return {results:sql.prepare(query).all(...(this.args||[]))};}};}};}
@@ -25,6 +25,14 @@ test('image migration verifies MIME and size and deduplicates identical bytes in
  const url=await migrateImage(post.blocks[3].url,store,download);assert.ok(url.startsWith('/img/naver/'));await migrateImage(post.blocks[3].url,store,download);assert.equal(store.files.size,1);
  await assert.rejects(()=>migrateImage(post.blocks[3].url,store,async()=>new Response('<html>',{headers:{'content-type':'text/html'}})));
  await assert.rejects(()=>migrateImage(post.blocks[3].url,store,async()=>new Response(png,{headers:{'content-type':'image/png','content-length':String(9*1024*1024)}})));
+});
+test('authenticated image packages verify image signatures and deduplicate storage',async()=>{
+ const store=media(),original=post.blocks[3].url;
+ const dataUrl='data:image/png;base64,'+btoa(String.fromCharCode(137,80,78,71,13,10,26,10));
+ const path=await uploadOriginalImage({original,dataUrl},store);assert.ok(path.startsWith('/img/naver/'));
+ await uploadOriginalImage({original,dataUrl},store);assert.equal(store.files.size,1);
+ await assert.rejects(()=>uploadOriginalImage({original,dataUrl:'data:image/png;base64,PGh0bWw+'},store));
+ await assert.rejects(()=>uploadOriginalImage({original:'https://evil.test/image.png',dataUrl},store));
 });
 test('bulk import uses existing admin auth, Korean-only source deduplication and original publication date',async()=>{
  const env={DB:database(),MEDIA:media(),ADMIN_KEY:'local-test-only'};

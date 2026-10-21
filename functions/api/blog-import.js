@@ -4,6 +4,25 @@ import { renderCase, sourceId, validatePost } from '../../js/case-layout.mjs';
 const json = (data,status=200) => new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 const imageTypes = {'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif'};
 const MAX_IMAGE = 8*1024*1024;
+export async function storeImageBytes(bytes,type,media){
+  const valid=type==='image/png'?bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes[3]===71:
+    type==='image/jpeg'?bytes[0]===255&&bytes[1]===216&&bytes[2]===255:
+    type==='image/gif'?String.fromCharCode(...bytes.slice(0,6)).match(/^GIF8[79]a$/):
+    type==='image/webp'?String.fromCharCode(...bytes.slice(0,4))==='RIFF'&&String.fromCharCode(...bytes.slice(8,12))==='WEBP':false;
+  if(!bytes.length||bytes.length>MAX_IMAGE||!valid)throw new Error('이미지 형식 또는 크기를 확인하세요.');
+  const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
+  const key='naver/'+digest+'.'+imageTypes[type];
+  if(!(await media.head(key)))await media.put(key,bytes,{httpMetadata:{contentType:type,cacheControl:'public, max-age=31536000, immutable'}});
+  return '/img/'+key;
+}
+export async function uploadOriginalImage(item,media){
+  allowedImageUrl(item.original);
+  if(typeof item.dataUrl!=='string'||item.dataUrl.length>Math.ceil(MAX_IMAGE*4/3)+100)throw new Error('8MB 이하의 원본 이미지가 필요합니다.');
+  const match=item.dataUrl.match(/^data:(image\/(?:png|jpeg|gif|webp));base64,([A-Za-z0-9+/]+={0,2})$/);
+  if(!match)throw new Error('지원하지 않는 원본 이미지 형식');
+  const bytes=Uint8Array.from(atob(match[2]),c=>c.charCodeAt(0));
+  return storeImageBytes(bytes,match[1],media);
+}
 export function allowedImageUrl(value) {
   const url = new URL(value);
   if (url.protocol !== 'https:' || !url.hostname.endsWith('.pstatic.net') || url.username || url.password || (url.port && url.port !== '443')) throw new Error('네이버 원본 이미지 주소만 허용됩니다.');
@@ -23,10 +42,7 @@ export async function migrateImage(value, media, fetchImage=fetch) {
   const reader=response.body.getReader(), chunks=[];let total=0;
   while(true){const {done,value:chunk}=await reader.read();if(done)break;total+=chunk.length;if(total>MAX_IMAGE){await reader.cancel();throw new Error('8MB를 넘는 이미지');}chunks.push(chunk);}
   const bytes = new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-  const digest = [...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
-  const key='naver/'+digest+'.'+imageTypes[type];
-  if (!(await media.head(key))) await media.put(key,bytes,{httpMetadata:{contentType:type,cacheControl:'public, max-age=31536000, immutable'}});
-  return '/img/'+key;
+  return storeImageBytes(bytes,type,media);
 }
 const ready=new WeakSet();
 async function schema(db){
@@ -52,8 +68,9 @@ export async function onRequest({request,env}){
   if(data.action==='images'){
     if(!Array.isArray(data.images)||!data.images.length||data.images.length>3)return json({error:'이미지는 한 번에 최대 3개씩 처리합니다.'},400);
     const images=[];
-    for(const original of data.images){
-      try{images.push({original,url:await migrateImage(original,env.MEDIA)});}
+    for(const item of data.images){
+      const original=typeof item==='string'?item:item?.original;
+      try{images.push({original,url:typeof item==='string'?await migrateImage(original,env.MEDIA):await uploadOriginalImage(item,env.MEDIA)});}
       catch(e){images.push({original,error:e.message});}
     }
     return json({images});

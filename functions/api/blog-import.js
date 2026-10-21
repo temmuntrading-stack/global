@@ -20,7 +20,8 @@ export async function uploadOriginalImage(item,media){
   if(typeof item.dataUrl!=='string'||item.dataUrl.length>Math.ceil(MAX_IMAGE*4/3)+100)throw new Error('8MB 이하의 원본 이미지가 필요합니다.');
   const match=item.dataUrl.match(/^data:(image\/(?:png|jpeg|gif|webp));base64,([A-Za-z0-9+/]+={0,2})$/);
   if(!match)throw new Error('지원하지 않는 원본 이미지 형식');
-  const bytes=Uint8Array.from(atob(match[2]),c=>c.charCodeAt(0));
+  const binary=atob(match[2]),bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
   return storeImageBytes(bytes,match[1],media);
 }
 export function allowedImageUrl(value) {

@@ -1,0 +1,10 @@
+# Revalidate HTML and shared scripts/styles after deployments.
+# Uploaded /img/* media retains its immutable Functions response headers.
+/
+  Cache-Control: no-cache
+/:page
+  Cache-Control: no-cache
+/css/*
+  Cache-Control: no-cache
+/js/*
+  Cache-Control: no-cache

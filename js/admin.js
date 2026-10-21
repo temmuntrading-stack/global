@@ -837,9 +837,9 @@
       });
       var cards = shown.length ? shown.map(function (p) {
         var st = p.status === "draft" ? '<span class="ax-mag-badge draft">임시저장</span>' : '<span class="ax-mag-badge pub">발행됨</span>';
-        var cover = p.image ? ' style="background-image:url(' + esc(p.image) + ')"' : "";
+        var cover = p.image ? '<img src="' + esc(p.image) + '" alt="" loading="lazy" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">' : "";
         return '<div class="ax-mag-card">' +
-          '<div class="ax-mag-cover' + (p.image ? "" : " noimg") + '"' + cover + '>' + st + '</div>' +
+          '<div class="ax-mag-cover' + (p.image ? "" : " noimg") + '">' + cover + st + '</div>' +
           '<div class="ax-mag-info">' +
             '<h3>' + esc(p.title) + '</h3>' +
             '<div class="ax-mag-meta">' +

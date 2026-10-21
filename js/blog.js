@@ -101,7 +101,7 @@
     }
     var shown = view.cat === "all" ? posts : posts.filter(function (p) { return (p.cat || "") === view.cat; });
     var rows = shown.map(function (p) {
-      var thumb = p.image ? '<span class="bd-thumb" style="background-image:url(' + esc(p.image) + ')"></span>' : "";
+      var thumb = p.image ? '<span class="bd-thumb" style="position:relative;overflow:hidden"><img src="' + esc(p.image) + '" alt="" loading="lazy" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></span>' : "";
       return '<button class="bd-row bd-row--case" data-open="' + p.id + '">'
         + thumb
         + '<div class="bd-row-text"><div class="bd-row-main">'

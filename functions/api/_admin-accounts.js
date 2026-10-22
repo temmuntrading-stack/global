@@ -1,6 +1,5 @@
 // Private D1 tables: never expose password hashes or session secrets via /api/settings.
-import { pbkdf2Async } from '@noble/hashes/pbkdf2.js';
-import { sha256 } from '@noble/hashes/sha2.js';
+import { pbkdf2Async, sha256 } from './_password-kdf.js';
 const encoder = new TextEncoder();
 const ready = new WeakMap();
 export async function ensureAccounts(db) {

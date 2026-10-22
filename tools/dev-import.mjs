@@ -15,7 +15,7 @@ const dir=path.join(root,'imports','dev');fs.mkdirSync(dir,{recursive:true});
 const sql=new DatabaseSync(path.join(dir,'preview.sqlite'));sql.exec(fs.readFileSync(path.join(root,'schema.sql'),'utf8'));
 const DB={prepare(query){return {bind(...args){this.args=args;return this;},async run(){return sql.prepare(query).run(...(this.args||[]));},async first(){return sql.prepare(query).get(...(this.args||[]))||null;},async all(){return {results:sql.prepare(query).all(...(this.args||[]))};}};},async batch(statements){return Promise.all(statements.map(s=>s.run()));}};
 const MEDIA={async head(key){return fs.existsSync(path.join(dir,key))?{key}:null;},async put(key,bytes,opts){const dest=path.join(dir,key);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,bytes);fs.writeFileSync(dest+'.meta',opts.httpMetadata.contentType);}};
-const env={DB,MEDIA,ADMIN_KEY:'local-preview-only'};
+const env={DB,MEDIA,ADMIN_KEY:'local-preview-only',GOOGLE_CLIENT_ID:'63247179041-ru5odglslnh5kt41hkd6heqcqcbtf6n2.apps.googleusercontent.com'};
 const mime={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.mjs':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'};
 const server=http.createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1:'+port);

@@ -9,6 +9,8 @@ name = "global-law-office"
 compatibility_date = "2024-11-01"
 pages_build_output_dir = "."
 
+# Existing Google login verifies administrators without password hashing on Workers Free.
+
 # D1 바인딩 (wrangler.toml 기준 — 푸시 시 자동 적용)
 [[d1_databases]]
 binding = "DB"

@@ -25,6 +25,22 @@ html{ overflow-x:clip; }
 body.adm-body{ overflow-x:clip; }
 #admin svg{ display:block; }
 
+/* Administrator accounts reuse the dashboard cards and form controls. */
+.ax-accounts-layout{display:grid;grid-template-columns:minmax(280px,440px) minmax(0,1fr);gap:24px;align-items:start}
+.ax-accounts-layout .ax-card{min-width:0}
+.ax-account-access{font-size:13px;line-height:1.7;padding:14px 16px;border-radius:10px;background:var(--ax-blue-soft);color:var(--ax-ink-2)}
+.ax-account-message{font-size:13px;line-height:1.7;color:var(--ax-red);overflow-wrap:anywhere}
+.ax-account-message.success{color:#147d58}
+.ax-account-list{list-style:none;margin:0;padding:0 24px 20px}
+.ax-account-list li{display:flex;gap:12px;align-items:center;padding:18px 0;border-top:1px solid var(--ax-line)}
+.ax-account-list li>div{flex:1;min-width:0}
+.ax-account-list b{display:block;font-size:14px;overflow-wrap:anywhere}
+.ax-account-list small{display:block;margin-top:6px;font-size:12px;color:var(--ax-muted)}
+.ax-account-avatar{display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:11px;background:var(--ax-blue-soft);color:var(--ax-blue)}
+.ax-account-avatar svg{width:19px;height:19px}
+.ax-legacy-login{margin-top:20px;text-align:left;color:var(--ax-muted);font-size:12px}
+.ax-legacy-login summary{cursor:pointer;margin-bottom:16px}
+@media(max-width:1100px){.ax-accounts-layout{grid-template-columns:1fr}}
 /* ════════ 앱 셸 ════════ */
 .ax-app{ display:flex; min-height:100vh; }
 

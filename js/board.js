@@ -65,7 +65,7 @@
   // 로그인 보장: 이미 로그인돼 있으면 그 user, 아니면 signIn 모달. 취소 시 null.
   async function ensureUser() {
     var u = currentUser();
-    if (u) return u;
+    if (u && (u.idToken || !AuthGoogle.isConfigured())) return u;
     if (!window.AuthGoogle) return null;
     u = await AuthGoogle.signIn();
     return u || null;

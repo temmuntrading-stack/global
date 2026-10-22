@@ -36,7 +36,7 @@ export async function onRequest(context) {
     }
     if (request.method === "POST") {
       const b = await request.json().catch(() => ({}));
-      if (!(await isAdmin(env, b)).ok) return json({ error: "관리자 인증 실패" }, 403);
+      if (!(await isAdmin(env, b, request)).ok) return json({ error: "관리자 인증 실패" }, 403);
       const s = b.settings || {};
       const stmts = [];
       ALLOWED.forEach((k) => {

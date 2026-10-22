@@ -115,7 +115,7 @@ export async function onRequest(context) {
           name = clamp(v.name, 40) || "익명";
         }
         if (b.official) {
-          const adm = await isAdmin(env, b);
+          const adm = await isAdmin(env, b, request);
           if (!adm.ok) return json({ error: "관리자 인증에 실패했습니다." }, 403);
           official = 1;
           name = "글로벌 법률사무소";
@@ -131,7 +131,7 @@ export async function onRequest(context) {
     /* ── 관리자 삭제 ── */
     if (request.method === "DELETE") {
       const b = await request.json().catch(() => ({}));
-      const adm = await isAdmin(env, b);
+      const adm = await isAdmin(env, b, request);
       if (!adm.ok) return json({ error: "관리자 인증 실패" }, 403);
       if (b.type === "post" && b.id) {
         await db.prepare("DELETE FROM comments WHERE post_id=?").bind(b.id).run();

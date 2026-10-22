@@ -22,7 +22,7 @@ export async function onRequest(context) {
   let form;
   try { form = await request.formData(); } catch (e) { return json({ error: "form 파싱 실패" }, 400); }
 
-  const adm = await isAdmin(env, { key: form.get("key"), idToken: form.get("idToken") });
+  const adm = await isAdmin(env, { key: form.get("key"), idToken: form.get("idToken"), session: form.get("session") }, request);
   if (!adm.ok) return json({ error: "관리자 인증 실패" }, 403);
 
   const file = form.get("file");

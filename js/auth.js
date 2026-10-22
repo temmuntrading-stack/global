@@ -11,6 +11,7 @@
   var GOOGLE_CLIENT_ID = "63247179041-ru5odglslnh5kt41hkd6heqcqcbtf6n2.apps.googleusercontent.com";
 
   var STORE = "glo-user";
+  var memoryUser = null;
 
   /* ── i18n helper (board.js와 동일 구조) ── */
   function tr(k) {
@@ -24,18 +25,22 @@
 
   /* ── localStorage ── */
   function getUser() {
+    if (memoryUser) return memoryUser;
     try {
       var raw = localStorage.getItem(STORE);
       if (!raw) return null;
       var u = JSON.parse(raw);
       if (!u || !u.name) return null;
+      if (u.idToken) { delete u.idToken; localStorage.setItem(STORE, JSON.stringify(u)); }
       return u;
     } catch (e) { return null; }
   }
   function setUser(u) {
-    try { localStorage.setItem(STORE, JSON.stringify(u)); } catch (e) {}
+    memoryUser = u;
+    try { localStorage.setItem(STORE, JSON.stringify({name:u.name,email:u.email||"",picture:u.picture||""})); } catch (e) {}
   }
   function signOut() {
+    memoryUser = null;
     try { localStorage.removeItem(STORE); } catch (e) {}
     try {
       if (window.google && google.accounts && google.accounts.id) {
@@ -114,7 +119,7 @@
   }
 
   /* ── 실제 GIS 로그인 ── */
-  function gisSignIn(modal, done) {
+  function gisSignIn(modal, done, options) {
     try {
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
@@ -127,7 +132,7 @@
             picture: payload.picture || "",
             idToken: (resp && resp.credential) || ""
           };
-          setUser(u);
+          if (!options || options.persist !== false) setUser(u);
           done(u);
         }
       });
@@ -144,12 +149,12 @@
       try { google.accounts.id.prompt(); } catch (e) {}
     } catch (e) {
       // GIS 초기화 실패 시 폴백.
-      fallbackSignIn(modal, done);
+      if (options && options.requireGoogle) done(null); else fallbackSignIn(modal, done);
     }
   }
 
   /* ── signIn(): Promise<user|null> ── */
-  function signIn() {
+  function signIn(options) {
     return new Promise(function (resolve) {
       var settled = false;
       // 로그인 성공/폴백 완료 시: 모달 정리(byUser=false) 후 resolve.
@@ -169,15 +174,20 @@
       var modal = buildModal(onUserCancel);
 
       if (!!GOOGLE_CLIENT_ID && gisReady()) {
-        gisSignIn(modal, done);
+        gisSignIn(modal, done, options);
       } else {
-        fallbackSignIn(modal, done);
+        if (options && options.requireGoogle) done(null); else fallbackSignIn(modal, done);
       }
     });
   }
 
   window.AuthGoogle = {
     getUser: getUser,
+    clearStoredCredential: function () {
+      memoryUser = null;
+      var user = getUser();
+      if (user && user.idToken) { delete user.idToken; setUser(user); }
+    },
     signIn: signIn,
     signOut: signOut,
     isConfigured: function () { return !!GOOGLE_CLIENT_ID; }

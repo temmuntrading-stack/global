@@ -60,7 +60,7 @@ export async function onRequest({request,env}){
   if(request.method!=='POST')return json({error:'method not allowed'},405);
   const data=await request.json().catch(()=>null);
   if(!data)return json({error:'JSON 파일을 확인하세요.'},400);
-  if(!(await isAdmin(env,data)).ok)return json({error:'관리자 로그인이 필요합니다.'},403);
+  if(!(await isAdmin(env,data,request)).ok)return json({error:'관리자 로그인이 필요합니다.'},403);
   if(!env.DB||!env.MEDIA)return json({error:'D1과 R2 연결이 필요합니다.'},503);
   if(data.action==='existing'){
     try{await schema(env.DB);const {results}=await env.DB.prepare('SELECT source_url FROM blog WHERE source_url IS NOT NULL').all();return json({sourceUrls:results.map(p=>p.source_url)});}

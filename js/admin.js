@@ -26,6 +26,9 @@
 
   var state = { tab: "dash", boardId: null, inqId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", editId: null, blogQ: "", blogFilterCat: "all", heroImgs: {}, _rows: [] };
   var busy = false;
+  var adminRole = '';
+  if (window.AuthGoogle && AuthGoogle.clearStoredCredential) AuthGoogle.clearStoredCredential();
+  if (window.location.hash === '#accounts') state.tab = 'accounts';
   var quill = null; // Quill 에디터 인스턴스
 
   /* ── 헬퍼 ── */
@@ -39,11 +42,12 @@
     return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
   }
   function fmtKDate(ts) { var d = new Date(ts); return d.getFullYear() + "년 " + (d.getMonth() + 1) + "월 " + d.getDate() + "일"; }
-  function adminKey() { return localStorage.getItem(KEY_ADMIN) || ""; }
-  function adminToken() { return localStorage.getItem(KEY_ADMIN_TOKEN) || ""; }
-  function adminSession() { return localStorage.getItem(KEY_ADMIN_SESSION) || ""; }
-  /* 쓰기 요청에 함께 보낼 관리자 인증(세션 우선, 비밀번호/구글 토큰 보조) */
-  function adminAuth() { return { key: adminKey(), idToken: adminToken(), session: adminSession() }; }
+  // Session credentials are held only in an HttpOnly cookie, never in JS storage.
+  function adminKey() { return ''; }
+  function adminToken() { return ''; }
+  function adminSession() { return ''; }
+  function adminAuth() { return {}; }
+  [KEY_ADMIN,KEY_ADMIN_TOKEN,KEY_ADMIN_SESSION].forEach(function(key) { localStorage.removeItem(key); });
   function isToday(ts) {
     var d = new Date(ts), n = new Date();
     return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
@@ -209,11 +213,7 @@
 
   /* ── 상담 신청(연락하기 폼 접수) ── */
   function authQS() {
-    var p = [];
-    if (adminSession()) p.push("session=" + encodeURIComponent(adminSession()));
-    if (adminToken()) p.push("idToken=" + encodeURIComponent(adminToken()));
-    if (adminKey()) p.push("key=" + encodeURIComponent(adminKey()));
-    return p.join("&");
+    return '';
   }
   function inqList() {
     var qs = authQS();
@@ -436,16 +436,16 @@
      ════════════════════════════════════════════════════════════ */
   var GBTN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.6-.05-1.2-.16-1.7H12v3.4h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.2z"/><path fill="#34A853" d="M12 22c2.7 0 5-0.9 6.6-2.4l-3.2-2.5c-.9.6-2 .95-3.4.95-2.6 0-4.8-1.75-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.4 13.95a6 6 0 0 1 0-3.9V7.45H3.1a10 10 0 0 0 0 9.1z"/><path fill="#EA4335" d="M12 6.2c1.5 0 2.8.5 3.8 1.5l2.85-2.85A10 10 0 0 0 3.1 7.45L6.4 10.05C7.2 7.7 9.4 6.2 12 6.2z"/></svg>';
   function renderLogin() {
+    adminRole = '';
     root.innerHTML =
       '<div class="ax-login">' +
         '<div class="ax-login-card">' +
           '<div class="ax-login-logo">' + LOGO + '</div>' +
           '<h1>관리자 로그인</h1>' +
-          '<p>구글 계정으로 로그인하세요.</p>' +
+          '<p>최고관리자가 등록한 Google 계정으로 로그인하세요.</p>' +
           '<button class="ax-btn ax-glogin" data-act="glogin">' + GBTN + '<span>Google로 로그인</span></button>' +
-          '<div class="ax-login-or"><span>또는 비밀번호</span></div>' +
-          '<div class="ax-field"><input id="adm-key" type="password" autocomplete="current-password" placeholder="비밀번호"></div>' +
-          '<button class="ax-btn pri ax-login-btn" data-act="login">비밀번호로 로그인</button>' +
+          '<p class="ax-account-access">계정 추가는 최고관리자에게 요청해 주세요. Google 비밀번호는 이 사이트에서 입력하거나 보관하지 않습니다.</p>' +
+          ((['127.0.0.1','localhost','[::1]'].includes(window.location.hostname)) ? '<details class="ax-legacy-login"><summary>로컬 미리보기 로그인</summary><div class="ax-field"><label for="adm-key">로컬 미리보기 키</label><input id="adm-key" type="password" autocomplete="current-password"></div><button class="ax-btn ax-login-btn" data-act="login">로컬 미리보기 로그인</button></details>' : '') +
           '<p class="ax-login-note" id="adm-login-msg" aria-live="polite"></p>' +
         '</div>' +
       '</div>';
@@ -453,39 +453,40 @@
     if (keyEl) { keyEl.addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); }); }
   }
   function loginFail(msg) {
-    var lb = $('[data-act="login"]'); if (lb) { lb.disabled = false; lb.textContent = "비밀번호로 로그인"; }
+    var lb = $('[data-act="login"]'); if (lb) { lb.disabled = false; lb.textContent = "로컬 미리보기 로그인"; }
     var gb = $('[data-act="glogin"]'); if (gb) { gb.disabled = false; }
     var m = $("#adm-login-msg"); if (m) { m.textContent = msg; m.style.color = "var(--ax-red)"; }
   }
-  function enterAdmin(payload, name, session) {
-    if (payload.key) localStorage.setItem(KEY_ADMIN, payload.key);
-    if (payload.idToken) localStorage.setItem(KEY_ADMIN_TOKEN, payload.idToken);
-    if (session) localStorage.setItem(KEY_ADMIN_SESSION, session);
+  function enterAdmin(payload, name) {
+    adminRole = payload.role === 'superadmin' ? 'superadmin' : 'admin';
+    localStorage.removeItem(KEY_ADMIN);
+    localStorage.removeItem(KEY_ADMIN_TOKEN);
+    localStorage.removeItem(KEY_ADMIN_SESSION);
     if (name) localStorage.setItem(KEY_ADMIN_NAME, name); else localStorage.removeItem(KEY_ADMIN_NAME);
-    state.tab = "dash"; renderApp();
+    state.tab = window.location.hash === '#accounts' && adminRole === 'superadmin' ? 'accounts' : 'dash'; renderApp();
   }
-  // 서버 검증(/api/admin-login) 후 진입. 엔드포인트 없음/네트워크 오류면 데모 진입.
+  // Server-verified sessions only. Never store email passwords or enter demo on API errors.
   function verifyAndEnter(payload, name) {
     fetch("/api/admin-login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
         var d = res.d || {};
-        if (d.ok === true) { enterAdmin(payload, name || d.name, d.token); return; }
-        if (d.ok === false) { loginFail(d.error || "로그인에 실패했습니다."); return; }
-        demo = true; enterAdmin(payload, name); // 엔드포인트 없음(로컬)
+        if (res.ok && d.ok === true) { enterAdmin(d, name || d.name); return; }
+        loginFail(d.error || "로그인 서버에 연결하지 못했습니다. 다시 시도해 주세요.");
       })
-      .catch(function () { demo = true; enterAdmin(payload, name); });
+      .catch(function () { loginFail("로그인 서버에 연결하지 못했습니다. 다시 시도해 주세요."); });
   }
   function doLogin() {
     var k = val("#adm-key");
     if (!k) { loginFail("비밀번호를 입력하세요."); return; }
     var btn = $('[data-act="login"]'); if (btn) { btn.disabled = true; btn.textContent = "확인 중…"; }
+    $('#adm-key').value = '';
     verifyAndEnter({ key: k });
   }
   function doGoogleLogin() {
     if (!window.AuthGoogle || !AuthGoogle.signIn) { loginFail("구글 로그인을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."); return; }
     var gb = $('[data-act="glogin"]'); if (gb) { gb.disabled = true; }
-    AuthGoogle.signIn().then(function (u) {
+    AuthGoogle.signIn({persist:false,requireGoogle:true}).then(function (u) {
       if (!u) { if (gb) gb.disabled = false; return; } // 사용자가 취소
       if (!u.idToken) { loginFail("구글 로그인이 필요합니다.(이름 입력 방식은 관리자 로그인에 사용할 수 없습니다)"); return; }
       verifyAndEnter({ idToken: u.idToken }, u.name);
@@ -493,6 +494,11 @@
   }
   function logout() {
     if (!confirm("로그아웃 하시겠습니까? 저장된 로그인 정보가 이 브라우저에서 삭제됩니다.")) return;
+    fetch('/api/admin-login', {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'logout'})})
+      .then(function(response) { if (!response.ok) throw new Error(); finishLogout(); })
+      .catch(function() { alert('서버에서 로그아웃하지 못했습니다. 연결을 확인한 후 다시 시도해 주세요.'); });
+  }
+  function finishLogout() {
     localStorage.removeItem(KEY_ADMIN);
     localStorage.removeItem(KEY_ADMIN_ID);
     localStorage.removeItem(KEY_ADMIN_TOKEN);
@@ -509,7 +515,8 @@
     { id: "dash", label: "대시보드", icon: "grid" },
     { id: "inq", label: "상담 신청", icon: "mail" },
     { id: "board", label: "자유게시판", icon: "chat" },
-    { id: "blog", label: "성공 사례", icon: "doc" }
+    { id: "blog", label: "성공 사례", icon: "doc" },
+    { id: "accounts", label: "관리자 계정", icon: "gear" }
   ];
 
   function demoBanner() {
@@ -521,12 +528,13 @@
   }
 
   function renderApp() {
+    if (state.tab === 'accounts' && adminRole !== 'superadmin') state.tab = 'dash';
     root.innerHTML =
       '<div class="ax-app">' +
         '<aside class="ax-side">' +
           '<div class="ax-brand"><span class="ax-logo">' + LOGO + '</span>' +
             '<span class="ax-brand-txt"><b>글로벌 법률 사무소</b><small>GLOBAL LAW FIRM</small></span></div>' +
-          '<nav class="ax-nav">' + NAV.map(navBtn).join("") + '</nav>' +
+          '<nav class="ax-nav">' + NAV.filter(function(n) { return n.id !== 'accounts' || adminRole === 'superadmin'; }).map(navBtn).join("") + '</nav>' +
           '<div class="ax-side-foot">' +
             '<a class="ax-nav-i" href="index.html" target="_blank" rel="noopener">' + icon("help") + '<span>지원 센터</span></a>' +
             '<button class="ax-nav-i ax-logout" data-act="logout">' + icon("logout") + '<span>로그아웃</span></button>' +
@@ -581,6 +589,49 @@
     if (state.tab === "board") return state.boardId ? renderBoardDetail() : renderBoardList();
     if (state.tab === "blog") return state.blogMode === "write" ? renderBlogWrite() : (state.blogMode === "cats" ? renderCats() : renderBlog());
     if (state.tab === "settings") return renderSettings();
+    if (state.tab === "accounts") return renderAccounts();
+  }
+
+  function accountsRequest(body) {
+    return fetch('/api/admin-accounts', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(Object.assign({}, adminAuth(), body))})
+      .then(function(response) { return response.json().catch(function() { return {}; }).then(function(data) {
+        if (!response.ok) { var error = new Error(data.error || '관리자 계정을 불러오지 못했습니다.'); error.status = response.status; throw error; }
+        return data;
+      }); });
+  }
+  function renderAccounts() {
+    if (adminRole !== 'superadmin') return;
+    setMain('<div class="ax-page-h"><div><h1>관리자 계정</h1><p>함께 사이트를 관리할 담당자를 추가하세요.</p></div></div>' +
+      '<div class="ax-accounts-layout"><section class="ax-card"><div class="ax-card-h"><div><h2>새 관리자 추가</h2><p>추가할 담당자의 Google 계정 이메일을 입력하세요.</p></div></div>' +
+      '<form id="adm-account-form" class="ax-form"><div class="ax-field"><label for="account-email">관리자 이메일</label><input id="account-email" type="email" autocomplete="off" placeholder="admin@example.com" maxlength="254" required></div>' +
+      '<p class="ax-account-access">추가된 관리자는 상담 신청·게시판·성공 사례·사이트 정보를 관리할 수 있습니다. 다른 관리자 추가는 최고관리자만 가능합니다. 등록된 담당자는 자신의 Google 계정으로 로그인합니다.</p>' +
+      '<p id="account-message" class="ax-account-message" role="status" aria-live="polite"></p><div class="ax-actions"><button class="ax-btn pri" type="submit" id="account-create" disabled>관리자 추가</button></div></form></section>' +
+      '<section class="ax-card"><div class="ax-card-h"><div><h2>등록된 관리자</h2><p>최고관리자와 추가된 일반 관리자를 확인하세요.</p></div><button class="ax-btn" data-act="accounts-reload">새로고침</button></div><div id="account-list"><div class="ax-loading">불러오는 중…</div></div></section></div>');
+    loadAccounts();
+  }
+  function loadAccounts() {
+    accountsRequest({action:'list'}).then(function(data) {
+      var list = $('#account-list'); if (!list) return;
+      var rows = (data.googleEmails || []).map(function(email) { return {email:email,kind:'Google 로그인',role:'최고관리자'}; }).concat((data.accounts || []).map(function(account) { return {email:account.email,kind:'Google 로그인',role:'관리자',date:fmt(account.created_at)}; }));
+      list.innerHTML = rows.length ? '<ul class="ax-account-list">' + rows.map(function(row) { return '<li><span class="ax-account-avatar">' + icon('mail') + '</span><div><b>' + esc(row.email) + '</b><small>' + esc(row.kind) + (row.date ? ' · ' + row.date + ' 등록' : '') + '</small></div><span class="ax-tag">' + row.role + '</span></li>'; }).join('') + '</ul>' : '<div class="ax-empty">추가한 이메일 관리자가 없습니다.</div>';
+      var button = $('#account-create'); if (button) button.disabled = data.googleLoginReady !== true;
+      var message = $('#account-message'); if (message && !message.classList.contains('success')) message.textContent = data.googleLoginReady === true ? '' : 'Google 로그인 연결을 확인해 주세요.';
+    }).catch(function(error) {
+      var list = $('#account-list'); if (list) list.innerHTML = '<div class="ax-empty" role="alert">' + esc(error.message) + '</div>';
+      var message = $('#account-message'); if (message) message.textContent = error.status === 403 ? '최고관리자 계정으로 다시 로그인해 주세요.' : '서버 연결을 확인한 후 새로고침해 주세요.';
+      var button = $('#account-create'); if (button) button.disabled = true;
+    });
+  }
+  function createAccount(form) {
+    if (adminRole !== 'superadmin' || !form.reportValidity()) return;
+    var message = $('#account-message'), button = $('#account-create');
+    if (button.disabled) return;
+    message.classList.remove('success'); button.disabled = true; button.textContent = '추가 중…'; message.textContent = '';
+    var email = val('#account-email');
+    accountsRequest({action:'create',email:email}).then(function() {
+      form.reset(); message.classList.add('success'); message.textContent = email + ' 관리자를 추가했습니다. 등록된 Google 계정으로 로그인할 수 있습니다.';
+      loadAccounts();
+    }).catch(function(error) { message.textContent = error.message; }).finally(function() { button.disabled = false; button.textContent = '관리자 추가'; });
   }
 
   /* ── 상태 배지 매핑 ── */
@@ -1144,6 +1195,7 @@
     if (act === "login") { doLogin(); return; }
     if (act === "glogin") { doGoogleLogin(); return; }
     if (act === "logout") { logout(); return; }
+    if (act === "accounts-reload") { loadAccounts(); return; }
 
     // 탭/설정 전환
     var tabEl = e.target.closest("[data-tab]");
@@ -1339,6 +1391,14 @@
     });
   });
 
+  root.addEventListener('submit', function(e) {
+    if (e.target.id === 'adm-account-form') { e.preventDefault(); createAccount(e.target); }
+  });
+
   /* ── 진입 ── */
-  if (adminSession() || adminKey() || adminToken()) renderApp(); else renderLogin();
+  fetch('/api/admin-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'check'})})
+    .then(function(response) { return response.json().then(function(data) {
+      if (response.ok && data.ok) { enterAdmin(data, data.name); }
+      else renderLogin();
+    }); }).catch(function() { renderLogin(); });
 })();

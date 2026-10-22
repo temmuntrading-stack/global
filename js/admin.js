@@ -26,6 +26,7 @@
 
   var state = { tab: "dash", boardId: null, inqId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", editId: null, blogQ: "", blogFilterCat: "all", heroImgs: {}, _rows: [] };
   var busy = false;
+  var adminRole = '';
   if (window.location.hash === '#accounts') state.tab = 'accounts';
   var quill = null; // Quill 에디터 인스턴스
 
@@ -434,6 +435,7 @@
      ════════════════════════════════════════════════════════════ */
   var GBTN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.6-.05-1.2-.16-1.7H12v3.4h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.2z"/><path fill="#34A853" d="M12 22c2.7 0 5-0.9 6.6-2.4l-3.2-2.5c-.9.6-2 .95-3.4.95-2.6 0-4.8-1.75-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.4 13.95a6 6 0 0 1 0-3.9V7.45H3.1a10 10 0 0 0 0 9.1z"/><path fill="#EA4335" d="M12 6.2c1.5 0 2.8.5 3.8 1.5l2.85-2.85A10 10 0 0 0 3.1 7.45L6.4 10.05C7.2 7.7 9.4 6.2 12 6.2z"/></svg>';
   function renderLogin() {
+    adminRole = '';
     root.innerHTML =
       '<div class="ax-login">' +
         '<div class="ax-login-card">' +
@@ -460,11 +462,12 @@
     var m = $("#adm-login-msg"); if (m) { m.textContent = msg; m.style.color = "var(--ax-red)"; }
   }
   function enterAdmin(payload, name) {
+    adminRole = payload.role === 'superadmin' ? 'superadmin' : 'admin';
     localStorage.removeItem(KEY_ADMIN);
     localStorage.removeItem(KEY_ADMIN_TOKEN);
     localStorage.removeItem(KEY_ADMIN_SESSION);
     if (name) localStorage.setItem(KEY_ADMIN_NAME, name); else localStorage.removeItem(KEY_ADMIN_NAME);
-    state.tab = window.location.hash === '#accounts' ? 'accounts' : 'dash'; renderApp();
+    state.tab = window.location.hash === '#accounts' && adminRole === 'superadmin' ? 'accounts' : 'dash'; renderApp();
   }
   // Server-verified sessions only. Never store email passwords or enter demo on API errors.
   function verifyAndEnter(payload, name) {
@@ -472,7 +475,7 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
         var d = res.d || {};
-        if (res.ok && d.ok === true) { enterAdmin({}, name || d.name); return; }
+        if (res.ok && d.ok === true) { enterAdmin(d, name || d.name); return; }
         loginFail(d.error || "로그인 서버에 연결하지 못했습니다. 다시 시도해 주세요.");
       })
       .catch(function () { loginFail("로그인 서버에 연결하지 못했습니다. 다시 시도해 주세요."); });
@@ -536,12 +539,13 @@
   }
 
   function renderApp() {
+    if (state.tab === 'accounts' && adminRole !== 'superadmin') state.tab = 'dash';
     root.innerHTML =
       '<div class="ax-app">' +
         '<aside class="ax-side">' +
           '<div class="ax-brand"><span class="ax-logo">' + LOGO + '</span>' +
             '<span class="ax-brand-txt"><b>글로벌 법률 사무소</b><small>GLOBAL LAW FIRM</small></span></div>' +
-          '<nav class="ax-nav">' + NAV.map(navBtn).join("") + '</nav>' +
+          '<nav class="ax-nav">' + NAV.filter(function(n) { return n.id !== 'accounts' || adminRole === 'superadmin'; }).map(navBtn).join("") + '</nav>' +
           '<div class="ax-side-foot">' +
             '<a class="ax-nav-i" href="index.html" target="_blank" rel="noopener">' + icon("help") + '<span>지원 센터</span></a>' +
             '<button class="ax-nav-i ax-logout" data-act="logout">' + icon("logout") + '<span>로그아웃</span></button>' +
@@ -607,12 +611,13 @@
       }); });
   }
   function renderAccounts() {
+    if (adminRole !== 'superadmin') return;
     setMain('<div class="ax-page-h"><div><h1>관리자 계정</h1><p>함께 사이트를 관리할 담당자를 추가하세요.</p></div></div>' +
       '<div class="ax-accounts-layout"><section class="ax-card"><div class="ax-card-h"><div><h2>새 관리자 추가</h2><p>이메일과 비밀번호로 바로 로그인할 수 있습니다.</p></div></div>' +
       '<form id="adm-account-form" class="ax-form"><div class="ax-field"><label for="account-email">관리자 이메일</label><input id="account-email" type="email" autocomplete="off" placeholder="admin@example.com" maxlength="254" required></div>' +
       '<div class="ax-field"><label for="account-password">비밀번호</label><input id="account-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="account-password-help" required><p class="ax-note" id="account-password-help">12~128자. 다른 서비스와 겹치지 않는 비밀번호를 사용하세요.</p></div>' +
       '<div class="ax-field"><label for="account-confirm">비밀번호 확인</label><input id="account-confirm" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></div>' +
-      '<p class="ax-account-access">추가된 관리자는 상담 신청·게시판·성공 사례·사이트 정보·관리자 계정을 관리할 수 있습니다. 로그인 정보는 담당자에게 직접 전달해 주세요.</p>' +
+      '<p class="ax-account-access">추가된 관리자는 상담 신청·게시판·성공 사례·사이트 정보를 관리할 수 있습니다. 다른 관리자 추가는 최고관리자만 가능합니다. 로그인 정보는 담당자에게 직접 전달해 주세요.</p>' +
       '<p id="account-message" class="ax-account-message" role="status" aria-live="polite"></p><div class="ax-actions"><button class="ax-btn pri" type="submit" id="account-create" disabled>관리자 추가</button></div></form></section>' +
       '<section class="ax-card"><div class="ax-card-h"><div><h2>등록된 관리자</h2><p>기존 Google 관리자도 계속 로그인할 수 있습니다.</p></div><button class="ax-btn" data-act="accounts-reload">새로고침</button></div><div id="account-list"><div class="ax-loading">불러오는 중…</div></div></section></div>');
     loadAccounts();
@@ -620,13 +625,13 @@
   function loadAccounts() {
     accountsRequest({action:'list'}).then(function(data) {
       var list = $('#account-list'); if (!list) return;
-      var rows = (data.googleEmails || []).map(function(email) { return {email:email,kind:'Google 로그인'}; }).concat((data.accounts || []).map(function(account) { return {email:account.email,kind:'이메일 로그인',date:fmt(account.created_at)}; }));
-      list.innerHTML = rows.length ? '<ul class="ax-account-list">' + rows.map(function(row) { return '<li><span class="ax-account-avatar">' + icon('mail') + '</span><div><b>' + esc(row.email) + '</b><small>' + esc(row.kind) + (row.date ? ' · ' + row.date + ' 등록' : '') + '</small></div><span class="ax-tag">관리자</span></li>'; }).join('') + '</ul>' : '<div class="ax-empty">추가한 이메일 관리자가 없습니다.</div>';
+      var rows = (data.googleEmails || []).map(function(email) { return {email:email,kind:'Google 로그인',role:'최고관리자'}; }).concat((data.accounts || []).map(function(account) { return {email:account.email,kind:'이메일 로그인',role:'관리자',date:fmt(account.created_at)}; }));
+      list.innerHTML = rows.length ? '<ul class="ax-account-list">' + rows.map(function(row) { return '<li><span class="ax-account-avatar">' + icon('mail') + '</span><div><b>' + esc(row.email) + '</b><small>' + esc(row.kind) + (row.date ? ' · ' + row.date + ' 등록' : '') + '</small></div><span class="ax-tag">' + row.role + '</span></li>'; }).join('') + '</ul>' : '<div class="ax-empty">추가한 이메일 관리자가 없습니다.</div>';
       var button = $('#account-create'); if (button) button.disabled = false;
       var message = $('#account-message'); if (message && !message.classList.contains('success')) message.textContent = '';
     }).catch(function(error) {
       var list = $('#account-list'); if (list) list.innerHTML = '<div class="ax-empty" role="alert">' + esc(error.message) + '</div>';
-      var message = $('#account-message'); if (message) message.textContent = error.status === 403 ? '다시 Google 로그인한 뒤 관리자 계정을 추가해 주세요.' : '서버 연결을 확인한 후 새로고침해 주세요.';
+      var message = $('#account-message'); if (message) message.textContent = error.status === 403 ? '최고관리자 계정으로 다시 로그인해 주세요.' : '서버 연결을 확인한 후 새로고침해 주세요.';
       var button = $('#account-create'); if (button) button.disabled = true;
     });
   }
@@ -1411,7 +1416,7 @@
   /* ── 진입 ── */
   fetch('/api/admin-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'check'})})
     .then(function(response) { return response.json().then(function(data) {
-      if (response.ok && data.ok) { if (data.name) localStorage.setItem(KEY_ADMIN_NAME,data.name); renderApp(); }
+      if (response.ok && data.ok) { enterAdmin(data, data.name); }
       else renderLogin();
     }); }).catch(function() { renderLogin(); });
 })();

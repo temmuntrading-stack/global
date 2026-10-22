@@ -52,11 +52,11 @@ CREATE TABLE IF NOT EXISTS inquiries (
 CREATE INDEX IF NOT EXISTS idx_inq_ts ON inquiries(ts);
 
 -- 기본 사이트 정보(원하면 수정)
--- Private admin credentials and session secret (not part of public settings).
-CREATE TABLE IF NOT EXISTS admin_accounts (
+-- Private Google administrator allowlist and session tokens (not public settings).
+CREATE TABLE IF NOT EXISTS admin_google_accounts (
   id TEXT PRIMARY KEY,
   email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-  password_hash TEXT NOT NULL,
+  google_sub TEXT,
   created_at INTEGER NOT NULL,
   created_by TEXT NOT NULL
 );

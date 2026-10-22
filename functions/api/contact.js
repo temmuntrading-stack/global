@@ -36,7 +36,7 @@ export async function onRequest(context) {
 
       // 관리자: 상태 변경
       if (b.adminAction) {
-        if (!(await isAdmin(env, b)).ok) return json({ error: "관리자 인증 실패" }, 403);
+        if (!(await isAdmin(env, b, request)).ok) return json({ error: "관리자 인증 실패" }, 403);
         if (b.adminAction === "status" && b.id) {
           const st = b.status;
           if (st !== "new" && st !== "done") return json({ error: "Invalid status", code: "invalid" }, 400);
@@ -64,8 +64,7 @@ export async function onRequest(context) {
 
     /* ── 목록 / 상세(관리자 전용) ── */
     if (request.method === "GET") {
-      const auth = { key: url.searchParams.get("key"), idToken: url.searchParams.get("idToken"), session: url.searchParams.get("session") };
-      if (!(await isAdmin(env, auth)).ok) return json({ error: "관리자 인증 실패" }, 403);
+      if (!(await isAdmin(env, {}, request)).ok) return json({ error: "관리자 인증 실패" }, 403);
       const id = url.searchParams.get("id");
       if (id) {
         const row = await db.prepare("SELECT id,name,email,phone,lang,area,message,status,ts FROM inquiries WHERE id=?").bind(id).first();
@@ -79,7 +78,7 @@ export async function onRequest(context) {
     /* ── 삭제(관리자 전용) ── */
     if (request.method === "DELETE") {
       const b = await request.json().catch(() => ({}));
-      if (!(await isAdmin(env, b)).ok) return json({ error: "관리자 인증 실패" }, 403);
+      if (!(await isAdmin(env, b, request)).ok) return json({ error: "관리자 인증 실패" }, 403);
       if (b.id) { await db.prepare("DELETE FROM inquiries WHERE id=?").bind(b.id).run(); return json({ ok: true }); }
       return json({ error: "id가 필요합니다." }, 400);
     }

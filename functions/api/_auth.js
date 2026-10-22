@@ -30,11 +30,11 @@ async function sessionAdmin(env,token) {
   if (payload.sub.startsWith('account:')) {
     await ensureAccounts(env.DB);
     const account=await env.DB.prepare('SELECT id,email FROM admin_accounts WHERE id=?').bind(payload.sub.slice(8)).first();
-    return account ? {ok:true,email:account.email,name:account.email,subject:payload.sub} : {ok:false};
+    return account ? {ok:true,email:account.email,name:account.email,subject:payload.sub,role:'admin'} : {ok:false};
   }
-  if (payload.sub==='shared-admin' || (env.ADMIN_KEY && (payload.sub==='admin' || payload.sub==='글로벌 법률사무소'))) return {ok:true,name:'관리자',subject:'shared-admin'};
+  if (env.ADMIN_KEY && ['shared-admin','admin','글로벌 법률사무소'].includes(payload.sub)) return {ok:true,name:'최고관리자',subject:'shared-admin',role:'superadmin'};
   const email=payload.sub.replace(/^google:/,'');
-  return emailAllowed(env,email) ? {ok:true,email,name:email,subject:'google:'+email} : {ok:false};
+  return emailAllowed(env,email) ? {ok:true,email,name:email,subject:'google:'+email,role:'superadmin'} : {ok:false};
 }
 export async function verifyGoogle(idToken,clientId) {
   if (typeof idToken!=='string' || !idToken || !clientId) return {ok:false};
@@ -57,10 +57,10 @@ export async function isAdmin(env,body={},request) {
     if (token) { const admin=await sessionAdmin(env,token); if (admin.ok) return admin; }
   }
   if (body.session) { const admin=await sessionAdmin(env,body.session); if (admin.ok) return admin; }
-  if (env.ADMIN_KEY && typeof body.key==='string' && body.key===env.ADMIN_KEY) return {ok:true,name:'관리자',subject:'shared-admin'};
+  if (env.ADMIN_KEY && typeof body.key==='string' && body.key===env.ADMIN_KEY) return {ok:true,name:'최고관리자',subject:'shared-admin',role:'superadmin'};
   if (env.ADMIN_EMAILS && env.GOOGLE_CLIENT_ID && body.idToken) {
     const admin=await verifyGoogle(body.idToken,env.GOOGLE_CLIENT_ID);
-    if (admin.ok && emailAllowed(env,admin.email)) return {...admin,subject:'google:'+admin.email};
+    if (admin.ok && emailAllowed(env,admin.email)) return {...admin,subject:'google:'+admin.email,role:'superadmin'};
   }
   return {ok:false};
 }

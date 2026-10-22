@@ -11,7 +11,7 @@ export async function onRequest({request,env}) {
     if (body.action==='logout') { await revokeSession(env,cookieSession(request)); return json({ok:true},200,sessionCookie(request,'')); }
     if (body.action==='check') {
       const current=await isAdmin(env,{},request);
-      return current.ok ? json({ok:true,name:current.name||'',email:current.email||''}) : json({ok:false},401);
+      return current.ok ? json({ok:true,name:current.name||'',email:current.email||'',role:current.role}) : json({ok:false},401);
     }
     let admin,attempt;
     if (body.email!==undefined || body.password!==undefined) {
@@ -30,6 +30,6 @@ export async function onRequest({request,env}) {
     if (!admin.ok) return json({ok:false,error:body.idToken?'허용되지 않은 Google 계정입니다. 관리자에게 문의하세요.':'이메일 또는 비밀번호가 올바르지 않습니다.'},401);
     const token=await makeSession(env,admin.subject);
     if (attempt && attempt.pairBucket) await env.DB.prepare('DELETE FROM admin_login_attempts WHERE bucket=?').bind(attempt.pairBucket).run();
-    return json({ok:true,name:admin.name||'',email:admin.email||''},200,sessionCookie(request,token));
+    return json({ok:true,name:admin.name||'',email:admin.email||'',role:admin.role},200,sessionCookie(request,token));
   } catch (error) { return json({ok:false,error:error.status?error.message:'로그인 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'},error.status||503); }
 }

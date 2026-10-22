@@ -10,6 +10,7 @@ export async function onRequest({request,env}) {
     if (!body || typeof body!=='object' || Array.isArray(body)) return json({error:'요청을 확인해 주세요.'},400);
     const admin=await isAdmin(env,body,request);
     if (!admin.ok || admin.demo) return json({error:'관리자 로그인이 필요합니다.'},403);
+    if (admin.role!=='superadmin') return json({error:'최고관리자만 관리자 계정을 관리할 수 있습니다.'},403);
     await ensureAccounts(env.DB);
     if (body.action==='list') {
       const {results}=await env.DB.prepare('SELECT id,email,created_at,created_by FROM admin_accounts ORDER BY created_at DESC').all();

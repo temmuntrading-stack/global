@@ -70,5 +70,5 @@ export async function loginWithPassword(env, email, password) {
     const upgraded = await hashPassword(password);
     await env.DB.prepare('UPDATE admin_accounts SET password_hash=? WHERE id=? AND password_hash=?').bind(upgraded,account.id,account.password_hash).run();
   }
-  return matched && account ? {ok:true, email:account.email, name:account.email, subject:'account:' + account.id} : {ok:false};
+  return matched && account ? {ok:true, email:account.email, name:account.email, subject:'account:' + account.id, role:'admin'} : {ok:false};
 }

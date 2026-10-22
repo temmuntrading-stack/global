@@ -9,6 +9,11 @@ name = "global-law-office"
 compatibility_date = "2024-11-01"
 pages_build_output_dir = "."
 
+# Standard PBKDF2-SHA256 600k needs a paid Workers CPU allowance.
+# This sets a ceiling, not a billing-plan change. Confirm the existing plan before merging.
+[limits]
+cpu_ms = 3000
+
 # D1 바인딩 (wrangler.toml 기준 — 푸시 시 자동 적용)
 [[d1_databases]]
 binding = "DB"

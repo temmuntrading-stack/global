@@ -25,7 +25,10 @@ const server = http.createServer((req, res) => {
   try {
     let urlPath = decodeURIComponent(req.url.split('?')[0]);
     if (urlPath === '/') urlPath = '/index.html';
+    if (/^\/(?:imports|functions|tools|tests|\.git|\.codex|\.agents)(?:\/|$)/i.test(urlPath) || /\.(?:sqlite|db|sql|toml)(?:$|\/)/i.test(urlPath)) { res.writeHead(404); res.end('Not Found'); return; }
     let filePath = path.join(ROOT, urlPath);
+    const relativePath = '/' + path.relative(ROOT, filePath).replace(/\\/g, '/');
+    if (/^\/(?:imports|functions|tools|tests|\.git|\.codex|\.agents)(?:\/|$)/i.test(relativePath) || /\.(?:sqlite|db|sql|toml)(?:$|\/)/i.test(relativePath)) { res.writeHead(404); res.end('Not Found'); return; }
     if (!filePath.startsWith(ROOT)) { res.writeHead(403); res.end('Forbidden'); return; }
     if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
       filePath = path.join(filePath, 'index.html');

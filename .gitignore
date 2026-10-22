@@ -1,3 +1,5 @@
 imports/
 __pycache__/
 case-detail-preview.html
+node_modules/
+.wrangler/

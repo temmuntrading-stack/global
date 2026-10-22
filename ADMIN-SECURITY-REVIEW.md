@@ -21,7 +21,7 @@
 
 **비밀번호 해시 강도 보강 완료:** PBKDF2-HMAC-SHA256을 600,000회로 변경했다. 고정 버전 @noble/hashes 2.2.0을 사용하며 임의의 체인 해시는 만들지 않았다. 의존성 설치를 생략하는 Pages 프로젝트에서도 빌드되도록 라이선스를 포함한 서버 전용 번들 _password-kdf.js를 저장소에 포함했다. Node 기본 PBKDF2 결과와 비교 검증했고, Cloudflare workerd에서 실제 등록·로그인·쿠키 목록 조회를 확인했다. 기존 로컬 100,000회 해시는 올바른 로그인 시에만 자동 갱신한다.
 
-**배포 전 확인할 조건:** 사용자 답변과 로그인된 Cloudflare Workers plans의 Free / Current plan 및 요청당 CPU 10ms 표시로 무료 플랜을 직접 확인했다. Pages 운영 설정에는 기존 ADMIN_EMAILS·ADMIN_KEY·GOOGLE_CLIENT_ID와 DB·MEDIA 바인딩이 있으며 Firebase 연결 변수는 없다. 현재 JavaScript PBKDF2 600,000회 구현은 무료 CPU 한도에 맞지 않는다. 이메일·비밀번호 화면을 유지하면서 Firebase Authentication 같은 외부 인증 연결이 필요하다. 현재 연결 전이므로 PR #8은 초안이며 운영 배포할 수 없다. 유료 플랜 변경·결제·외부 서비스 계정 생성은 하지 않았다. 로컬 Miniflare는 운영 CPU 제한을 강제하지 않으므로 아래 결과는 무료 플랜 호환성의 근거가 아니다.
+**배포 전 확인할 조건:** 사용자 답변과 로그인된 Cloudflare Workers plans의 Free / Current plan 및 요청당 CPU 10ms 표시로 무료 플랜을 직접 확인했다. Pages 운영 설정에는 기존 ADMIN_EMAILS·ADMIN_KEY·GOOGLE_CLIENT_ID와 DB·MEDIA 바인딩이 있으며 Firebase 연결 변수는 없다. 현재 JavaScript PBKDF2 600,000회 구현은 무료 CPU 한도에 맞지 않는다. 사용자가 Firebase 연결을 원하지 않아 전환 코드를 되돌렸다. 이 PR은 자체 이메일·비밀번호 인증을 유지하며 Workers Paid 전환 및 실제 Preview 검증 전까지 초안으로 둔다. 무료 유지 시에는 기존 Google 로그인의 이메일 허용 목록 방식으로 구현을 변경해야 한다. 유료 플랜 변경·결제·외부 서비스 계정 생성은 하지 않았다. 로컬 Miniflare는 운영 CPU 제한을 강제하지 않으므로 아래 결과는 무료 플랜 호환성의 근거가 아니다.
 
 ## 검증 범위
 

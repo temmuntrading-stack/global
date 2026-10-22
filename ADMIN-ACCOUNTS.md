@@ -14,7 +14,7 @@ Google 관리자는 기존 `ADMIN_EMAILS` 설정을 사용합니다. 별도 관�
 
 비밀번호 해시는 고정 버전 @noble/hashes 2.2.0의 표준 PBKDF2 구현을 사용해 600,000회로 보강했습니다. Cloudflare Web Crypto의 100,000회 제한을 피해 같은 표준 알고리즘을 JavaScript로 계산합니다. 기존 로컬 100,000회 계정은 올바른 비밀번호로 로그인할 때만 600,000회로 자동 갱신합니다.
 
-배포 전 조건: 사용자가 Workers 무료 플랜 사용을 확인했고, 로그인된 Cloudflare의 Workers plans 화면에서도 Free / Current plan 및 요청당 CPU 10ms를 직접 확인했습니다. 현재 600,000회 해시 계산은 무료 플랜의 10ms CPU 한도에 맞지 않으므로 PR #8은 초안으로 유지하며 운영에 배포하지 않습니다. 이메일·비밀번호 입력 방식은 유지합니다. 무료 플랜에서 지원하려면 Firebase Authentication 같은 외부 비밀번호 인증 서비스 연결이 필요하며, 현재 아직 연결하지 않았습니다. wrangler.toml의 3,000ms CPU 상한은 무료 플랜 한도를 늘리지 않습니다. 해시를 약화해 우회하지 않습니다. 서버 전용 해시 번들은 npm ci --ignore-scripts 및 npm run build:password-kdf로 재생성합니다.
+배포 전 조건: 사용자가 Workers 무료 플랜 사용을 확인했고, 로그인된 Cloudflare의 Workers plans 화면에서도 Free / Current plan 및 요청당 CPU 10ms를 직접 확인했습니다. 현재 600,000회 해시 계산은 무료 플랜의 10ms CPU 한도에 맞지 않으므로 PR #8은 초안으로 유지하며 운영에 배포하지 않습니다. 이메일·비밀번호 입력 방식은 유지합니다. 사용자는 Firebase를 사용하지 않도록 요청했습니다. 이 PR의 자체 이메일·비밀번호 인증을 운영하려면 Workers Paid 전환 후 Preview 등록·로그인 검증이 필요합니다. 무료 플랜을 유지한다면 기존 Google 로그인을 사용하는 이메일 허용 목록 방식으로 별도 변경해야 합니다. 어떤 외부 인증 서비스도 연결하지 않았습니다. wrangler.toml의 3,000ms CPU 상한은 무료 플랜 한도를 늘리지 않습니다. 해시를 약화해 우회하지 않습니다. 서버 전용 해시 번들은 npm ci --ignore-scripts 및 npm run build:password-kdf로 재생성합니다.
 
 보안 검증은 저장/API 비밀번호·해시 비노출, 비인증 거부, 쿠키 속성, CSRF·HTTP·과대 요청 거부, 세션 만료·폐기, 로그인 속도 제한, 브라우저 저장소 및 요청 실패 후 입력값 정리를 포함합니다. 이 검증은 로컬 코드와 테스트 대상이며 운영 환경의 실제 배포/로그 설정에 대한 침투 테스트는 아닙니다.
 

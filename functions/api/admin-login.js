@@ -1,5 +1,5 @@
 import { isAdmin, makeSession, revokeSession } from './_auth.js';
-import { normalizeEmail, validEmail, loginWithPassword, reserveLoginAttempt } from './_admin-accounts.js';
+import { reserveLoginAttempt } from './_admin-accounts.js';
 import { sessionCookie, cookieSession, trustedRequest, smallJson } from './_admin-http.js';
 function json(data,status=200,cookie) { return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...(status===429?{'retry-after':'900'}:{}),...(cookie?{'set-cookie':cookie}:{})}}); }
 export async function onRequest({request,env}) {
@@ -13,21 +13,14 @@ export async function onRequest({request,env}) {
       const current=await isAdmin(env,{},request);
       return current.ok ? json({ok:true,name:current.name||'',email:current.email||'',role:current.role}) : json({ok:false},401);
     }
-    let admin,attempt;
-    if (body.email!==undefined || body.password!==undefined) {
-      const email=normalizeEmail(body.email);
-      if (!validEmail(email) || typeof body.password!=='string' || !body.password || body.password.length>128) return json({ok:false,error:'이메일과 비밀번호를 확인해 주세요.'},400);
-      attempt=await reserveLoginAttempt(env,request,email);
+    if (body.email!==undefined || body.password!==undefined) return json({ok:false,error:'등록된 Google 계정으로 로그인해 주세요.'},400);
+    let attempt;
+    if (body.key || body.idToken) {
+      attempt=await reserveLoginAttempt(env,request,body.idToken?'google':'shared-admin');
       if (!attempt.ok) return json({ok:false,error:'로그인 시도가 많습니다. 15분 후 다시 시도해 주세요.'},429);
-      admin=await loginWithPassword(env,email,body.password);
-    } else {
-      if (body.key) {
-        attempt=await reserveLoginAttempt(env,request,'shared-admin');
-        if (!attempt.ok) return json({ok:false,error:'로그인 시도가 많습니다. 15분 후 다시 시도해 주세요.'},429);
-      }
-      admin=await isAdmin(env,body,request);
     }
-    if (!admin.ok) return json({ok:false,error:body.idToken?'허용되지 않은 Google 계정입니다. 관리자에게 문의하세요.':'이메일 또는 비밀번호가 올바르지 않습니다.'},401);
+    const admin=await isAdmin(env,body,request);
+    if (!admin.ok) return json({ok:false,error:body.idToken?'등록되지 않은 Google 계정입니다. 최고관리자에게 문의하세요.':'관리자 인증을 확인해 주세요.'},401);
     const token=await makeSession(env,admin.subject);
     if (attempt && attempt.pairBucket) await env.DB.prepare('DELETE FROM admin_login_attempts WHERE bucket=?').bind(attempt.pairBucket).run();
     return json({ok:true,name:admin.name||'',email:admin.email||'',role:admin.role},200,sessionCookie(request,token));

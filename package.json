@@ -2,9 +2,11 @@
   "name": "global-law-office",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "build:password-kdf": "node tools/build-password-kdf.mjs"
   },
-  "dependencies": {
-    "@noble/hashes": "2.2.0"
+  "devDependencies": {
+    "@noble/hashes": "2.2.0",
+    "esbuild": "0.25.12"
   }
 }

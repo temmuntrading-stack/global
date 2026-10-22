@@ -43,7 +43,7 @@ test('600k password hashes match Node native PBKDF2 and legacy hashes upgrade on
   assert.ok((await e.DB.prepare('SELECT password_hash FROM admin_accounts').first()).password_hash.startsWith('pbkdf2-sha256$600000$'));
   assert.equal(await checkPassword(password,stored.replace('$600000$','$999999999$')),false);
 });
-test('authenticated admin creates normalized account; password hashes are salted and never returned',async()=>{
+test('authenticated superadmin creates normalized account; password hashes are salted and never returned',async()=>{
   const e=env(),password=' A long test password! ';
   const response=await create(e,'  NEW@example.com  ',password),saved=await response.json();
   assert.equal(response.status,201);assert.equal(saved.account.email,'new@example.com');
@@ -60,14 +60,19 @@ test('authenticated admin creates normalized account; password hashes are salted
   assert.equal((await create(e,'other@example.com','too short')).status,400);
   assert.equal((await create(e,'other@example.com','x'.repeat(129))).status,400);
 });
-test('new email login issues session usable for existing APIs and adding another admin',async()=>{
+test('email admin can manage site data but cannot list or create other admins even with a forged role',async()=>{
   const e=env();await create(e);
   const result=await call(login,e,{email:'NEW@example.com',password:'A long test password!'}),data=await result.json();
   const cookie=result.headers.get('set-cookie').split(';')[0],token=cookie.split('=')[1];
   assert.equal(result.status,200);assert.ok(!data.token);assert.equal(data.email,'new@example.com');
+  assert.equal(data.role,'admin');
   assert.match(result.headers.get('set-cookie'),/HttpOnly; SameSite=Strict/);assert.match(result.headers.get('set-cookie'),/; Secure/);
   assert.equal((await isAdmin(e,{session:token})).ok,true);
-  assert.equal((await call(accounts,e,{action:'create',email:'second@example.com',password:'Another long password!'},{cookie})).status,201);
+  assert.equal((await call(accounts,e,{action:'create',email:'second@example.com',password:'Another long password!',role:'superadmin'},{cookie})).status,403);
+  assert.equal((await call(accounts,e,{action:'list',role:'superadmin'},{cookie})).status,403);
+  assert.equal((await call(login,e,{action:'check',role:'superadmin'},{cookie})).status,200);
+  assert.equal((await (await call(login,e,{action:'check'},{cookie})).json()).role,'admin');
+  assert.equal((await e.DB.prepare('SELECT count(*) AS n FROM admin_accounts').first()).n,1);
   assert.equal((await call(settings,e,{settings:{phone:'02-2277-2442'}},{cookie})).status,200);
   const storedSession=await e.DB.prepare('SELECT * FROM admin_sessions LIMIT 1').first();
   assert.notEqual(storedSession.token_hash,token);assert.ok(!JSON.stringify(storedSession).includes(token));
@@ -102,7 +107,10 @@ test('Google-only deployment uses opaque hashed sessions; forged public-client-I
   assert.equal(await verifySession(e,await makeSession(e,'account:missing')),false);
 });
 test('Google and shared-key login remain available with verified identities',async()=>{
-  const e=env();assert.equal((await call(login,e,{key:e.ADMIN_KEY})).status,200);
+  const e=env();const owner=await call(login,e,{key:e.ADMIN_KEY});assert.equal(owner.status,200);
+  assert.equal((await owner.json()).role,'superadmin');
+  const sharedCookie=owner.headers.get('set-cookie').split(';')[0];
+  assert.equal((await call(accounts,e,{action:'list'},{cookie:sharedCookie})).status,200);
   e.ADMIN_EMAILS='owner@example.com';e.GOOGLE_CLIENT_ID='client';
   const originalFetch=globalThis.fetch;
   let claims={aud:'client',iss:'https://accounts.google.com',email_verified:'true',email:'owner@example.com',exp:Math.floor(Date.now()/1000)+600};
@@ -110,6 +118,12 @@ test('Google and shared-key login remain available with verified identities',asy
   try {
     const response=await call(login,e,{idToken:'test-google-token'}),data=await response.json();
     assert.equal(response.status,200);assert.ok(!data.token);assert.ok(await verifySession(e,response.headers.get('set-cookie').split(';')[0].split('=')[1]));
+    assert.equal(data.role,'superadmin');
+    const cookie=response.headers.get('set-cookie').split(';')[0];
+    assert.equal((await call(accounts,e,{action:'create',email:'staff@example.com',password:'A long staff password!'},{cookie})).status,201);
+    e.ADMIN_EMAILS='different-owner@example.com';
+    assert.equal((await call(accounts,e,{action:'list'},{cookie})).status,403);
+    e.ADMIN_EMAILS='owner@example.com';
     claims={...claims,email_verified:'false'};assert.equal((await verifyGoogle('token','client')).ok,false);
     claims={...claims,email_verified:'true',aud:'wrong-client'};assert.equal((await verifyGoogle('token','client')).ok,false);
   } finally {globalThis.fetch=originalFetch;}

@@ -27,6 +27,7 @@
   var state = { tab: "dash", boardId: null, inqId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", editId: null, blogQ: "", blogFilterCat: "all", heroImgs: {}, _rows: [] };
   var busy = false;
   var adminRole = '';
+  if (window.AuthGoogle && AuthGoogle.clearStoredCredential) AuthGoogle.clearStoredCredential();
   if (window.location.hash === '#accounts') state.tab = 'accounts';
   var quill = null; // Quill 에디터 인스턴스
 
@@ -441,14 +442,10 @@
         '<div class="ax-login-card">' +
           '<div class="ax-login-logo">' + LOGO + '</div>' +
           '<h1>관리자 로그인</h1>' +
-          '<p>등록된 관리자 계정으로 로그인하세요.</p>' +
+          '<p>최고관리자가 등록한 Google 계정으로 로그인하세요.</p>' +
           '<button class="ax-btn ax-glogin" data-act="glogin">' + GBTN + '<span>Google로 로그인</span></button>' +
-          '<div class="ax-login-or"><span>또는 이메일로 로그인</span></div>' +
-          '<form id="adm-login-form"><div class="ax-field"><label for="adm-email">이메일</label><input id="adm-email" type="email" autocomplete="username" maxlength="254" placeholder="admin@example.com" required></div>' +
-          '<div class="ax-field"><label for="adm-password">비밀번호</label><input id="adm-password" type="password" autocomplete="current-password" maxlength="128" required></div>' +
-          '<button class="ax-btn pri ax-login-btn" type="submit">이메일로 로그인</button></form>' +
-          '<details class="ax-legacy-login"><summary>기존 공용 비밀번호로 로그인</summary><div class="ax-field"><label for="adm-key">공용 비밀번호</label><input id="adm-key" type="password" autocomplete="current-password"></div>' +
-          '<button class="ax-btn ax-login-btn" data-act="login">공용 비밀번호로 로그인</button></details>' +
+          '<p class="ax-account-access">계정 추가는 최고관리자에게 요청해 주세요. Google 비밀번호는 이 사이트에서 입력하거나 보관하지 않습니다.</p>' +
+          ((['127.0.0.1','localhost','[::1]'].includes(window.location.hostname)) ? '<details class="ax-legacy-login"><summary>로컬 미리보기 로그인</summary><div class="ax-field"><label for="adm-key">로컬 미리보기 키</label><input id="adm-key" type="password" autocomplete="current-password"></div><button class="ax-btn ax-login-btn" data-act="login">로컬 미리보기 로그인</button></details>' : '') +
           '<p class="ax-login-note" id="adm-login-msg" aria-live="polite"></p>' +
         '</div>' +
       '</div>';
@@ -456,8 +453,7 @@
     if (keyEl) { keyEl.addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); }); }
   }
   function loginFail(msg) {
-    var lb = $('[data-act="login"]'); if (lb) { lb.disabled = false; lb.textContent = "공용 비밀번호로 로그인"; }
-    var eb = $('#adm-login-form button'); if (eb) { eb.disabled = false; eb.textContent = "이메일로 로그인"; }
+    var lb = $('[data-act="login"]'); if (lb) { lb.disabled = false; lb.textContent = "로컬 미리보기 로그인"; }
     var gb = $('[data-act="glogin"]'); if (gb) { gb.disabled = false; }
     var m = $("#adm-login-msg"); if (m) { m.textContent = msg; m.style.color = "var(--ax-red)"; }
   }
@@ -480,13 +476,6 @@
       })
       .catch(function () { loginFail("로그인 서버에 연결하지 못했습니다. 다시 시도해 주세요."); });
   }
-  function doEmailLogin(form) {
-    if (!form.reportValidity()) return;
-    var button = form.querySelector('button'); button.disabled = true; button.textContent = '확인 중…';
-    var password = $('#adm-password').value;
-    $('#adm-password').value = '';
-    verifyAndEnter({ email: val('#adm-email'), password: password });
-  }
   function doLogin() {
     var k = val("#adm-key");
     if (!k) { loginFail("비밀번호를 입력하세요."); return; }
@@ -497,7 +486,7 @@
   function doGoogleLogin() {
     if (!window.AuthGoogle || !AuthGoogle.signIn) { loginFail("구글 로그인을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."); return; }
     var gb = $('[data-act="glogin"]'); if (gb) { gb.disabled = true; }
-    AuthGoogle.signIn().then(function (u) {
+    AuthGoogle.signIn({persist:false,requireGoogle:true}).then(function (u) {
       if (!u) { if (gb) gb.disabled = false; return; } // 사용자가 취소
       if (!u.idToken) { loginFail("구글 로그인이 필요합니다.(이름 입력 방식은 관리자 로그인에 사용할 수 없습니다)"); return; }
       verifyAndEnter({ idToken: u.idToken }, u.name);
@@ -613,22 +602,20 @@
   function renderAccounts() {
     if (adminRole !== 'superadmin') return;
     setMain('<div class="ax-page-h"><div><h1>관리자 계정</h1><p>함께 사이트를 관리할 담당자를 추가하세요.</p></div></div>' +
-      '<div class="ax-accounts-layout"><section class="ax-card"><div class="ax-card-h"><div><h2>새 관리자 추가</h2><p>이메일과 비밀번호로 바로 로그인할 수 있습니다.</p></div></div>' +
+      '<div class="ax-accounts-layout"><section class="ax-card"><div class="ax-card-h"><div><h2>새 관리자 추가</h2><p>추가할 담당자의 Google 계정 이메일을 입력하세요.</p></div></div>' +
       '<form id="adm-account-form" class="ax-form"><div class="ax-field"><label for="account-email">관리자 이메일</label><input id="account-email" type="email" autocomplete="off" placeholder="admin@example.com" maxlength="254" required></div>' +
-      '<div class="ax-field"><label for="account-password">비밀번호</label><input id="account-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="account-password-help" required><p class="ax-note" id="account-password-help">12~128자. 다른 서비스와 겹치지 않는 비밀번호를 사용하세요.</p></div>' +
-      '<div class="ax-field"><label for="account-confirm">비밀번호 확인</label><input id="account-confirm" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></div>' +
-      '<p class="ax-account-access">추가된 관리자는 상담 신청·게시판·성공 사례·사이트 정보를 관리할 수 있습니다. 다른 관리자 추가는 최고관리자만 가능합니다. 로그인 정보는 담당자에게 직접 전달해 주세요.</p>' +
+      '<p class="ax-account-access">추가된 관리자는 상담 신청·게시판·성공 사례·사이트 정보를 관리할 수 있습니다. 다른 관리자 추가는 최고관리자만 가능합니다. 등록된 담당자는 자신의 Google 계정으로 로그인합니다.</p>' +
       '<p id="account-message" class="ax-account-message" role="status" aria-live="polite"></p><div class="ax-actions"><button class="ax-btn pri" type="submit" id="account-create" disabled>관리자 추가</button></div></form></section>' +
-      '<section class="ax-card"><div class="ax-card-h"><div><h2>등록된 관리자</h2><p>기존 Google 관리자도 계속 로그인할 수 있습니다.</p></div><button class="ax-btn" data-act="accounts-reload">새로고침</button></div><div id="account-list"><div class="ax-loading">불러오는 중…</div></div></section></div>');
+      '<section class="ax-card"><div class="ax-card-h"><div><h2>등록된 관리자</h2><p>최고관리자와 추가된 일반 관리자를 확인하세요.</p></div><button class="ax-btn" data-act="accounts-reload">새로고침</button></div><div id="account-list"><div class="ax-loading">불러오는 중…</div></div></section></div>');
     loadAccounts();
   }
   function loadAccounts() {
     accountsRequest({action:'list'}).then(function(data) {
       var list = $('#account-list'); if (!list) return;
-      var rows = (data.googleEmails || []).map(function(email) { return {email:email,kind:'Google 로그인',role:'최고관리자'}; }).concat((data.accounts || []).map(function(account) { return {email:account.email,kind:'이메일 로그인',role:'관리자',date:fmt(account.created_at)}; }));
+      var rows = (data.googleEmails || []).map(function(email) { return {email:email,kind:'Google 로그인',role:'최고관리자'}; }).concat((data.accounts || []).map(function(account) { return {email:account.email,kind:'Google 로그인',role:'관리자',date:fmt(account.created_at)}; }));
       list.innerHTML = rows.length ? '<ul class="ax-account-list">' + rows.map(function(row) { return '<li><span class="ax-account-avatar">' + icon('mail') + '</span><div><b>' + esc(row.email) + '</b><small>' + esc(row.kind) + (row.date ? ' · ' + row.date + ' 등록' : '') + '</small></div><span class="ax-tag">' + row.role + '</span></li>'; }).join('') + '</ul>' : '<div class="ax-empty">추가한 이메일 관리자가 없습니다.</div>';
-      var button = $('#account-create'); if (button) button.disabled = false;
-      var message = $('#account-message'); if (message && !message.classList.contains('success')) message.textContent = '';
+      var button = $('#account-create'); if (button) button.disabled = data.googleLoginReady !== true;
+      var message = $('#account-message'); if (message && !message.classList.contains('success')) message.textContent = data.googleLoginReady === true ? '' : 'Google 로그인 연결을 확인해 주세요.';
     }).catch(function(error) {
       var list = $('#account-list'); if (list) list.innerHTML = '<div class="ax-empty" role="alert">' + esc(error.message) + '</div>';
       var message = $('#account-message'); if (message) message.textContent = error.status === 403 ? '최고관리자 계정으로 다시 로그인해 주세요.' : '서버 연결을 확인한 후 새로고침해 주세요.';
@@ -636,17 +623,13 @@
     });
   }
   function createAccount(form) {
-    if (!form.reportValidity()) return;
-    var password = $('#account-password').value, message = $('#account-message');
-    message.classList.remove('success');
-    if (password !== $('#account-confirm').value) { message.textContent = '비밀번호가 서로 일치하지 않습니다.'; return; }
-    if (password.trim().length < 12) { message.textContent = '비밀번호는 공백을 제외하고 12자 이상 입력해 주세요.'; return; }
-    var button = $('#account-create'); if (button.disabled) return;
-    button.disabled = true; button.textContent = '추가 중…'; message.textContent = '';
+    if (adminRole !== 'superadmin' || !form.reportValidity()) return;
+    var message = $('#account-message'), button = $('#account-create');
+    if (button.disabled) return;
+    message.classList.remove('success'); button.disabled = true; button.textContent = '추가 중…'; message.textContent = '';
     var email = val('#account-email');
-    $('#account-password').value = ''; $('#account-confirm').value = '';
-    accountsRequest({action:'create', email:email, password:password}).then(function() {
-      form.reset(); message.classList.add('success'); message.textContent = email + ' 관리자를 추가했습니다. 해당 이메일과 비밀번호로 로그인할 수 있습니다.';
+    accountsRequest({action:'create',email:email}).then(function() {
+      form.reset(); message.classList.add('success'); message.textContent = email + ' 관리자를 추가했습니다. 등록된 Google 계정으로 로그인할 수 있습니다.';
       loadAccounts();
     }).catch(function(error) { message.textContent = error.message; }).finally(function() { button.disabled = false; button.textContent = '관리자 추가'; });
   }
@@ -1409,7 +1392,6 @@
   });
 
   root.addEventListener('submit', function(e) {
-    if (e.target.id === 'adm-login-form') { e.preventDefault(); doEmailLogin(e.target); }
     if (e.target.id === 'adm-account-form') { e.preventDefault(); createAccount(e.target); }
   });
 

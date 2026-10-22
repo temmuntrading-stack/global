@@ -26,6 +26,7 @@
 
   var state = { tab: "dash", boardId: null, inqId: null, q: "", filter: "all", dashAll: false, blogMode: "list", editorImage: "", editId: null, blogQ: "", blogFilterCat: "all", heroImgs: {}, _rows: [] };
   var busy = false;
+  if (window.location.hash === '#accounts') state.tab = 'accounts';
   var quill = null; // Quill 에디터 인스턴스
 
   /* ── 헬퍼 ── */
@@ -39,11 +40,12 @@
     return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
   }
   function fmtKDate(ts) { var d = new Date(ts); return d.getFullYear() + "년 " + (d.getMonth() + 1) + "월 " + d.getDate() + "일"; }
-  function adminKey() { return localStorage.getItem(KEY_ADMIN) || ""; }
-  function adminToken() { return localStorage.getItem(KEY_ADMIN_TOKEN) || ""; }
-  function adminSession() { return localStorage.getItem(KEY_ADMIN_SESSION) || ""; }
-  /* 쓰기 요청에 함께 보낼 관리자 인증(세션 우선, 비밀번호/구글 토큰 보조) */
-  function adminAuth() { return { key: adminKey(), idToken: adminToken(), session: adminSession() }; }
+  // Session credentials are held only in an HttpOnly cookie, never in JS storage.
+  function adminKey() { return ''; }
+  function adminToken() { return ''; }
+  function adminSession() { return ''; }
+  function adminAuth() { return {}; }
+  [KEY_ADMIN,KEY_ADMIN_TOKEN,KEY_ADMIN_SESSION].forEach(function(key) { localStorage.removeItem(key); });
   function isToday(ts) {
     var d = new Date(ts), n = new Date();
     return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
@@ -209,11 +211,7 @@
 
   /* ── 상담 신청(연락하기 폼 접수) ── */
   function authQS() {
-    var p = [];
-    if (adminSession()) p.push("session=" + encodeURIComponent(adminSession()));
-    if (adminToken()) p.push("idToken=" + encodeURIComponent(adminToken()));
-    if (adminKey()) p.push("key=" + encodeURIComponent(adminKey()));
-    return p.join("&");
+    return '';
   }
   function inqList() {
     var qs = authQS();
@@ -441,11 +439,14 @@
         '<div class="ax-login-card">' +
           '<div class="ax-login-logo">' + LOGO + '</div>' +
           '<h1>관리자 로그인</h1>' +
-          '<p>구글 계정으로 로그인하세요.</p>' +
+          '<p>등록된 관리자 계정으로 로그인하세요.</p>' +
           '<button class="ax-btn ax-glogin" data-act="glogin">' + GBTN + '<span>Google로 로그인</span></button>' +
-          '<div class="ax-login-or"><span>또는 비밀번호</span></div>' +
-          '<div class="ax-field"><input id="adm-key" type="password" autocomplete="current-password" placeholder="비밀번호"></div>' +
-          '<button class="ax-btn pri ax-login-btn" data-act="login">비밀번호로 로그인</button>' +
+          '<div class="ax-login-or"><span>또는 이메일로 로그인</span></div>' +
+          '<form id="adm-login-form"><div class="ax-field"><label for="adm-email">이메일</label><input id="adm-email" type="email" autocomplete="username" maxlength="254" placeholder="admin@example.com" required></div>' +
+          '<div class="ax-field"><label for="adm-password">비밀번호</label><input id="adm-password" type="password" autocomplete="current-password" maxlength="128" required></div>' +
+          '<button class="ax-btn pri ax-login-btn" type="submit">이메일로 로그인</button></form>' +
+          '<details class="ax-legacy-login"><summary>기존 공용 비밀번호로 로그인</summary><div class="ax-field"><label for="adm-key">공용 비밀번호</label><input id="adm-key" type="password" autocomplete="current-password"></div>' +
+          '<button class="ax-btn ax-login-btn" data-act="login">공용 비밀번호로 로그인</button></details>' +
           '<p class="ax-login-note" id="adm-login-msg" aria-live="polite"></p>' +
         '</div>' +
       '</div>';
@@ -453,33 +454,41 @@
     if (keyEl) { keyEl.addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); }); }
   }
   function loginFail(msg) {
-    var lb = $('[data-act="login"]'); if (lb) { lb.disabled = false; lb.textContent = "비밀번호로 로그인"; }
+    var lb = $('[data-act="login"]'); if (lb) { lb.disabled = false; lb.textContent = "공용 비밀번호로 로그인"; }
+    var eb = $('#adm-login-form button'); if (eb) { eb.disabled = false; eb.textContent = "이메일로 로그인"; }
     var gb = $('[data-act="glogin"]'); if (gb) { gb.disabled = false; }
     var m = $("#adm-login-msg"); if (m) { m.textContent = msg; m.style.color = "var(--ax-red)"; }
   }
-  function enterAdmin(payload, name, session) {
-    if (payload.key) localStorage.setItem(KEY_ADMIN, payload.key);
-    if (payload.idToken) localStorage.setItem(KEY_ADMIN_TOKEN, payload.idToken);
-    if (session) localStorage.setItem(KEY_ADMIN_SESSION, session);
+  function enterAdmin(payload, name) {
+    localStorage.removeItem(KEY_ADMIN);
+    localStorage.removeItem(KEY_ADMIN_TOKEN);
+    localStorage.removeItem(KEY_ADMIN_SESSION);
     if (name) localStorage.setItem(KEY_ADMIN_NAME, name); else localStorage.removeItem(KEY_ADMIN_NAME);
-    state.tab = "dash"; renderApp();
+    state.tab = window.location.hash === '#accounts' ? 'accounts' : 'dash'; renderApp();
   }
-  // 서버 검증(/api/admin-login) 후 진입. 엔드포인트 없음/네트워크 오류면 데모 진입.
+  // Server-verified sessions only. Never store email passwords or enter demo on API errors.
   function verifyAndEnter(payload, name) {
     fetch("/api/admin-login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
         var d = res.d || {};
-        if (d.ok === true) { enterAdmin(payload, name || d.name, d.token); return; }
-        if (d.ok === false) { loginFail(d.error || "로그인에 실패했습니다."); return; }
-        demo = true; enterAdmin(payload, name); // 엔드포인트 없음(로컬)
+        if (res.ok && d.ok === true) { enterAdmin({}, name || d.name); return; }
+        loginFail(d.error || "로그인 서버에 연결하지 못했습니다. 다시 시도해 주세요.");
       })
-      .catch(function () { demo = true; enterAdmin(payload, name); });
+      .catch(function () { loginFail("로그인 서버에 연결하지 못했습니다. 다시 시도해 주세요."); });
+  }
+  function doEmailLogin(form) {
+    if (!form.reportValidity()) return;
+    var button = form.querySelector('button'); button.disabled = true; button.textContent = '확인 중…';
+    var password = $('#adm-password').value;
+    $('#adm-password').value = '';
+    verifyAndEnter({ email: val('#adm-email'), password: password });
   }
   function doLogin() {
     var k = val("#adm-key");
     if (!k) { loginFail("비밀번호를 입력하세요."); return; }
     var btn = $('[data-act="login"]'); if (btn) { btn.disabled = true; btn.textContent = "확인 중…"; }
+    $('#adm-key').value = '';
     verifyAndEnter({ key: k });
   }
   function doGoogleLogin() {
@@ -493,6 +502,11 @@
   }
   function logout() {
     if (!confirm("로그아웃 하시겠습니까? 저장된 로그인 정보가 이 브라우저에서 삭제됩니다.")) return;
+    fetch('/api/admin-login', {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'logout'})})
+      .then(function(response) { if (!response.ok) throw new Error(); finishLogout(); })
+      .catch(function() { alert('서버에서 로그아웃하지 못했습니다. 연결을 확인한 후 다시 시도해 주세요.'); });
+  }
+  function finishLogout() {
     localStorage.removeItem(KEY_ADMIN);
     localStorage.removeItem(KEY_ADMIN_ID);
     localStorage.removeItem(KEY_ADMIN_TOKEN);
@@ -509,7 +523,8 @@
     { id: "dash", label: "대시보드", icon: "grid" },
     { id: "inq", label: "상담 신청", icon: "mail" },
     { id: "board", label: "자유게시판", icon: "chat" },
-    { id: "blog", label: "성공 사례", icon: "doc" }
+    { id: "blog", label: "성공 사례", icon: "doc" },
+    { id: "accounts", label: "관리자 계정", icon: "gear" }
   ];
 
   function demoBanner() {
@@ -581,6 +596,54 @@
     if (state.tab === "board") return state.boardId ? renderBoardDetail() : renderBoardList();
     if (state.tab === "blog") return state.blogMode === "write" ? renderBlogWrite() : (state.blogMode === "cats" ? renderCats() : renderBlog());
     if (state.tab === "settings") return renderSettings();
+    if (state.tab === "accounts") return renderAccounts();
+  }
+
+  function accountsRequest(body) {
+    return fetch('/api/admin-accounts', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(Object.assign({}, adminAuth(), body))})
+      .then(function(response) { return response.json().catch(function() { return {}; }).then(function(data) {
+        if (!response.ok) { var error = new Error(data.error || '관리자 계정을 불러오지 못했습니다.'); error.status = response.status; throw error; }
+        return data;
+      }); });
+  }
+  function renderAccounts() {
+    setMain('<div class="ax-page-h"><div><h1>관리자 계정</h1><p>함께 사이트를 관리할 담당자를 추가하세요.</p></div></div>' +
+      '<div class="ax-accounts-layout"><section class="ax-card"><div class="ax-card-h"><div><h2>새 관리자 추가</h2><p>이메일과 비밀번호로 바로 로그인할 수 있습니다.</p></div></div>' +
+      '<form id="adm-account-form" class="ax-form"><div class="ax-field"><label for="account-email">관리자 이메일</label><input id="account-email" type="email" autocomplete="off" placeholder="admin@example.com" maxlength="254" required></div>' +
+      '<div class="ax-field"><label for="account-password">비밀번호</label><input id="account-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="account-password-help" required><p class="ax-note" id="account-password-help">12~128자. 다른 서비스와 겹치지 않는 비밀번호를 사용하세요.</p></div>' +
+      '<div class="ax-field"><label for="account-confirm">비밀번호 확인</label><input id="account-confirm" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></div>' +
+      '<p class="ax-account-access">추가된 관리자는 상담 신청·게시판·성공 사례·사이트 정보·관리자 계정을 관리할 수 있습니다. 로그인 정보는 담당자에게 직접 전달해 주세요.</p>' +
+      '<p id="account-message" class="ax-account-message" role="status" aria-live="polite"></p><div class="ax-actions"><button class="ax-btn pri" type="submit" id="account-create" disabled>관리자 추가</button></div></form></section>' +
+      '<section class="ax-card"><div class="ax-card-h"><div><h2>등록된 관리자</h2><p>기존 Google 관리자도 계속 로그인할 수 있습니다.</p></div><button class="ax-btn" data-act="accounts-reload">새로고침</button></div><div id="account-list"><div class="ax-loading">불러오는 중…</div></div></section></div>');
+    loadAccounts();
+  }
+  function loadAccounts() {
+    accountsRequest({action:'list'}).then(function(data) {
+      var list = $('#account-list'); if (!list) return;
+      var rows = (data.googleEmails || []).map(function(email) { return {email:email,kind:'Google 로그인'}; }).concat((data.accounts || []).map(function(account) { return {email:account.email,kind:'이메일 로그인',date:fmt(account.created_at)}; }));
+      list.innerHTML = rows.length ? '<ul class="ax-account-list">' + rows.map(function(row) { return '<li><span class="ax-account-avatar">' + icon('mail') + '</span><div><b>' + esc(row.email) + '</b><small>' + esc(row.kind) + (row.date ? ' · ' + row.date + ' 등록' : '') + '</small></div><span class="ax-tag">관리자</span></li>'; }).join('') + '</ul>' : '<div class="ax-empty">추가한 이메일 관리자가 없습니다.</div>';
+      var button = $('#account-create'); if (button) button.disabled = false;
+      var message = $('#account-message'); if (message && !message.classList.contains('success')) message.textContent = '';
+    }).catch(function(error) {
+      var list = $('#account-list'); if (list) list.innerHTML = '<div class="ax-empty" role="alert">' + esc(error.message) + '</div>';
+      var message = $('#account-message'); if (message) message.textContent = error.status === 403 ? '다시 Google 로그인한 뒤 관리자 계정을 추가해 주세요.' : '서버 연결을 확인한 후 새로고침해 주세요.';
+      var button = $('#account-create'); if (button) button.disabled = true;
+    });
+  }
+  function createAccount(form) {
+    if (!form.reportValidity()) return;
+    var password = $('#account-password').value, message = $('#account-message');
+    message.classList.remove('success');
+    if (password !== $('#account-confirm').value) { message.textContent = '비밀번호가 서로 일치하지 않습니다.'; return; }
+    if (password.trim().length < 12) { message.textContent = '비밀번호는 공백을 제외하고 12자 이상 입력해 주세요.'; return; }
+    var button = $('#account-create'); if (button.disabled) return;
+    button.disabled = true; button.textContent = '추가 중…'; message.textContent = '';
+    var email = val('#account-email');
+    $('#account-password').value = ''; $('#account-confirm').value = '';
+    accountsRequest({action:'create', email:email, password:password}).then(function() {
+      form.reset(); message.classList.add('success'); message.textContent = email + ' 관리자를 추가했습니다. 해당 이메일과 비밀번호로 로그인할 수 있습니다.';
+      loadAccounts();
+    }).catch(function(error) { message.textContent = error.message; }).finally(function() { button.disabled = false; button.textContent = '관리자 추가'; });
   }
 
   /* ── 상태 배지 매핑 ── */
@@ -1144,6 +1207,7 @@
     if (act === "login") { doLogin(); return; }
     if (act === "glogin") { doGoogleLogin(); return; }
     if (act === "logout") { logout(); return; }
+    if (act === "accounts-reload") { loadAccounts(); return; }
 
     // 탭/설정 전환
     var tabEl = e.target.closest("[data-tab]");
@@ -1339,6 +1403,15 @@
     });
   });
 
+  root.addEventListener('submit', function(e) {
+    if (e.target.id === 'adm-login-form') { e.preventDefault(); doEmailLogin(e.target); }
+    if (e.target.id === 'adm-account-form') { e.preventDefault(); createAccount(e.target); }
+  });
+
   /* ── 진입 ── */
-  if (adminSession() || adminKey() || adminToken()) renderApp(); else renderLogin();
+  fetch('/api/admin-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'check'})})
+    .then(function(response) { return response.json().then(function(data) {
+      if (response.ok && data.ok) { if (data.name) localStorage.setItem(KEY_ADMIN_NAME,data.name); renderApp(); }
+      else renderLogin();
+    }); }).catch(function() { renderLogin(); });
 })();

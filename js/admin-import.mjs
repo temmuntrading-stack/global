@@ -30,7 +30,7 @@ window.openBlogImport = function(){
     status.textContent='원본 이미지와 글을 등록하고 있습니다.';
     $('import-run').disabled=true;$('import-stop').disabled=false;$('import-close').disabled=true;$('import-file').disabled=true;$('import-retry').hidden=true;
     $('import-progress').max=totalPosts;
-    const auth={session:localStorage.getItem('glo-admin-sess')||'',idToken:localStorage.getItem('glo-admin-tok')||'',key:localStorage.getItem('glo-admin-key')||''};
+    const auth={}; // HttpOnly session cookie is sent by the same-origin fetch.
     const requestImport=async payload=>{
       const body=JSON.stringify({...auth,...payload});
       for(let attempt=0;attempt<5;attempt++){

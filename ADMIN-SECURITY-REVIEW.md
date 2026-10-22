@@ -1,27 +1,34 @@
 # 관리자 계정 보안 검토 — 2026-10-22
 
-대상: 이메일·비밀번호 관리자 추가, 기존 Google 최고관리자, 사이트 API의 쿠키 인증. 현재 외부 인증 프로젝트 연결과 운영 배포는 완료 전입니다.
+대상: 추가 중인 이메일 관리자 기능과 공용 관리자 인증 경로. 로컬 수정이며 운영 미배포.
 
-## 인증과 권한
+## 수정한 문제
 
-- 최고관리자는 서버 ADMIN_EMAILS의 Google 계정 또는 기존 ADMIN_KEY 인증으로만 결정합니다. Google aud/iss/exp/email_verified를 검사합니다.
-- 추가된 일반 관리자는 상담·게시판·성공 사례·사이트 정보를 관리합니다. 관리자 계정 목록·생성은 서버에서 403으로 거부합니다. 요청의 role이나 브라우저 저장소 값으로 승격할 수 없습니다.
-- Cloudflare 무료 CPU 제약을 해결하기 위해 비밀번호 인증을 Firebase REST에 위임했습니다. 무거운 JavaScript PBKDF2와 의존성, 3,000ms 유료 CPU 설정을 제거했습니다. 단순한 해시로 약화하지 않았습니다.
-- 비밀번호는 Google의 고정 HTTPS 엔드포인트 요청 본문에만 전달하고 리디렉션을 거부합니다. 오류 응답이나 로그에 원문·해시·ID/refresh 토큰을 넣지 않습니다. 브라우저에는 사이트의 HttpOnly 세션 쿠키만 전달합니다.
-- 신뢰된 Google 서버 응답의 프로젝트·이메일·UID·만료를 확인한 후 D1의 동일 프로젝트/UID/이메일 허용 목록과 일치해야 로그인됩니다. 사용자 제출 Firebase 토큰을 인증 수단으로 받지 않습니다. 일반적인 Firebase 공개 가입은 사이트 권한을 부여하지 않습니다.
-- 기존 Firebase 이메일의 재시도 등록은 올바른 현재 비밀번호를 확인해야 합니다. 사용자의 비밀번호를 임의로 변경하지 않습니다. 공급자 가입 성공 후 D1 실패도 재시도로 복구 가능합니다.
-- 기존 로컬 admin_accounts 데이터는 보존하지만 새 인증의 허용 목록으로 사용하지 않습니다. 자동 해시 이전이나 계정 승격을 하지 않습니다.
+- 관리자 인증이 없을 때 쓰기를 허용하던 기존 데모 인증을 거부하도록 변경.
+- Google 공개 Client ID에 의존한 세션 서명을 폐기하고 256비트 무작위 토큰 + 서버 SHA-256 해시 저장으로 변경. 비밀 세션은 JSON 응답이나 브라우저 JavaScript 저장소에 남기지 않음.
+- 운영 쿠키에 HttpOnly, Secure, SameSite=Strict, __Host 접두사를 적용. 로그아웃 시 서버 세션도 삭제하고 만료 세션을 거부.
+- 같은 출처 검사와 cross-site 요청 거부. 운영 HTTP 거부, 루프백 로컬 미리보기만 예외.
+- 상담 접수 조회에 URL의 key/session/idToken을 사용하지 않도록 변경. 쿠키 인증을 상담·게시판·블로그·이미지 업로드·설정에도 연결.
+- 관리자 생성 및 로그인 요청은 스트리밍 중 크기 제한. 응답 오류에 입력값이나 내부 DB 오류를 포함하지 않음.
+- 관리자 추가 요청을 보내기 직전에 비밀번호·확인 필드를 지우며, 로그인 비밀번호도 제출 즉시 정리. 실패해도 브라우저 폼에 남지 않음.
+- 로컬 서버에서 imports 데이터베이스와 테스트·서버 소스 경로를 차단. 계정 테이블을 공개 settings API와 분리.
 
-## 세션과 요청
+## 확인한 보호
 
-256비트 임의 세션과 D1 SHA-256 토큰 해시, 운영 HttpOnly/Secure/SameSite=Strict/__Host 쿠키, 서버 로그아웃·만료 거부를 유지했습니다. 운영 HTTP, 교차 출처, 비JSON 및 과대 스트리밍 요청은 거부합니다. 상담 조회의 URL 인증정보와 JavaScript 저장소의 관리자 토큰을 제거했습니다. 비밀번호 입력은 제출 즉시 정리합니다. 미설정 상태와 서버 장애에서는 실패를 표시합니다.
+비밀번호는 무작위 salt가 있는 PBKDF2 해시로만 저장하고 생성·목록·로그인 응답에서 원문과 해시를 제외한다. SQL은 바인딩을 사용한다. 이메일 중복 등록을 막고 계정 관리 API의 조회·생성은 최고관리자만 허용한다. 기존 서버 ADMIN_EMAILS Google 계정과 ADMIN_KEY 인증만 최고관리자로 취급하고, 추가된 이메일 계정은 일반 관리자다. 일반 관리자가 role을 위조하거나 관리자 계정 API에 직접 요청해도 거부한다. 최고관리자 Google 이메일 또는 공용 키를 서버 설정에서 제거하면 관련 세션의 권한도 거부한다. 존재하지 않는 이메일과 비밀번호 불일치의 로그인 오류를 통일하고 반복 시도를 제한한다. Google 계정의 aud/iss/exp/email_verified와 관리자 이메일 허용 목록을 검사한다.
 
-## 검증 상태
+## 해시 강도 보강 및 배포 조건
 
-Node 테스트는 모의 Firebase와 메모리 D1만 사용합니다. 등록, 비밀번호·토큰 비저장, 최고관리자 허용, 일반 관리자 거부, UID·프로젝트 불일치, 잘못된 공급자 응답, 장애 시 닫힘, 가입 후 DB 실패 복구, 반복 로그인 제한, CSRF·쿠키·로그아웃, 상담·블로그·다국어 회귀를 확인합니다.
+**비밀번호 해시 강도 보강 완료:** PBKDF2-HMAC-SHA256을 600,000회로 변경했다. 고정 버전 @noble/hashes 2.2.0을 사용하며 임의의 체인 해시는 만들지 않았다. 의존성 설치를 생략하는 Pages 프로젝트에서도 빌드되도록 라이선스를 포함한 서버 전용 번들 _password-kdf.js를 저장소에 포함했다. Node 기본 PBKDF2 결과와 비교 검증했고, Cloudflare workerd에서 실제 등록·로그인·쿠키 목록 조회를 확인했다. 기존 로컬 100,000회 해시는 올바른 로그인 시에만 자동 갱신한다.
 
-Cloudflare workerd + 격리 D1 + 모의 Firebase REST 통합에서 등록 201 / 로그인 200 / 최고관리자 목록 200 / 일반 관리자 목록·생성 403을 확인했습니다. 실제 Firebase 프로젝트의 등록·로그인과 배포 후 운영 확인은 아직 필요합니다. 로컬 테스트는 운영 CPU 한도나 외부 서비스 연결을 증명하지 않습니다. Windows Wrangler는 번들 출력 뒤 종료 코드가 비정상이라 생성 번들을 workerd로 따로 실행했습니다.
+**배포 전 확인할 조건:** 사용자 답변과 로그인된 Cloudflare Workers plans의 Free / Current plan 및 요청당 CPU 10ms 표시로 무료 플랜을 직접 확인했다. Pages 운영 설정에는 기존 ADMIN_EMAILS·ADMIN_KEY·GOOGLE_CLIENT_ID와 DB·MEDIA 바인딩이 있으며 Firebase 연결 변수는 없다. 현재 JavaScript PBKDF2 600,000회 구현은 무료 CPU 한도에 맞지 않는다. 이메일·비밀번호 화면을 유지하면서 Firebase Authentication 같은 외부 인증 연결이 필요하다. 현재 연결 전이므로 PR #8은 초안이며 운영 배포할 수 없다. 유료 플랜 변경·결제·외부 서비스 계정 생성은 하지 않았다. 로컬 Miniflare는 운영 CPU 제한을 강제하지 않으므로 아래 결과는 무료 플랜 호환성의 근거가 아니다.
 
-외부 침투 테스트나 보안 인증을 의미하지 않습니다. 실제 프로젝트 연결 및 Preview 검증을 끝내기 전 PR은 초안으로 유지합니다.
+## 검증 범위
 
-참고: [Firebase Auth REST](https://firebase.google.com/docs/reference/rest/auth), [Cloudflare CPU 한도](https://developers.cloudflare.com/workers/platform/limits/), [OWASP 세션 관리](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html).
+`node --test tests/*.test.mjs`: 20개 테스트 통과. 계정 생성/로그인/중복/오류 응답/CSRF/HTTPS/요청 크기/쿠키/DB 세션 해시/로그아웃·만료/프런트엔드 실패 후 정리, 최고관리자 생성 허용, 일반 관리자의 목록·생성 차단 및 role 위조 거부를 포함한다. 상담 접수 및 기존 블로그 가져오기 회귀 테스트 포함. 600,000회 결과를 Node 기본 구현과 비교하고 100,000회 해시의 로그인 후 승격도 검증했다.
+
+Cloudflare workerd + 격리 D1 통합 확인: 관리자 생성 201, 이메일 로그인 200, 최고관리자 HttpOnly 쿠키로 관리자 목록 조회 200, 일반 관리자 쿠키로 목록·생성 403, 목록 비밀번호 비노출. Windows Wrangler는 번들 파일을 출력한 뒤 프로세스 정리 시 비정상 종료해, 생성된 번들을 Miniflare 3 workerd에서 별도로 실행하여 검증했다.
+
+운영 환경, Cloudflare 로그·접근권한, 계정 복구 정책에 대한 외부 침투 테스트 또는 보안 인증을 의미하지 않는다. 기존 운영 사이트에는 이 변경이 아직 배포되지 않았다.
+
+참고: [OWASP 비밀번호 저장](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html), [OWASP 세션 관리](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html), [Cloudflare PBKDF2 제한 논의](https://github.com/cloudflare/workerd/issues/1346).

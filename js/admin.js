@@ -604,16 +604,17 @@
     setMain('<div class="ax-page-h"><div><h1>관리자 계정</h1><p>함께 사이트를 관리할 담당자를 추가하세요.</p></div></div>' +
       '<div class="ax-accounts-layout"><section class="ax-card"><div class="ax-card-h"><div><h2>새 관리자 추가</h2><p>추가할 담당자의 Google 계정 이메일을 입력하세요.</p></div></div>' +
       '<form id="adm-account-form" class="ax-form"><div class="ax-field"><label for="account-email">관리자 이메일</label><input id="account-email" type="email" autocomplete="off" placeholder="admin@example.com" maxlength="254" required></div>' +
-      '<p class="ax-account-access">추가된 관리자는 상담 신청·게시판·성공 사례·사이트 정보를 관리할 수 있습니다. 다른 관리자 추가는 최고관리자만 가능합니다. 등록된 담당자는 자신의 Google 계정으로 로그인합니다.</p>' +
+      '<p class="ax-account-access">추가된 관리자는 상담 신청·게시판·성공 사례·사이트 정보를 관리할 수 있습니다. 다른 관리자 추가·삭제는 최고관리자만 가능합니다. 등록된 담당자는 자신의 Google 계정으로 로그인합니다.</p>' +
       '<p id="account-message" class="ax-account-message" role="status" aria-live="polite"></p><div class="ax-actions"><button class="ax-btn pri" type="submit" id="account-create" disabled>관리자 추가</button></div></form></section>' +
-      '<section class="ax-card"><div class="ax-card-h"><div><h2>등록된 관리자</h2><p>최고관리자와 추가된 일반 관리자를 확인하세요.</p></div><button class="ax-btn" data-act="accounts-reload">새로고침</button></div><div id="account-list"><div class="ax-loading">불러오는 중…</div></div></section></div>');
+      '<section class="ax-card"><div class="ax-card-h"><div><h2>등록된 관리자</h2><p>추가된 관리자를 삭제하면 즉시 접근이 차단됩니다. 최고관리자는 삭제할 수 없습니다.</p></div><button class="ax-btn" data-act="accounts-reload">새로고침</button></div><p id="account-list-message" class="ax-account-message ax-account-list-message" role="status" aria-live="polite"></p><div id="account-list"><div class="ax-loading">불러오는 중…</div></div></section></div>');
     loadAccounts();
   }
   function loadAccounts() {
     accountsRequest({action:'list'}).then(function(data) {
       var list = $('#account-list'); if (!list) return;
-      var rows = (data.googleEmails || []).map(function(email) { return {email:email,kind:'Google 로그인',role:'최고관리자'}; }).concat((data.accounts || []).map(function(account) { return {email:account.email,kind:'Google 로그인',role:'관리자',date:fmt(account.created_at)}; }));
-      list.innerHTML = rows.length ? '<ul class="ax-account-list">' + rows.map(function(row) { return '<li><span class="ax-account-avatar">' + icon('mail') + '</span><div><b>' + esc(row.email) + '</b><small>' + esc(row.kind) + (row.date ? ' · ' + row.date + ' 등록' : '') + '</small></div><span class="ax-tag">' + row.role + '</span></li>'; }).join('') + '</ul>' : '<div class="ax-empty">추가한 이메일 관리자가 없습니다.</div>';
+      var owners = data.googleEmails || [];
+      var rows = owners.map(function(email) { return {email:email,kind:'Google 로그인',role:'최고관리자'}; }).concat((data.accounts || []).map(function(account) { return {id:owners.indexOf(account.email) < 0 ? account.id : null,email:account.email,kind:'Google 로그인',role:'관리자',date:fmt(account.created_at)}; }));
+      list.innerHTML = rows.length ? '<ul class="ax-account-list">' + rows.map(function(row) { return '<li><span class="ax-account-avatar">' + icon('mail') + '</span><div><b>' + esc(row.email) + '</b><small>' + esc(row.kind) + (row.date ? ' · ' + row.date + ' 등록' : '') + '</small></div><span class="ax-tag">' + row.role + '</span>' + (row.id ? '<button type="button" class="ax-btn danger" data-act="account-delete" data-account-id="' + esc(row.id) + '" data-account-email="' + esc(row.email) + '" aria-label="' + esc(row.email) + ' 관리자 삭제">삭제</button>' : '') + '</li>'; }).join('') + '</ul>' : '<div class="ax-empty">추가한 이메일 관리자가 없습니다.</div>';
       var button = $('#account-create'); if (button) button.disabled = data.googleLoginReady !== true;
       var message = $('#account-message'); if (message && !message.classList.contains('success')) message.textContent = data.googleLoginReady === true ? '' : 'Google 로그인 연결을 확인해 주세요.';
     }).catch(function(error) {
@@ -632,6 +633,27 @@
       form.reset(); message.classList.add('success'); message.textContent = email + ' 관리자를 추가했습니다. 등록된 Google 계정으로 로그인할 수 있습니다.';
       loadAccounts();
     }).catch(function(error) { message.textContent = error.message; }).finally(function() { button.disabled = false; button.textContent = '관리자 추가'; });
+  }
+  function deleteAccount(button) {
+    if (adminRole !== 'superadmin' || button.disabled) return;
+    var id = button.getAttribute('data-account-id'), email = button.getAttribute('data-account-email');
+    if ($('#account-delete-dialog')) return;
+    var dialog = document.createElement('dialog');
+    dialog.id = 'account-delete-dialog'; dialog.className = 'ax-account-confirm'; dialog.setAttribute('aria-labelledby','account-delete-title');
+    dialog.innerHTML = '<form method="dialog"><h2 id="account-delete-title">관리자를 삭제하시겠습니까?</h2><p><b>' + esc(email) + '</b></p><p>기존 로그인도 즉시 차단됩니다. 다시 추가하기 전까지 관리자 페이지를 사용할 수 없습니다.</p><div class="ax-actions"><button class="ax-btn" value="cancel" autofocus>취소</button><button class="ax-btn danger" value="delete">관리자 삭제</button></div></form>';
+    dialog.addEventListener('close',function() {
+      var confirmed = dialog.returnValue === 'delete'; dialog.remove();
+      if (confirmed) removeAccount(button,id,email);
+    });
+    root.appendChild(dialog); dialog.showModal();
+  }
+  function removeAccount(button,id,email) {
+    var message = $('#account-list-message');
+    message.classList.remove('success'); message.textContent = ''; button.disabled = true; button.textContent = '삭제 중…';
+    accountsRequest({action:'delete',id:id}).then(function() {
+      message.classList.add('success'); message.textContent = email + ' 관리자를 삭제하고 접근 권한을 해제했습니다.';
+      loadAccounts();
+    }).catch(function(error) { message.textContent = error.message; }).finally(function() { button.disabled = false; button.textContent = '삭제'; });
   }
 
   /* ── 상태 배지 매핑 ── */
@@ -1196,6 +1218,7 @@
     if (act === "glogin") { doGoogleLogin(); return; }
     if (act === "logout") { logout(); return; }
     if (act === "accounts-reload") { loadAccounts(); return; }
+    if (act === "account-delete") { deleteAccount(actEl); return; }
 
     // 탭/설정 전환
     var tabEl = e.target.closest("[data-tab]");

@@ -17,6 +17,19 @@ export async function onRequest({request,env}) {
       const googleEmails=String(env.ADMIN_EMAILS||'').split(/[,\s]+/).map(normalizeEmail).filter(Boolean);
       return json({accounts:results||[],googleEmails,googleLoginReady:!!env.GOOGLE_CLIENT_ID});
     }
+    if (body.action==='delete') {
+      if (typeof body.id!=='string' || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(body.id)) return json({error:'삭제할 관리자 계정을 확인해 주세요.'},400);
+      const account=await env.DB.prepare('SELECT id,email FROM admin_google_accounts WHERE id=?').bind(body.id).first();
+      if (!account) return json({error:'이미 삭제되었거나 존재하지 않는 관리자입니다.'},404);
+      const owners=String(env.ADMIN_EMAILS||'').split(/[,\s]+/).map(normalizeEmail);
+      if (owners.includes(normalizeEmail(account.email)) || admin.subject==='google-account:'+account.id) return json({error:'최고관리자와 현재 로그인한 계정은 삭제할 수 없습니다.'},403);
+      // D1 batch is atomic. Removing the row also rejects any concurrent login/session.
+      await env.DB.batch([
+        env.DB.prepare('DELETE FROM admin_sessions WHERE subject=?').bind('google-account:'+account.id),
+        env.DB.prepare('DELETE FROM admin_google_accounts WHERE id=?').bind(account.id)
+      ]);
+      return json({ok:true});
+    }
     if (body.action!=='create') return json({error:'지원하지 않는 작업입니다.'},400);
     const email=normalizeEmail(body.email);
     if (!validEmail(email)) return json({error:'올바른 이메일 주소를 입력해 주세요.'},400);

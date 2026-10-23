@@ -29,6 +29,7 @@ test('account management fails closed for unauthenticated, cross-origin and role
   for(const e of [{DB:database()},env()]) {
     assert.equal((await call(accounts,e,{action:'list',role:'superadmin'})).status,403);
     assert.equal((await call(accounts,e,{action:'create',email:'staff@example.com'})).status,403);
+    assert.equal((await call(accounts,e,{action:'delete',id:crypto.randomUUID(),role:'superadmin'})).status,403);
     assert.equal((await isAdmin(e,{})).ok,false);
   }
   const e=env();
@@ -53,7 +54,7 @@ test('superadmin registers only a normalized Google email without passwords, tok
   assert.equal(googleCalls,0);
 });
 
-test('registered Google staff can manage the site but cannot list or add administrators',async()=>{
+test('registered Google staff can manage the site but cannot list, add or delete administrators',async()=>{
   const e=env();await create(e);staffClaims();
   const response=await call(login,e,{idToken:'verified-staff-token'}),data=await response.json(),staffCookie=cookie(response);
   assert.equal(response.status,200);assert.equal(data.role,'admin');assert.equal(data.email,'staff@example.com');assert.ok(!data.token);
@@ -61,10 +62,45 @@ test('registered Google staff can manage the site but cannot list or add adminis
   const row=await e.DB.prepare('SELECT * FROM admin_google_accounts').first();assert.equal(row.google_sub,'google-staff-456');
   assert.equal((await call(accounts,e,{action:'create',email:'escalated@example.com',role:'superadmin'},{cookie:staffCookie})).status,403);
   assert.equal((await call(accounts,e,{action:'list',role:'superadmin'},{cookie:staffCookie})).status,403);
+  assert.equal((await call(accounts,e,{action:'delete',id:row.id,role:'superadmin'},{cookie:staffCookie})).status,403);
   assert.equal((await call(settings,e,{settings:{phone:'02-2277-2442'}},{cookie:staffCookie})).status,200);
   assert.equal((await (await call(login,e,{action:'check'},{cookie:staffCookie})).json()).role,'admin');
   await e.DB.prepare('DELETE FROM admin_google_accounts WHERE email=?').bind('staff@example.com').run();
   assert.equal((await call(login,e,{action:'check'},{cookie:staffCookie})).status,401);
+});
+
+test('superadmin deletion revokes every staff session, rejects Google login and preserves other accounts',async()=>{
+  const e=env(),saved=await (await create(e)).json(),other=await (await create(e,'other@example.com')).json();
+  const ownerCookie=cookie(await call(login,e,{idToken:'owner-token'}));
+  staffClaims();
+  const staffCookies=[cookie(await call(login,e,{idToken:'staff-token-1'})),cookie(await call(login,e,{idToken:'staff-token-2'}))];
+  assert.equal((await e.DB.prepare('SELECT COUNT(*) AS n FROM admin_sessions WHERE subject=?').bind('google-account:'+saved.account.id).first()).n,2);
+  const removed=await call(accounts,e,{action:'delete',id:saved.account.id},{cookie:ownerCookie});
+  assert.equal(removed.status,200);assert.deepEqual(await removed.json(),{ok:true});
+  assert.equal((await e.DB.prepare('SELECT COUNT(*) AS n FROM admin_sessions WHERE subject=?').bind('google-account:'+saved.account.id).first()).n,0);
+  for(const staffCookie of staffCookies) {
+    assert.equal((await call(login,e,{action:'check'},{cookie:staffCookie})).status,401);
+    assert.equal((await call(settings,e,{settings:{phone:'unauthorized change'}},{cookie:staffCookie})).status,403);
+  }
+  assert.equal((await call(login,e,{idToken:'deleted-staff-token'})).status,401);
+  const list=await (await call(accounts,e,{action:'list'},{cookie:ownerCookie})).json();
+  assert.deepEqual(list.accounts.map(a=>a.id),[other.account.id]);assert.deepEqual(list.googleEmails,['owner@example.com']);
+  assert.equal((await call(accounts,e,{action:'delete',id:saved.account.id},{cookie:ownerCookie})).status,404);
+  const readded=await (await create(e)).json();assert.notEqual(readded.account.id,saved.account.id);
+  assert.equal((await call(login,e,{idToken:'readded-staff-token'})).status,200);
+  assert.equal((await call(login,e,{action:'check'},{cookie:staffCookies[0]})).status,401);
+});
+
+test('deletion rejects bad IDs, cross-origin requests and protected server owners',async()=>{
+  const e=env(),saved=await (await create(e)).json();
+  for(const id of [undefined,null,{},'',"' OR 1=1 --",'owner@example.com']) {
+    assert.equal((await call(accounts,e,{key:e.ADMIN_KEY,action:'delete',id})).status,400);
+  }
+  assert.equal((await call(accounts,e,{key:e.ADMIN_KEY,action:'delete',id:crypto.randomUUID()})).status,404);
+  assert.equal((await call(accounts,e,{key:e.ADMIN_KEY,action:'delete',id:saved.account.id},{Origin:'https://evil.invalid'})).status,403);
+  e.ADMIN_EMAILS+=' STAFF@example.com';
+  assert.equal((await call(accounts,e,{key:e.ADMIN_KEY,action:'delete',id:saved.account.id})).status,403);
+  assert.ok(await e.DB.prepare('SELECT id FROM admin_google_accounts WHERE id=?').bind(saved.account.id).first());
 });
 
 test('unregistered Google emails and changed Google subjects cannot inherit administrator access',async()=>{
